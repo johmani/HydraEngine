@@ -1,0 +1,36 @@
+[submodule "ThirdParty/Premake"]
+	path = ThirdParty/Premake
+	url = https://github.com/johmani/Premake.git
+[submodule "ThirdParty/glm"]
+	path = ThirdParty/glm
+	url = https://github.com/johmani/glm.git
+[submodule "ThirdParty/taskflow"]
+	path = ThirdParty/taskflow
+	url = https://github.com/johmani/taskflow.git
+[submodule "ThirdParty/stb_image"]
+	path = ThirdParty/stb_image
+	url = https://github.com/johmani/stb_image.git
+[submodule "ThirdParty/tracy"]
+	path = ThirdParty/tracy
+	url = https://github.com/johmani/tracy.git
+[submodule "ThirdParty/ShaderMake"]
+	path = ThirdParty/ShaderMake
+	url = https://github.com/johmani/ShaderMake.git
+[submodule "ThirdParty/Vulkan-Headers"]
+	path = ThirdParty/Vulkan-Headers
+	url = https://github.com/johmani/Vulkan-Headers.git
+[submodule "ThirdParty/glfw"]
+	path = ThirdParty/glfw
+	url = https://github.com/johmani/glfw.git
+[submodule "ThirdParty/yaml-cpp"]
+	path = ThirdParty/yaml-cpp
+	url = https://github.com/johmani/yaml-cpp.git
+[submodule "ThirdParty/nativefiledialog-extended"]
+	path = ThirdParty/nativefiledialog-extended
+	url = https://github.com/johmani/nativefiledialog-extended.git
+[submodule "ThirdParty/spdlog"]
+	path = ThirdParty/spdlog
+	url = https://github.com/johmani/spdlog.git
+[submodule "ThirdParty/nvrhi"]
+	path = ThirdParty/nvrhi
+	url = https://github.com/johmani/nvrhi.git
