@@ -42,7 +42,7 @@ IncludeDir["ShaderMake"] = "%{wks.location}/ThirdParty/ShaderMake/include"
 IncludeDir["tracy"] = "%{wks.location}/ThirdParty/tracy/public/tracy"
 IncludeDir["taskflow"] = "%{wks.location}/ThirdParty/taskflow"
 IncludeDir["Vulkan_Headers"] = "%{wks.location}/ThirdParty/Vulkan-Headers/Include"
-
+IncludeDir["ImGui"] = "%{wks.location}/ThirdParty/imgui"
 -------------------------------------------------------------------------------------
 -- helper functions to build Vulkan D3D11 D3D12 
 -------------------------------------------------------------------------------------
@@ -121,3 +121,7 @@ workspace "HydraEngine"
         include "ThirdParty/yaml-cpp"
         include "ThirdParty/nvrhi"
         include "ThirdParty/ShaderMake"
+
+    group "HydraEngine"
+        include "HydraEngine"
+        
