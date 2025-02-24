@@ -11,6 +11,7 @@ project "HydraEngine"
         "Source/HydraEngine/**.cpp",
         "Include/**.h",
         "Include/**.cppm",
+        "*.lua",
         
         "%{IncludeDir.HydraEngine}/**.cppm",
         "%{IncludeDir.nvrhi}/**.cppm",
@@ -97,7 +98,7 @@ project "HydraEngine"
     	optimize "On"
         files { "%{wks.location}/ThirdParty/tracy/public/TracyClient.cpp" }
         includedirs { "%{IncludeDir.tracy}" }
-        defines { "HE_PROFILE", "TRACY_EXPORTS" }
+        defines { "HE_PROFILE", "TRACY_EXPORTS" , "TRACY_ENABLE" }
     
     filter "configurations:Dist"
     	defines "HE_DIST"

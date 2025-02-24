@@ -23,10 +23,17 @@ int HydraEngine::Main(int argc, char** argv)
 
 #if defined(HE_PLATFORM_WINDOWS) && defined(HE_DIST)
 #include <Windows.h>
-int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hInstPrev, PSTR cmdline, int cmdshow)
-#else
-int main(int __argc, char** __argv)
-#endif
+
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine, int nCmdShow)
 {
 	return HydraEngine::Main(__argc, __argv);
 }
+
+#else
+
+int main(int argc, char** argv)
+{
+	return HydraEngine::Main(argc, argv);
+}
+
+#endif

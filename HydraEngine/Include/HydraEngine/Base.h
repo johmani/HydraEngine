@@ -162,7 +162,9 @@
 //////////////////////////////////////////////////////////////////////////
 
 #if HE_PROFILE 
-#	define TRACY_ENABLE
+#	ifndef TRACY_ENABLE
+#		define TRACY_ENABLE
+#	endif
 #	include "Tracy.hpp"
 #	include "TracyC.h"
 #	define HE_PROFILE_SCOPE(name) ZoneScopedN(name)
