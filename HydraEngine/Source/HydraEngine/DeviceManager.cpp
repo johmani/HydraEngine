@@ -50,51 +50,51 @@ namespace HydraEngine {
 		}
 	}
 
-	bool DeviceManager::CreateInstance(const InstanceParameters& params)
+	bool DeviceManager::CreateInstance(const DeviceInstanceDesc& desc)
 	{
 		HE_PROFILE_FUNCTION();
 
 		if (m_InstanceCreated)
 			return true;
 
-		static_cast<InstanceParameters&>(m_DeviceParams) = params;
+		static_cast<DeviceInstanceDesc&>(m_DeviceDesc) = desc;
 
 		m_InstanceCreated = CreateInstanceInternal();
 		return m_InstanceCreated;
 	}
 
-	bool DeviceManager::CreateHeadlessDevice(const DeviceDesc& params)
+	bool DeviceManager::CreateHeadlessDevice(const DeviceDesc& desc)
 	{
 		HE_PROFILE_FUNCTION();
 
-		m_DeviceParams = params;
-		m_DeviceParams.headlessDevice = true;
+		m_DeviceDesc = desc;
+		m_DeviceDesc.headlessDevice = true;
 
-		if (!CreateInstance(m_DeviceParams))
+		if (!CreateInstance(m_DeviceDesc))
 			return false;
 
 		return CreateDevice();
 	}
 
-	bool DeviceManager::CreateWindowDeviceAndSwapChain(const DeviceDesc& params, WindowState windowState, void* windowHandle)
+	bool DeviceManager::CreateWindowDeviceAndSwapChain(const DeviceDesc& desc, WindowState windowState, void* windowHandle)
 	{
 		HE_PROFILE_FUNCTION();
 
 		m_Window = windowHandle;
 		HE_CORE_VERIFY(m_Window, "invalid window handle");
 
-		m_DeviceParams = params;
-		m_DeviceParams.headlessDevice = false;
-		m_RequestedVSync = params.vsyncEnabled;
+		m_DeviceDesc = desc;
+		m_DeviceDesc.headlessDevice = false;
+		m_RequestedVSync = desc.vsyncEnabled;
 
-		if (!CreateInstance(m_DeviceParams))
+		if (!CreateInstance(m_DeviceDesc))
 			return false;
 
 		{
 			int fbWidth = 0, fbHeight = 0;
 			glfwGetFramebufferSize((GLFWwindow*)m_Window, &fbWidth, &fbHeight);
-			m_DeviceParams.backBufferWidth = fbWidth;
-			m_DeviceParams.backBufferHeight = fbHeight;
+			m_DeviceDesc.backBufferWidth = fbWidth;
+			m_DeviceDesc.backBufferHeight = fbHeight;
 		}
 
 		if (!CreateDevice())
@@ -103,8 +103,8 @@ namespace HydraEngine {
 		if (!CreateSwapChain(windowState))
 			return false;
 		
-		m_DeviceParams.backBufferWidth = 0;
-		m_DeviceParams.backBufferHeight = 0;
+		m_DeviceDesc.backBufferWidth = 0;
+		m_DeviceDesc.backBufferHeight = 0;
 		UpdateWindowSize();
 
 		return true;
@@ -149,22 +149,22 @@ namespace HydraEngine {
 			return;
 
 		if (
-			int(m_DeviceParams.backBufferWidth) != width ||
-			int(m_DeviceParams.backBufferHeight) != height ||
-			(m_DeviceParams.vsyncEnabled != m_RequestedVSync && GetGraphicsAPI() == nvrhi::GraphicsAPI::VULKAN)
+			int(m_DeviceDesc.backBufferWidth) != width ||
+			int(m_DeviceDesc.backBufferHeight) != height ||
+			(m_DeviceDesc.vsyncEnabled != m_RequestedVSync && GetGraphicsAPI() == nvrhi::GraphicsAPI::VULKAN)
 		)
 		{
 			BackBufferResizing();
 
-			m_DeviceParams.backBufferWidth = width;
-			m_DeviceParams.backBufferHeight = height;
-			m_DeviceParams.vsyncEnabled = m_RequestedVSync;
+			m_DeviceDesc.backBufferWidth = width;
+			m_DeviceDesc.backBufferHeight = height;
+			m_DeviceDesc.vsyncEnabled = m_RequestedVSync;
 
 			ResizeSwapChain();
 			BackBufferResized();
 		}
 
-		m_DeviceParams.vsyncEnabled = m_RequestedVSync;
+		m_DeviceDesc.vsyncEnabled = m_RequestedVSync;
 	}
 
 	void DeviceManager::Shutdown()
@@ -202,7 +202,7 @@ namespace HydraEngine {
 		case nvrhi::GraphicsAPI::D3D12:  return CreateD3D12();
 #endif
 #if NVRHI_HAS_VULKAN
-		case nvrhi::GraphicsAPI::VULKAN: return CreateVK();
+		case nvrhi::GraphicsAPI::VULKAN: return CreateVULKAN();
 #endif
 		}
 

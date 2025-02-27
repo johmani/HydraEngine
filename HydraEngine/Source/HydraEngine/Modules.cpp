@@ -127,7 +127,7 @@ namespace HydraEngine {
 				}
 			}
 
-			HE_CORE_ERROR("Module {} failed to load: ModuleFactory", newModule->name);
+			HE_CORE_ERROR("LoadModule failed: OnModuleLoaded function not found in module {}.", newModule->name);
 			return false;
 		}
 
@@ -148,7 +148,7 @@ namespace HydraEngine {
 			auto it = c.modules.find(handle);
 			if (it == c.modules.end())
 			{
-				HE_CORE_ERROR("Failed to unload module {}: Not found.", handle);
+				HE_CORE_ERROR("UnloadModule failed: Module with handle {} not found.", handle);
 				return false;
 			}
 
@@ -160,7 +160,7 @@ namespace HydraEngine {
 			}
 			else
 			{
-				HE_CORE_WARN("Module {} does not have an OnModuleShutdown function.", moduleData->name);
+				HE_CORE_WARN("UnloadModule failed: Module {} does not define an OnModuleShutdown function.", moduleData->name);
 			}
 
 			c.modules.erase(it);

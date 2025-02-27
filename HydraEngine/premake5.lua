@@ -14,9 +14,13 @@ project "HydraEngine"
         "*.lua",
         
         "%{IncludeDir.HydraEngine}/**.cppm",
-        "%{IncludeDir.nvrhi}/**.cppm",
-        "%{IncludeDir.yaml_cpp}/**.cppm",
         "%{IncludeDir.glm}/**.cppm",
+    }
+
+    buildoptions 
+    {
+        AddCppm("nvrhi"),
+        AddCppm("yaml_cpp")
     }
 
     defines 

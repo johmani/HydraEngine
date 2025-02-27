@@ -1374,7 +1374,7 @@ export namespace HydraEngine {
 		void message(nvrhi::MessageSeverity severity, const char* messageText) override;
 	};
 
-	struct InstanceParameters
+	struct DeviceInstanceDesc
 	{
 		bool enableDebugRuntime = false;
 		bool enableWarningsAsErrors = false;
@@ -1395,7 +1395,7 @@ export namespace HydraEngine {
 		bool maximized = false;
 	};
 
-	struct DeviceDesc : public InstanceParameters
+	struct DeviceDesc : public DeviceInstanceDesc
 	{
 		nvrhi::GraphicsAPI api = nvrhi::GraphicsAPI::VULKAN;
 		bool allowModeSwitch = true;
@@ -1457,17 +1457,17 @@ export namespace HydraEngine {
 
 		static DeviceManager* Create(nvrhi::GraphicsAPI api);
 
-		bool CreateHeadlessDevice(const DeviceDesc& params);
-		bool CreateWindowDeviceAndSwapChain(const DeviceDesc& params, WindowState windowState, void* windowHandle);
-		bool CreateInstance(const InstanceParameters& params);
+		bool CreateHeadlessDevice(const DeviceDesc& desc);
+		bool CreateWindowDeviceAndSwapChain(const DeviceDesc& desc, WindowState windowState, void* windowHandle);
+		bool CreateInstance(const DeviceInstanceDesc& desc);
 
 		void UpdateWindowSize();
 		void PresentResult();
 
 		nvrhi::IFramebuffer* GetCurrentFramebuffer();
 		nvrhi::IFramebuffer* GetFramebuffer(uint32_t index);
-		const DeviceDesc& GetDeviceParams() { return m_DeviceParams; }
-		bool IsVsyncEnabled() const { return m_DeviceParams.vsyncEnabled; }
+		const DeviceDesc& GetDeviceDesc() { return m_DeviceDesc; }
+		bool IsVsyncEnabled() const { return m_DeviceDesc.vsyncEnabled; }
 		uint32_t GetFrameIndex() const { return m_FrameIndex; }
 
 		virtual void Shutdown();
@@ -1490,7 +1490,7 @@ export namespace HydraEngine {
 		virtual void GetEnabledVulkanLayers(std::vector<std::string>& layers) const {}
 
 	protected:
-		DeviceDesc m_DeviceParams;
+		DeviceDesc m_DeviceDesc;
 		void* m_Window = nullptr;
 		bool m_IsNvidia = false;
 		bool m_RequestedVSync = false;
@@ -1512,9 +1512,15 @@ export namespace HydraEngine {
 		virtual void Present() = 0;
 
 	private:
+#if NVRHI_HAS_D3D11
 		static DeviceManager* CreateD3D11();
+#endif
+#if NVRHI_HAS_D3D12
 		static DeviceManager* CreateD3D12();
-		static DeviceManager* CreateVK();
+#endif
+#if NVRHI_HAS_VULKAN
+		static DeviceManager* CreateVULKAN();
+#endif
 	};
 
 	//////////////////////////////////////////////////////////////////////////
@@ -1659,8 +1665,8 @@ export namespace HydraEngine {
 	//////////////////////////////////////////////////////////////////////////
 
 	// Use these callbacks in your module:
-	// EXPORT_MODULE void OnModuleLoaded() {}
-	// EXPORT_MODULE void OnModuleShutdown() {}
+	// EXPORT void OnModuleLoaded() {}
+	// EXPORT void OnModuleShutdown() {}
 
 	namespace Modules {
 
@@ -1681,7 +1687,7 @@ export namespace HydraEngine {
 				handle = Open(finalPath.c_str());
 				if (!handle)
 				{
-					HE_CORE_ERROR("Could not load library {} : {}", finalPath, GetError());
+					HE_CORE_ERROR("SharedLib : Could not load library {} : {}", finalPath, GetError());
 				}
 			}
 
@@ -1692,13 +1698,13 @@ export namespace HydraEngine {
 			template<typename T> T& GetVariable(const std::string_view& symbolName) const { return *reinterpret_cast<T*>(GetSymbol(symbolName)); }
 			void* GetSymbol(const std::string_view& symbolName) const
 			{
-				HE_ASSERT(handle, "The dynamic library handle is null");
+				HE_ASSERT(handle, "Modules::SharedLib::GetSymbol failed : The dynamic library handle is null");
 
 				auto symbol = GetSymbolAddress(handle, symbolName.data());
 
 				if (!symbol)
 				{
-					HE_ERROR("Could not get symbol ({}) : {}", symbolName, GetError());
+					HE_ERROR("SharedLib::GetSymbol : Could not get symbol {} : {}", symbolName, GetError());
 				}
 
 				return symbol;

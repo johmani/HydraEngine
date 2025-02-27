@@ -1,7 +1,6 @@
 module;
 
 #include "HydraEngine/Base.h"
-#include <GLFW/glfw3.h>
 #include <nfd.hpp>
 
 
@@ -13,49 +12,6 @@ module HydraEngine;
 import std;
 
 namespace HydraEngine::FileSystem {
-
-    std::vector<std::filesystem::path> FindFilesInDirectory(const std::filesystem::path& directory, const char* extension)
-    {
-        std::vector<std::filesystem::path> filesPaths;
-
-        for (const auto& entry : std::filesystem::recursive_directory_iterator(directory))
-            if (entry.is_regular_file() && entry.path().extension() == extension)
-                filesPaths.emplace_back(entry.path());
-
-        return filesPaths;
-    }
-
-    std::string GetBaseFileName(const std::filesystem::path& filePath)
-    {
-        std::string baseFileName = filePath.stem().string();
-
-        size_t lastDotPos = baseFileName.find_last_of('.');
-        if (lastDotPos != std::string::npos)
-        {
-            baseFileName = baseFileName.substr(0, lastDotPos);
-        }
-
-        return baseFileName;
-    }
-
-    bool DeleteFile(const std::filesystem::path& filePath)
-    {
-        namespace fs = std::filesystem;
-        try
-        {
-            fs::remove(filePath);
-            HE_CORE_INFO("File deleted successfully");
-            return true;
-        }
-        catch (const std::exception& ex)
-        {
-            auto& e = ex;
-            HE_CORE_ERROR("{}", e.what());
-            return false;
-        }
-
-        return false;
-    }
 
     bool Delete(const std::filesystem::path& path)
     {
