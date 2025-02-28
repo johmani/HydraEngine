@@ -122,10 +122,12 @@ namespace HydraEngine {
 		bool m_BufferDeviceAddressSupported = false;
 
 #if VK_HEADER_VERSION >= 301
-		vk::detail::DynamicLoader dynamicLoader;
+		typedef vk::detail::DynamicLoader VulkanDynamicLoader;
 #else
-		vk::DynamicLoader dynamicLoader;
+		typedef vk::DynamicLoader VulkanDynamicLoader;
 #endif
+
+		std::unique_ptr<VulkanDynamicLoader> dynamicLoader;
 
 		static VKAPI_ATTR VkBool32 VKAPI_CALL vulkanDebugCallback(
 			vk::DebugReportFlagsEXT flags,
@@ -403,17 +405,18 @@ namespace HydraEngine {
 			return true;
 		}
 
-		bool CreateInstanceInternal() override
+		bool CreateInstanceInternal()
 		{
 			if (m_DeviceDesc.enableDebugRuntime)
 			{
 				enabledExtensions.instance.insert("VK_EXT_debug_report");
 				enabledExtensions.layers.insert("VK_LAYER_KHRONOS_validation");
 			}
-
-			PFN_vkGetInstanceProcAddr vkGetInstanceProcAddr = dynamicLoader.getProcAddress<PFN_vkGetInstanceProcAddr>("vkGetInstanceProcAddr");
+		
+			dynamicLoader = std::make_unique<VulkanDynamicLoader>(m_DeviceDesc.vulkanLibraryName);
+			PFN_vkGetInstanceProcAddr vkGetInstanceProcAddr = dynamicLoader->getProcAddress<PFN_vkGetInstanceProcAddr>("vkGetInstanceProcAddr");
 			VULKAN_HPP_DEFAULT_DISPATCHER.init(vkGetInstanceProcAddr);
-
+		
 			return CreateInstance();
 		}
 

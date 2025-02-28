@@ -924,7 +924,7 @@ export namespace HydraEngine {
 	enum class EventType
 	{
 		None = 0,
-		WindowClose, WindowResize, WindowFocus, WindowLostFocus, WindowMoved, WindowDrop,
+		WindowClose, WindowResize, WindowFocus, WindowLostFocus, WindowMoved, WindowDrop, WindowContentScale,
 		KeyPressed, KeyReleased, KeyTyped,
 		MouseButtonPressed, MouseButtonReleased, MouseMoved, MouseScrolled, MouseEnter,
 		GamepadButtonPressed, GamepadButtonReleased, GamepadAxisMoved, GamepadConnected
@@ -1048,6 +1048,25 @@ export namespace HydraEngine {
 	private:
 		const char** m_Paths;
 		int m_Count;
+	};
+
+	class WindowContentScaleEvent : public Event
+	{
+	public:
+		WindowContentScaleEvent(float sx, float sy) : scaleX(sx), scaleY(sy) {}
+
+		std::string ToString() const override
+		{
+			std::stringstream ss;
+			ss << "WindowContentScaleEvent: " << scaleX << ", " << scaleY <<  "\n";
+			return ss.str();
+		}
+
+		EVENT_CLASS_TYPE(WindowContentScale)
+		EVENT_CLASS_CATEGORY(EventCategoryApplication)
+
+	private:
+		float scaleX, scaleY;
 	};
 
 	//////////////////////////////////////////////////////////////////////////
@@ -1382,6 +1401,7 @@ export namespace HydraEngine {
 		bool headlessDevice = false;
 
 #if NVRHI_HAS_VULKAN
+		std::string vulkanLibraryName;
 		std::vector<std::string> requiredVulkanInstanceExtensions;
 		std::vector<std::string> requiredVulkanLayers;
 		std::vector<std::string> optionalVulkanInstanceExtensions;
@@ -1565,6 +1585,10 @@ export namespace HydraEngine {
 		bool centerWindow = true;
 		bool fullScreen = false;
 		bool maximized = false;
+
+		bool enablePerMonitorDPI = false;
+		bool supportExplicitDisplayScaling = false;
+		bool resizeWindowWithDisplayScale = false;
 	};
 
 	// internal
@@ -1604,7 +1628,7 @@ export namespace HydraEngine {
 	public:
 		using EventCallback = std::function<void(Event&)>;
 
-		void Init(const WindowDesc& props, DeviceDesc& deviceSpec);
+		void Init(const WindowDesc& windowDesc, DeviceDesc& deviceDesc);
 		HYDRA_API ~Window();
 
 		HYDRA_API void* GetNativeWindow();
@@ -1619,20 +1643,23 @@ export namespace HydraEngine {
 		HYDRA_API bool ToggleScreenState();
 		HYDRA_API void FocusMainWindow();
 		HYDRA_API bool IsMainWindowFocused();
-
-		void SetTitleBarState(bool state) { m_Data.isTitleBarHovered = state; }
-		bool GetTitleBarState() const { return m_Data.isTitleBarHovered; }
-		uint32_t GetWidth() const { return m_Data.width; }
-		uint32_t GetHeight() const { return m_Data.height; }
+		HYDRA_API std::pair<float, float> GetWindowContentScale();
+		
+		void SetTitleBarState(bool state) { m_isTitleBarHovered = state; }
+		bool GetTitleBarState() const { return m_isTitleBarHovered; }
+		uint32_t GetWidth() const { return desc.width; }
+		uint32_t GetHeight() const { return desc.height; }
 		void* GetWindowHandle() const { return m_WindowHandle; }
+		bool SupportsExplicitScaling() { return desc.supportExplicitDisplayScaling; }
+		bool ResizesWithDisplayScale() { return desc.resizeWindowWithDisplayScale; }
 		DeviceManager* GetDeviceManager() { return m_DeviceManager; };
 		
 		// internal
 		InputState inputData;
 
 	private:
-		void SetEventCallback(const EventCallback& callback) { m_Data.eventCallback = callback; }
-		void CallEvent(Event& e) { m_Data.eventCallback(e); }
+		void SetEventCallback(const EventCallback& callback) { eventCallback = callback; }
+		void CallEvent(Event& e) { eventCallback(e); }
 		void UpdateEvent();
 		nvrhi::IFramebuffer* BeginFrame();
 		void EndFrame();
@@ -1640,22 +1667,13 @@ export namespace HydraEngine {
 		void* m_WindowHandle = nullptr;
 		DeviceManager* m_DeviceManager = nullptr;
 
-		struct WindowData
-		{
-			std::string_view title;
-			uint32_t width, height;
-			bool fullScreen;
+		bool m_isTitleBarHovered = false;
+		float m_DPIScaleFactorX = 1.f;
+		float m_DPIScaleFactorY = 1.f;
 
-			bool isTitleBarHovered = false;
-			bool enablePerMonitorDPI = false;
+		WindowDesc desc;
 
-			float DPIScaleFactorX = 1.f;
-			float DPIScaleFactorY = 1.f;
-
-			EventCallback eventCallback = 0;
-		};
-
-		WindowData m_Data;
+		EventCallback eventCallback = 0;
 
 		friend ApplicationContext;
 	};
@@ -1975,6 +1993,7 @@ export namespace HydraEngine {
 		HYDRA_API bool Copy(const std::filesystem::path& from, const std::filesystem::path& to);
 		HYDRA_API void Open(const std::filesystem::path& path);
 		HYDRA_API std::vector<uint8_t> ReadBinaryFile(const std::filesystem::path& filePath);
+		HYDRA_API Buffer ReadBinaryFileToBuffer(const std::filesystem::path& filePath);
 		HYDRA_API std::string ReadTextFile(const std::filesystem::path& filePath);
 		HYDRA_API bool ConvertBinaryToHeader(const std::filesystem::path& inputFileName, const std::filesystem::path& outputFileName, const std::string& arrayName);
 	}

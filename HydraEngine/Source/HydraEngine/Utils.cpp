@@ -113,6 +113,18 @@ namespace HydraEngine::FileSystem {
         return buffer;
     }
 
+    Buffer ReadBinaryFileToBuffer(const std::filesystem::path& filePath)
+    {
+        std::ifstream file(filePath, std::ios::binary | std::ios::ate);
+        file.seekg(0, std::ios::beg);
+        size_t size = file.tellg();
+        uint8_t* data = new uint8_t[size];
+        HydraEngine::Buffer buffer(data, size);
+        file.read(reinterpret_cast<char*>(data), size);
+
+        return buffer;
+    }
+
     std::string FileSystem::ReadTextFile(const std::filesystem::path& filePath)
     {
         std::ifstream infile(filePath);

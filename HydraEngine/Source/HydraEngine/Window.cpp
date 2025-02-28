@@ -87,24 +87,21 @@ namespace HydraEngine {
 	void Window::Init(const WindowDesc& windowDesc, DeviceDesc& deviceDesc)
 	{
 		HE_PROFILE_FUNCTION();
-
-		m_Data.title = windowDesc.title;
-		m_Data.width = windowDesc.width;
-		m_Data.height = windowDesc.height;
-		m_Data.fullScreen = windowDesc.fullScreen;
-
+		
 #ifdef HE_PLATFORM_WINDOWS
-		if (m_Data.enablePerMonitorDPI)
-			SetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE); // this needs to happen before glfwInit in order to override GLFW behavior
-		else
+		if (!desc.enablePerMonitorDPI)
+		{
+			// glfwInit enables the maximum supported level of DPI awareness unconditionally.
+			// If the app doesn't need it, we have to call this function before glfwInit to override that behavior.
 			SetProcessDpiAwareness(PROCESS_DPI_UNAWARE);
+		}
 #endif
 
 		if (s_GLFWWindowCount == 0)
 		{
 			HE_PROFILE_SCOPE("glfwInit");
 			int success = glfwInit();
-			HE_CORE_ASSERT(success && "Could not initialize GLFW!");
+			HE_CORE_ASSERT(success, "Could not initialize GLFW!");
 			glfwSetErrorCallback(GLFWErrorCallback);
 		}
 
@@ -126,13 +123,12 @@ namespace HydraEngine {
 			}
 
 			HE_CORE_VERIFY(foundFormat);
-
-			glfwWindowHint(GLFW_SAMPLES, deviceDesc.swapChainSampleCount);
-			glfwWindowHint(GLFW_REFRESH_RATE, deviceDesc.refreshRate);
 		}
 
+		glfwWindowHint(GLFW_SAMPLES, deviceDesc.swapChainSampleCount);
+		glfwWindowHint(GLFW_REFRESH_RATE, deviceDesc.refreshRate);
+		glfwWindowHint(GLFW_SCALE_TO_MONITOR, desc.resizeWindowWithDisplayScale);
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-		//glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 		//glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
 		//glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 		//glfwWindowHint(GLFW_MAXIMIZED, windowDesc.Maximized);
@@ -145,22 +141,22 @@ namespace HydraEngine {
 
 		if (windowDesc.maximized)
 		{
-			m_Data.width = (int)((float)(videoMode->width) * 0.95f);
-			m_Data.height = (int)((float)(videoMode->height) * 0.95f);
+			desc.width = (int)((float)(videoMode->width) * 0.95f);
+			desc.height = (int)((float)(videoMode->height) * 0.95f);
 
 			glfwWindowHint(GLFW_MAXIMIZED, windowDesc.maximized);
 		}
 
 		if (windowDesc.fullScreen)
 		{
-			m_Data.width  = videoMode->width;
-			m_Data.height = videoMode->height;
+			desc.width  = videoMode->width;
+			desc.height = videoMode->height;
 		}
 		
 		{
 			HE_PROFILE_SCOPE("glfwCreateWindow");
 
-			m_WindowHandle = glfwCreateWindow((int)m_Data.width, (int)m_Data.height, m_Data.title.data(), nullptr, nullptr);
+			m_WindowHandle = glfwCreateWindow((int)desc.width, (int)desc.height, desc.title.data(), nullptr, nullptr);
 			++s_GLFWWindowCount;
 
 			// applying fullscreen mode by passing the primaryMonitor to glfwCreateWindow causes some weird behavior, but this works just fine for now.
@@ -178,8 +174,8 @@ namespace HydraEngine {
 			glfwGetMonitorPos(primaryMonitor, &monitorX, &monitorY);
 		
 			glfwSetWindowPos(glfwWindow,
-				monitorX + (videoMode->width - m_Data.width) / 2,
-				monitorY + (videoMode->height - m_Data.height) / 2
+				monitorX + (videoMode->width - desc.width) / 2,
+				monitorY + (videoMode->height - desc.height) / 2
 			);
 		}
 		
@@ -218,53 +214,64 @@ namespace HydraEngine {
 
 		glfwShowWindow(glfwWindow);
 
-		glfwSetWindowUserPointer(glfwWindow, &m_Data);
+		glfwSetWindowUserPointer(glfwWindow, this);
 
 		//glfwSetTitlebarHitTestCallback(m_WindowHandle, [](GLFWwindow* window, int x, int y, int* hit)
 		//{
-		//	WindowData* app = (WindowData*)glfwGetWindowUserPointer(window);
-		//	*hit = app->isTitleBarHovered;
+		//	WindowState* app = (WindowState*)glfwGetWindowUserPointer(window);
+		//	*hit = app->m_isTitleBarHovered;
 		//});
 
 		glfwSetWindowSizeCallback(glfwWindow, [](GLFWwindow* window, int width, int height)
 		{
-			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
-			data.width = width;
-			data.height = height;
+			Window& w = *(Window*)glfwGetWindowUserPointer(window);
+			w.desc.width = width;
+			w.desc.height = height;
 
 			WindowResizeEvent event((uint32_t)width, (uint32_t)height);
-			data.eventCallback(event);
+			w.eventCallback(event);
 		});
 
 		glfwSetWindowCloseCallback(glfwWindow, [](GLFWwindow* window)
 		{
-			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+			Window& w = *(Window*)glfwGetWindowUserPointer(window);
 			WindowCloseEvent event;
-			data.eventCallback(event);
+			w.eventCallback(event);
+		});
+
+		glfwSetWindowContentScaleCallback(glfwWindow, [](GLFWwindow* window, float xscale, float yscale)
+		{
+			Window& w = *(Window*)glfwGetWindowUserPointer(window);
+
+			w.m_DPIScaleFactorX = xscale;
+			w.m_DPIScaleFactorY = yscale;
+
+			WindowContentScaleEvent event(xscale, yscale);
+			w.eventCallback(event);
 		});
 
 		glfwSetKeyCallback(glfwWindow, [](GLFWwindow* window, int key, int scancode, int action, int mods)
 		{
-			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+			Window& w = *(Window*)glfwGetWindowUserPointer(window);
 
 			switch (action)
 			{
 			case GLFW_PRESS:
 			{
 				KeyPressedEvent event(key, false);
-				data.eventCallback(event);
+				w.eventCallback(event);
 				break;
 			}
 			case GLFW_RELEASE:
 			{
 				KeyReleasedEvent event(key);
-				data.eventCallback(event);
+				w.eventCallback(event);
 				break;
 			}
 			case GLFW_REPEAT:
 			{
 				KeyPressedEvent event(key, true);
-				data.eventCallback(event);
+				w.eventCallback(event);
 				break;
 			}
 			}
@@ -272,28 +279,28 @@ namespace HydraEngine {
 
 		glfwSetCharCallback(glfwWindow, [](GLFWwindow* window, unsigned int keycode)
 		{
-			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+			Window& w = *(Window*)glfwGetWindowUserPointer(window);
 
 			KeyTypedEvent event(keycode);
-			data.eventCallback(event);
+			w.eventCallback(event);
 		});
 
 		glfwSetMouseButtonCallback(glfwWindow, [](GLFWwindow* window, int button, int action, int mods)
 		{
-			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+			Window& w = *(Window*)glfwGetWindowUserPointer(window);
 
 			switch (action)
 			{
 			case GLFW_PRESS:
 			{
 				MouseButtonPressedEvent event(button);
-				data.eventCallback(event);
+				w.eventCallback(event);
 				break;
 			}
 			case GLFW_RELEASE:
 			{
 				MouseButtonReleasedEvent event(button);
-				data.eventCallback(event);
+				w.eventCallback(event);
 				break;
 			}
 			}
@@ -301,36 +308,40 @@ namespace HydraEngine {
 
 		glfwSetScrollCallback(glfwWindow, [](GLFWwindow* window, double xOffset, double yOffset)
 		{
-			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+			Window& w = *(Window*)glfwGetWindowUserPointer(window);
 
 			MouseScrolledEvent event((float)xOffset, (float)yOffset);
-			data.eventCallback(event);
+			w.eventCallback(event);
 		});
 
 		glfwSetCursorPosCallback(glfwWindow, [](GLFWwindow* window, double xPos, double yPos)
 		{
-			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+			Window& w = *(Window*)glfwGetWindowUserPointer(window);
+
+			if (!w.desc.supportExplicitDisplayScaling)
+			{
+				xPos /= w.m_DPIScaleFactorX;
+				yPos /= w.m_DPIScaleFactorY;
+			}
 
 			MouseMovedEvent event((float)xPos, (float)yPos);
-			data.eventCallback(event);
+			w.eventCallback(event);
 		});
 
 		glfwSetCursorEnterCallback(glfwWindow, [](GLFWwindow* window, int entered)
 		{
-			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+			Window& w = *(Window*)glfwGetWindowUserPointer(window);
 
 			MouseEnterEvent event((bool)entered);
-
-
-			data.eventCallback(event);
+			w.eventCallback(event);
 		});
 
 		glfwSetDropCallback(glfwWindow, [](GLFWwindow* window, int pathCount, const char* paths[])
 		{
-			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+			Window& w = *(Window*)glfwGetWindowUserPointer(window);
 
 			WindowDropEvent event(paths, pathCount);
-			data.eventCallback(event);
+			w.eventCallback(event);
 		});
 
 		glfwSetJoystickCallback([](int jid, int event)
@@ -361,23 +372,7 @@ namespace HydraEngine {
 
 		glfwSetWindowPosCallback(glfwWindow, [](GLFWwindow* window, int xpos, int ypos)
 		{
-			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
-			auto& w = GetAppContext().mainWindow;
-			
-#ifdef HE_PLATFORM_WINDOWS
-			if (data.enablePerMonitorDPI)
-			{
-				HWND hwnd = (HWND)w.GetNativeWindow();
-				auto monitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
-			
-				uint32_t dpiX;
-				uint32_t dpiY;
-				GetDpiForMonitor(monitor, MDT_EFFECTIVE_DPI, &dpiX, &dpiY);
-			
-				data.DPIScaleFactorX = dpiX / 96.f;
-				data.DPIScaleFactorY = dpiY / 96.f;
-			}
-#endif  
+	
 		});
 
 		glfwSetWindowRefreshCallback(glfwWindow, [](GLFWwindow* window)
@@ -411,28 +406,17 @@ namespace HydraEngine {
 		}
 	}
 
-	void Window::SetVSync(bool enabled)
-	{
-		HE_PROFILE_FUNCTION();
+	void Window::SetVSync(bool enabled) { if (m_DeviceManager) m_DeviceManager->SetVsyncEnabled(enabled); }
 
-		if (m_DeviceManager)
-		{
-			m_DeviceManager->SetVsyncEnabled(enabled);
-		}
-	}
-
-	bool Window::IsVSync() const
-	{
-		return m_DeviceManager ? m_DeviceManager->IsVsyncEnabled() : false;
-	}
+	bool Window::IsVSync() const { return m_DeviceManager ? m_DeviceManager->IsVsyncEnabled() : false; }
 
 	void Window::SetWindowTitle(const std::string_view& title)
 	{
-		if (m_Data.title == title)
+		if (desc.title == title)
 			return;
 
 		glfwSetWindowTitle((GLFWwindow*)m_WindowHandle, title.data());
-		m_Data.title = title;
+		desc.title = title;
 	}
 
 	void* Window::GetNativeWindow()
@@ -447,46 +431,31 @@ namespace HydraEngine {
 #endif
 	}
 
-	void Window::MaximizeWindow()
-	{
-		glfwMaximizeWindow((GLFWwindow*)m_WindowHandle);
-	}
+	void Window::MaximizeWindow() { glfwMaximizeWindow((GLFWwindow*)m_WindowHandle); }
 
-	void Window::MinimizeWindow()
-	{
-		glfwIconifyWindow((GLFWwindow*)m_WindowHandle);
-	}
+	void Window::MinimizeWindow() { glfwIconifyWindow((GLFWwindow*)m_WindowHandle); }
 
-	void Window::RestoreWindow()
-	{
-		glfwRestoreWindow((GLFWwindow*)m_WindowHandle);
-	}
+	void Window::RestoreWindow() { glfwRestoreWindow((GLFWwindow*)m_WindowHandle); }
 
-	bool Window::IsMaximize()
-	{
-		return (bool)glfwGetWindowAttrib((GLFWwindow*)m_WindowHandle, GLFW_MAXIMIZED);
-	}
+	bool Window::IsMaximize() { return (bool)glfwGetWindowAttrib((GLFWwindow*)m_WindowHandle, GLFW_MAXIMIZED); }
 
-	bool Window::IsFullScreen()
-	{
-		return m_Data.fullScreen;
-	}
+	bool Window::IsFullScreen() { return desc.fullScreen; }
 
 	bool Window::ToggleScreenState()
 	{
 		GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor();
 		const GLFWvidmode* mode = glfwGetVideoMode(primaryMonitor);
 		static int x = 0, y = 0, w, h;
-		if (m_Data.fullScreen)
+		if (desc.fullScreen)
 		{
 			// Restore the window size and position
-			m_Data.fullScreen = false;
+			desc.fullScreen = false;
 			glfwSetWindowMonitor((GLFWwindow*)m_WindowHandle, nullptr, x, y, w, h, 0);
 		}
 		else
 		{
 			// Save the window size and position
-			m_Data.fullScreen = true;
+			desc.fullScreen = true;
 			glfwGetWindowSize((GLFWwindow*)m_WindowHandle, &w, &h);
 			glfwGetWindowPos((GLFWwindow*)m_WindowHandle, &x, &y);
 			glfwSetWindowMonitor((GLFWwindow*)m_WindowHandle, primaryMonitor, 0, 0, mode->width, mode->height, mode->refreshRate);
@@ -495,21 +464,21 @@ namespace HydraEngine {
 		return true;
 	}
 
-	void Window::FocusMainWindow()
-	{
-		glfwFocusWindow((GLFWwindow*)m_WindowHandle);
-	}
+	void Window::FocusMainWindow() { glfwFocusWindow((GLFWwindow*)m_WindowHandle); }
 
-	bool Window::IsMainWindowFocused()
-	{
-		return (bool)glfwGetWindowAttrib((GLFWwindow*)m_WindowHandle, GLFW_FOCUSED);
+	bool Window::IsMainWindowFocused() { return (bool)glfwGetWindowAttrib((GLFWwindow*)m_WindowHandle, GLFW_FOCUSED); }
+
+	std::pair<float, float> Window::GetWindowContentScale()
+	{	
+		float xscale, yscale;
+		glfwGetWindowContentScale((GLFWwindow*)m_WindowHandle, &xscale, &yscale);
+		
+		return { xscale, yscale };
 	}
 
 	void Window::UpdateEvent()
 	{
 		HE_PROFILE_FUNCTION();
-
-		//auto& w = GetAppContext().mainWindow;
 
 		GLFWwindow* windowHandle = static_cast<GLFWwindow*>(GetWindowHandle());
 
@@ -568,7 +537,6 @@ namespace HydraEngine {
 							createEvent(*this, jid, GamepadAxis::Right, v);
 						}
 					}
-
 				}
 			}
 		}
@@ -601,7 +569,6 @@ namespace HydraEngine {
 	//////////////////////////////////////////////////////////////////////////
 	// Input
 	//////////////////////////////////////////////////////////////////////////
-
 
 	static int ToGLFWKeyCode(KeyCode keyCode)
 	{
@@ -800,7 +767,6 @@ namespace HydraEngine {
 
 		return isKeyUp;
 	}
-
 
 	bool Input::IsMouseButtonDown(const MouseCode button)
 	{
