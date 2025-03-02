@@ -9,9 +9,13 @@ int HydraEngine::Main(int argc, char** argv)
 	while (Application::IsApplicationRunning())
 	{
 		auto app = HydraEngine::CreateApplication({ argv, argc });
-		app->Run();
-		delete app;
-		app = nullptr;
+		if (app)
+		{
+			app->Run();
+			delete app;
+			app = nullptr;
+		}
+		else break;
 	}
 
 #ifdef HE_ENABLE_LOGGING

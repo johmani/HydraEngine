@@ -330,22 +330,22 @@ export namespace HydraEngine {
 		};
 
 		constexpr CodeStrPair CodeToStringMap[16] = {
-				{ Joystick0  ,"Joystick1" },
-				{ Joystick1  ,"Joystick2" },
-				{ Joystick2  ,"Joystick3" },
-				{ Joystick3  ,"Joystick4" },
-				{ Joystick4  ,"Joystick5" },
-				{ Joystick5  ,"Joystick6" },
-				{ Joystick6  ,"Joystick7" },
-				{ Joystick7  ,"Joystick8" },
-				{ Joystick8  ,"Joystick9" },
-				{ Joystick9  ,"Joystick10" },
-				{ Joystick10 ,"Joystick11" },
-				{ Joystick11 ,"Joystick12" },
-				{ Joystick12 ,"Joystick13" },
-				{ Joystick13 ,"Joystick14" },
-				{ Joystick14 ,"Joystick15" },
-				{ Joystick15 ,"Joystick16" }
+			{ Joystick0  ,"Joystick1" },
+			{ Joystick1  ,"Joystick2" },
+			{ Joystick2  ,"Joystick3" },
+			{ Joystick3  ,"Joystick4" },
+			{ Joystick4  ,"Joystick5" },
+			{ Joystick5  ,"Joystick6" },
+			{ Joystick6  ,"Joystick7" },
+			{ Joystick7  ,"Joystick8" },
+			{ Joystick8  ,"Joystick9" },
+			{ Joystick9  ,"Joystick10" },
+			{ Joystick10 ,"Joystick11" },
+			{ Joystick11 ,"Joystick12" },
+			{ Joystick12 ,"Joystick13" },
+			{ Joystick13 ,"Joystick14" },
+			{ Joystick14 ,"Joystick15" },
+			{ Joystick15 ,"Joystick16" }
 		};
 
 		constexpr const std::string_view& ToString(JoystickCode code)
@@ -924,7 +924,7 @@ export namespace HydraEngine {
 	enum class EventType
 	{
 		None = 0,
-		WindowClose, WindowResize, WindowFocus, WindowLostFocus, WindowMoved, WindowDrop, WindowContentScale,
+		WindowClose, WindowResize, WindowFocus, WindowLostFocus, WindowMoved, WindowDrop, WindowContentScale, WindowMaximize,
 		KeyPressed, KeyReleased, KeyTyped,
 		MouseButtonPressed, MouseButtonReleased, MouseMoved, MouseScrolled, MouseEnter,
 		GamepadButtonPressed, GamepadButtonReleased, GamepadAxisMoved, GamepadConnected
@@ -1067,6 +1067,25 @@ export namespace HydraEngine {
 
 	private:
 		float scaleX, scaleY;
+	};
+
+	class WindowMaximizeEvent : public Event
+	{
+	public:
+		WindowMaximizeEvent(int maximized) : maximized(maximized) {}
+
+		std::string ToString() const override
+		{
+			std::stringstream ss;
+			ss << "WindowMaximizeEvent: " << (maximized ? "maximized" : "restored") << "\n";
+			return ss.str();
+		}
+
+		EVENT_CLASS_TYPE(WindowMaximize)
+		EVENT_CLASS_CATEGORY(EventCategoryApplication)
+
+	private:
+		int maximized;
 	};
 
 	//////////////////////////////////////////////////////////////////////////
@@ -1415,20 +1434,35 @@ export namespace HydraEngine {
 		bool maximized = false;
 	};
 
+	consteval uint8_t BackendCount()
+	{
+		uint8_t backendCount = 0;
+#if NVRHI_HAS_D3D11
+		backendCount++;
+#endif
+#if NVRHI_HAS_D3D12
+		backendCount++;
+#endif
+#if NVRHI_HAS_VULKAN
+		backendCount++;
+#endif
+		return backendCount;
+	}
+
 	struct DeviceDesc : public DeviceInstanceDesc
 	{
-		nvrhi::GraphicsAPI api = nvrhi::GraphicsAPI::VULKAN;
+		std::array<nvrhi::GraphicsAPI, BackendCount()> api;
 		bool allowModeSwitch = true;
 		uint32_t backBufferWidth = 1280;
 		uint32_t backBufferHeight = 720;
 		uint32_t refreshRate = 0;
 		uint32_t swapChainBufferCount = 3;
-		nvrhi::Format swapChainFormat = nvrhi::Format::SRGBA8_UNORM;
+		nvrhi::Format swapChainFormat = nvrhi::Format::RGBA8_UNORM;
 		uint32_t swapChainSampleCount = 1;
 		uint32_t swapChainSampleQuality = 0;
 		uint32_t maxFramesInFlight = 2;
 		bool enableNvrhiValidationLayer = false;
-		bool vsyncEnabled = false;
+		bool vsyncEnabled = true;
 		bool enableRayTracingExtensions = false;
 		bool enableComputeQueue = false;
 		bool enableCopyQueue = false;
@@ -1446,6 +1480,8 @@ export namespace HydraEngine {
 		std::function<void(VkDeviceCreateInfo&)> deviceCreateInfoCallback;
 		void* physicalDeviceFeatures2Extensions = nullptr;
 #endif
+
+		DeviceDesc() { api.fill(nvrhi::GraphicsAPI(-1)); }
 	};
 	
 	struct AdapterInfo
@@ -1576,19 +1612,16 @@ export namespace HydraEngine {
 	{
 		std::string title = "Hydra Engine";
 		std::string iconFilePath;
-
-		uint32_t width = 1280;
-		uint32_t height = 720;
-
-		bool windowResizeable = true;
+		uint32_t width = 0;	
+		uint32_t height = 0;
+		float sizeRatio = 0.7f;				// Percentage of screen size to use when width/height is 0
+		bool resizeable = true;
 		bool customTitlebar = false;
-		bool centerWindow = true;
+		bool centered = true;
 		bool fullScreen = false;
 		bool maximized = false;
-
-		bool enablePerMonitorDPI = false;
-		bool supportExplicitDisplayScaling = false;
-		bool resizeWindowWithDisplayScale = false;
+		bool perMonitorDPIAware = true;
+		bool scaleToMonitor = true;
 	};
 
 	// internal
@@ -1650,8 +1683,6 @@ export namespace HydraEngine {
 		uint32_t GetWidth() const { return desc.width; }
 		uint32_t GetHeight() const { return desc.height; }
 		void* GetWindowHandle() const { return m_WindowHandle; }
-		bool SupportsExplicitScaling() { return desc.supportExplicitDisplayScaling; }
-		bool ResizesWithDisplayScale() { return desc.resizeWindowWithDisplayScale; }
 		DeviceManager* GetDeviceManager() { return m_DeviceManager; };
 		
 		// internal
@@ -1668,8 +1699,7 @@ export namespace HydraEngine {
 		DeviceManager* m_DeviceManager = nullptr;
 
 		bool m_isTitleBarHovered = false;
-		float m_DPIScaleFactorX = 1.f;
-		float m_DPIScaleFactorY = 1.f;
+		int m_PrevPosX = 0, m_PrevPosY = 0, m_PrevWidth = 0, m_PrevHeight = 0;
 
 		WindowDesc desc;
 

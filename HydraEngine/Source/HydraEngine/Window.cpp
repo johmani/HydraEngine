@@ -86,16 +86,18 @@ namespace HydraEngine {
 
 	void Window::Init(const WindowDesc& windowDesc, DeviceDesc& deviceDesc)
 	{
+		desc = windowDesc;
+
 		HE_PROFILE_FUNCTION();
 		
 #ifdef HE_PLATFORM_WINDOWS
-		if (!desc.enablePerMonitorDPI)
-		{
-			// glfwInit enables the maximum supported level of DPI awareness unconditionally.
-			// If the app doesn't need it, we have to call this function before glfwInit to override that behavior.
-			SetProcessDpiAwareness(PROCESS_DPI_UNAWARE);
-		}
+		if (!desc.perMonitorDPIAware)
+			SetProcessDpiAwareness(PROCESS_DPI_UNAWARE); 
 #endif
+		// Init Hints
+		{
+			glfwInitHint(GLFW_WIN32_MESSAGES_IN_FIBER, GLFW_TRUE);
+		}
 
 		if (s_GLFWWindowCount == 0)
 		{
@@ -105,6 +107,7 @@ namespace HydraEngine {
 			glfwSetErrorCallback(GLFWErrorCallback);
 		}
 
+		// Window Hints
 		{
 			bool foundFormat = false;
 			for (const auto& info : formatInfo)
@@ -123,29 +126,30 @@ namespace HydraEngine {
 			}
 
 			HE_CORE_VERIFY(foundFormat);
-		}
 
-		glfwWindowHint(GLFW_SAMPLES, deviceDesc.swapChainSampleCount);
-		glfwWindowHint(GLFW_REFRESH_RATE, deviceDesc.refreshRate);
-		glfwWindowHint(GLFW_SCALE_TO_MONITOR, desc.resizeWindowWithDisplayScale);
-		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-		//glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
-		//glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
-		//glfwWindowHint(GLFW_MAXIMIZED, windowDesc.Maximized);
-		//glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
-		//if (windowDesc.CustomTitlebar)
-		//	glfwWindowHint(GLFW_TITLEBAR, false);
+			glfwWindowHint(GLFW_SAMPLES, deviceDesc.swapChainSampleCount);
+			glfwWindowHint(GLFW_REFRESH_RATE, deviceDesc.refreshRate);
+			glfwWindowHint(GLFW_SCALE_TO_MONITOR, desc.scaleToMonitor);
+			glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+			glfwWindowHint(GLFW_MAXIMIZED, windowDesc.maximized && !windowDesc.fullScreen);
+			//if (windowDesc.CustomTitlebar)
+			//	glfwWindowHint(GLFW_TITLEBAR, false);
+		}
 
 		GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor();
 		const GLFWvidmode* videoMode = glfwGetVideoMode(primaryMonitor);
 
-		if (windowDesc.maximized)
+		float monitorScaleX, monitorScaleY;
+		glfwGetMonitorContentScale(primaryMonitor, &monitorScaleX, &monitorScaleY);
+		
+		if (desc.width == 0 || desc.height == 0)
 		{
-			desc.width = (int)((float)(videoMode->width) * 0.95f);
-			desc.height = (int)((float)(videoMode->height) * 0.95f);
-
-			glfwWindowHint(GLFW_MAXIMIZED, windowDesc.maximized);
+			desc.width = int(videoMode->width * desc.sizeRatio / monitorScaleX);
+			desc.height = int(videoMode->height * desc.sizeRatio / monitorScaleY);
 		}
+
+		int scaledWidth = int(desc.width * monitorScaleX);
+		int scaledHeight = int(desc.height * monitorScaleY);
 
 		if (windowDesc.fullScreen)
 		{
@@ -167,22 +171,23 @@ namespace HydraEngine {
 		}
 
 		GLFWwindow* glfwWindow = (GLFWwindow*)m_WindowHandle;
+	
+		m_PrevPosX = 0, m_PrevPosY = 0, m_PrevWidth = 0, m_PrevHeight = 0;
+		glfwGetWindowSize(glfwWindow, &m_PrevWidth, &m_PrevHeight);
+		glfwGetWindowPos(glfwWindow, &m_PrevPosX, &m_PrevPosY);
 
-		if (!windowDesc.maximized && !windowDesc.fullScreen && windowDesc.centerWindow)
+		if (!windowDesc.maximized && !windowDesc.fullScreen && windowDesc.centered)
 		{
 			int monitorX, monitorY;
 			glfwGetMonitorPos(primaryMonitor, &monitorX, &monitorY);
 		
 			glfwSetWindowPos(glfwWindow,
-				monitorX + (videoMode->width - desc.width) / 2,
-				monitorY + (videoMode->height - desc.height) / 2
+				monitorX + (videoMode->width - scaledWidth) / 2,
+				monitorY + (videoMode->height - scaledHeight) / 2
 			);
 		}
-		
-		if (windowDesc.windowResizeable)
-		{
-			glfwSetWindowAttrib(glfwWindow, GLFW_RESIZABLE, windowDesc.windowResizeable ? GLFW_TRUE : GLFW_FALSE);
-		}
+
+		glfwSetWindowAttrib(glfwWindow, GLFW_RESIZABLE, windowDesc.resizeable);
 		
 		if (std::filesystem::exists(windowDesc.iconFilePath))
 		{
@@ -193,22 +198,61 @@ namespace HydraEngine {
 			stbi_image_free(icon.pixels);
 		}
 
+		// create device
 		{
-			m_DeviceManager = DeviceManager::Create(deviceDesc.api);
-			
-			if (deviceDesc.headlessDevice)
+			size_t apiCount = deviceDesc.api.size();
+			if (deviceDesc.api[0] == nvrhi::GraphicsAPI(-1))
 			{
-				if (!m_DeviceManager->CreateHeadlessDevice(deviceDesc))
-				{
-					HE_CORE_ERROR("Cannot initialize a {} graphics device.", (int)m_DeviceManager->GetGraphicsAPI());
-				}
+#ifdef HE_PLATFORM_WINDOWS
+				deviceDesc.api = {
+			#if NVRHI_HAS_D3D12
+					nvrhi::GraphicsAPI::D3D12,
+			#endif
+			#if NVRHI_HAS_VULKAN
+					nvrhi::GraphicsAPI::VULKAN,
+			#endif
+			#if NVRHI_HAS_D3D11
+					nvrhi::GraphicsAPI::D3D11
+			#endif
+				};
+#else
+				deviceDesc.api = { nvrhi::GraphicsAPI::VULKAN };
+#endif
+				apiCount = deviceDesc.api.size();
 			}
-			else
+
+			for (size_t i = 0; i < apiCount; i++)
 			{
-				if (!m_DeviceManager->CreateWindowDeviceAndSwapChain(deviceDesc, { windowDesc.fullScreen, windowDesc.maximized }, m_WindowHandle))
+				auto api = deviceDesc.api[i];
+
+				if (api == nvrhi::GraphicsAPI(-1))
+					continue;
+
+				HE_CORE_INFO("Trying to create backend API: {}", nvrhi::utils::GraphicsAPIToString(api));
+
+				m_DeviceManager = DeviceManager::Create(api);
+				if (m_DeviceManager)
 				{
-					HE_CORE_ERROR("Cannot initialize a {} graphics device.", (int)m_DeviceManager->GetGraphicsAPI());
+					bool deviceCreated = false;
+					if (deviceDesc.headlessDevice)
+						deviceCreated = m_DeviceManager->CreateHeadlessDevice(deviceDesc);
+					else
+						deviceCreated = m_DeviceManager->CreateWindowDeviceAndSwapChain(deviceDesc, { windowDesc.fullScreen, windowDesc.maximized }, m_WindowHandle);
+
+					if (deviceCreated)
+						break;
+
+					m_DeviceManager->Shutdown();
+					delete m_DeviceManager;
 				}
+
+				HE_CORE_ERROR("Failed to create backend API: {}", nvrhi::utils::GraphicsAPIToString(api));
+			}
+
+			if (!m_DeviceManager)
+			{
+				HE_CORE_CRITICAL("No graphics backend could be initialized!");
+				std::exit(EXIT_FAILURE);
 			}
 		}
 
@@ -243,10 +287,45 @@ namespace HydraEngine {
 		{
 			Window& w = *(Window*)glfwGetWindowUserPointer(window);
 
-			w.m_DPIScaleFactorX = xscale;
-			w.m_DPIScaleFactorY = yscale;
-
 			WindowContentScaleEvent event(xscale, yscale);
+			w.eventCallback(event);
+		});
+
+		glfwSetWindowMaximizeCallback(glfwWindow, [](GLFWwindow* window, int maximized)
+		{
+			Window& w = *(Window*)glfwGetWindowUserPointer(window);
+			static bool isfirstTime = true;
+			GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor();
+			const GLFWvidmode* mode = glfwGetVideoMode(primaryMonitor);
+			
+			if (maximized)
+			{
+				w.desc.maximized = true;
+			}
+			else
+			{
+				w.desc.maximized = false;
+				if (isfirstTime)
+				{
+					float sx, sy;
+					glfwGetMonitorContentScale(primaryMonitor, &sx, &sy);
+
+					float delta = 100 * sx;
+					glfwSetWindowMonitor(
+						window, 
+						nullptr, 
+						int(w.m_PrevPosX + delta * 0.5f), 
+						int(w.m_PrevPosY + delta * 0.5f), 
+						int(w.m_PrevWidth - delta), 
+						int(w.m_PrevHeight - delta), 
+						0
+					);
+				}
+			}
+
+			isfirstTime = false;
+			
+			WindowMaximizeEvent event(maximized);
 			w.eventCallback(event);
 		});
 
@@ -317,12 +396,6 @@ namespace HydraEngine {
 		glfwSetCursorPosCallback(glfwWindow, [](GLFWwindow* window, double xPos, double yPos)
 		{
 			Window& w = *(Window*)glfwGetWindowUserPointer(window);
-
-			if (!w.desc.supportExplicitDisplayScaling)
-			{
-				xPos /= w.m_DPIScaleFactorX;
-				yPos /= w.m_DPIScaleFactorY;
-			}
 
 			MouseMovedEvent event((float)xPos, (float)yPos);
 			w.eventCallback(event);
@@ -445,19 +518,19 @@ namespace HydraEngine {
 	{
 		GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor();
 		const GLFWvidmode* mode = glfwGetVideoMode(primaryMonitor);
-		static int x = 0, y = 0, w, h;
+		
 		if (desc.fullScreen)
 		{
 			// Restore the window size and position
 			desc.fullScreen = false;
-			glfwSetWindowMonitor((GLFWwindow*)m_WindowHandle, nullptr, x, y, w, h, 0);
+			glfwSetWindowMonitor((GLFWwindow*)m_WindowHandle, nullptr, m_PrevPosX, m_PrevPosY, m_PrevWidth, m_PrevHeight, 0);
 		}
 		else
 		{
 			// Save the window size and position
 			desc.fullScreen = true;
-			glfwGetWindowSize((GLFWwindow*)m_WindowHandle, &w, &h);
-			glfwGetWindowPos((GLFWwindow*)m_WindowHandle, &x, &y);
+			glfwGetWindowSize((GLFWwindow*)m_WindowHandle, &m_PrevWidth, &m_PrevHeight);
+			glfwGetWindowPos((GLFWwindow*)m_WindowHandle, &m_PrevPosX, &m_PrevPosY);
 			glfwSetWindowMonitor((GLFWwindow*)m_WindowHandle, primaryMonitor, 0, 0, mode->width, mode->height, mode->refreshRate);
 		}
 

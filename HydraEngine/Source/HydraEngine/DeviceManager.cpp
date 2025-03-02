@@ -73,7 +73,12 @@ namespace HydraEngine {
 		if (!CreateInstance(m_DeviceDesc))
 			return false;
 
-		return CreateDevice();
+		if (!CreateDevice())
+			return false;
+
+		HE_CORE_INFO("[Backend API] : {}", nvrhi::utils::GraphicsAPIToString(GetDevice()->getGraphicsAPI()));
+
+		return true;
 	}
 
 	bool DeviceManager::CreateWindowDeviceAndSwapChain(const DeviceDesc& desc, WindowState windowState, void* windowHandle)
@@ -99,6 +104,9 @@ namespace HydraEngine {
 
 		if (!CreateDevice())
 			return false;
+
+		HE_CORE_INFO("[Backend API] : {}", nvrhi::utils::GraphicsAPIToString(GetDevice()->getGraphicsAPI()));
+
 
 		if (!CreateSwapChain(windowState))
 			return false;
