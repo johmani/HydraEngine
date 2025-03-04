@@ -18,6 +18,7 @@ IncludeDir["ShaderMake"] = "%{wks.location}/ThirdParty/ShaderMake/include"
 IncludeDir["tracy"] = "%{wks.location}/ThirdParty/tracy/public/tracy"
 IncludeDir["taskflow"] = "%{wks.location}/ThirdParty/taskflow"
 IncludeDir["Vulkan_Headers"] = "%{wks.location}/ThirdParty/Vulkan-Headers/Include"
+IncludeDir["simdjson"] = "%{wks.location}/ThirdParty/simdjson"
 
 -------------------------------------------------------------------------------------
 -- helper functions

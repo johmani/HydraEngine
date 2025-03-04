@@ -31,3 +31,6 @@
 [submodule "ThirdParty/nvrhi"]
 	path = ThirdParty/nvrhi
 	url = https://github.com/johmani/nvrhi.git
+[submodule "ThirdParty/simdjson"]
+	path = ThirdParty/simdjson
+	url = https://github.com/johmani/simdjson.git
