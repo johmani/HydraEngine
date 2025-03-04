@@ -142,7 +142,6 @@ workspace "HydraEngine"
     group "Dependencies"
         include "ThirdParty/glfw"
         include "ThirdParty/nativefiledialog-extended"
-        include "ThirdParty/yaml-cpp"
         include "ThirdParty/nvrhi"
         include "ThirdParty/ShaderMake"
 

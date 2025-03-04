@@ -31,7 +31,6 @@ project "HydraEngine"
         "GLFW_DLL",
         "_CRT_SECURE_NO_WARNINGS",
         "NVRHI_SHARED_LIBRARY_INCLUDE",
-        "YAML_CPP_STATIC_DEFINE",
         "_SILENCE_STDEXT_ARR_ITERS_DEPRECATION_WARNING",
     }
     
