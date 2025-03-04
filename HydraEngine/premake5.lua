@@ -15,12 +15,12 @@ project "HydraEngine"
         
         "%{IncludeDir.HydraEngine}/**.cppm",
         "%{IncludeDir.glm}/**.cppm",
+        "%{IncludeDir.simdjson}/**.cppm",
     }
 
     buildoptions 
     {
         AddCppm("nvrhi"),
-        AddCppm("yaml_cpp")
     }
 
     defines 
@@ -44,7 +44,7 @@ project "HydraEngine"
         "%{IncludeDir.NFDE}",
         "%{IncludeDir.taskflow}",
         "%{IncludeDir.stb_image}",
-        "%{IncludeDir.yaml_cpp}",
+        "%{IncludeDir.simdjson}",
         
         "%{IncludeDir.nvrhi}",
         "%{IncludeDir.Vulkan_Headers}",
@@ -61,7 +61,6 @@ project "HydraEngine"
         "glfw",
         "nvrhi",
         "NFDE",
-        "yaml-cpp",
         "ShaderMakeBlob",
     }
 

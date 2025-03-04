@@ -3,72 +3,54 @@ module;
 #include "HydraEngine/Base.h"
 
 module HydraEngine;
-import YAML;
+import simdjson;
 
 namespace HydraEngine::Plugins {
 
-	void SerializePluginDesc(const std::filesystem::path& filePath, const PluginDesc& desc)
-	{
-		YAML::Emitter out;
-		out << YAML::BeginMap << YAML::Key << "PluginDescriptor";
-
-		out << YAML::BeginMap;
-		{
-			out << YAML::Key << "name" << YAML::Value << desc.name;
-			out << YAML::Key << "description" << YAML::Value << desc.description;
-			out << YAML::Key << "reloadable" << YAML::Value << desc.reloadable;
-			out << YAML::Key << "enabledByDefault" << YAML::Value << desc.enabledByDefault;
-			out << YAML::Key << "modules" << YAML::Value << desc.modules;
-			out << YAML::Key << "plugins" << YAML::Value << desc.plugins;
-		}
-		out << YAML::EndMap;
-		out << YAML::EndMap;
-
-		std::ofstream fout(filePath);
-		if (!fout)
-		{
-			HE_CORE_ERROR("Failed to open file {} for writing plugin descriptor.", filePath.string());
-			return;
-		}
-
-		fout << out.c_str();
-	}
-
 	bool DeserializePluginDesc(const std::filesystem::path& filePath, PluginDesc& desc)
 	{
-		YAML::Node data;
+		static simdjson::dom::parser parser;
 
-		try
+		simdjson::dom::element pluginDescriptor;
+		auto error = parser.load(filePath.string()).get(pluginDescriptor);
+		if (error)
 		{
-			data = YAML::LoadFile(filePath.string());
-		}
-		catch (const std::exception& e)
-		{
-			auto& ex = e;
-			HE_CORE_ERROR("Failed to load .hplugin file {}\n    {}", filePath.string(), ex.what());
+			HE_CORE_ERROR("Failed to load .hplugin file {}\n    {}", filePath.string(), simdjson::error_message(error));
 			return false;
 		}
 
-		if (!data["PluginDescriptor"])
+		std::string_view name;
+		desc.name = (pluginDescriptor["name"].get(name) != simdjson::SUCCESS) ? "" : name;
+
+		std::string_view description;
+		desc.description = (pluginDescriptor["description"].get(description) != simdjson::SUCCESS) ? "" : description;
+
+		pluginDescriptor["reloadable"].get(desc.reloadable);
+		pluginDescriptor["enabledByDefault"].get(desc.enabledByDefault);
+
+		simdjson::dom::array modulesArray;
+		pluginDescriptor["modules"].get(modulesArray);
+		desc.modules.reserve(modulesArray.size());
+		for (simdjson::dom::element module : modulesArray)
 		{
-			HE_CORE_ERROR("Failed to load .hplugin file {} : missing key PluginDescriptor", filePath.string());
-			return false;
+			std::string_view moduleName;
+			module.get(moduleName);
+			desc.modules.emplace_back(moduleName);
 		}
 
-		auto pluginDescriptor = data["PluginDescriptor"];
-		if (pluginDescriptor)
+		simdjson::dom::array pluginsArray;
+		pluginDescriptor["plugins"].get(pluginsArray);
+		desc.plugins.reserve(pluginsArray.size());
+		for (simdjson::dom::element plugin : pluginsArray)
 		{
-			desc.name = pluginDescriptor["name"].as<std::string>("");
-			desc.description = pluginDescriptor["description"].as<std::string>("");
-			desc.reloadable = pluginDescriptor["reloadable"].as<bool>(false);
-			desc.enabledByDefault = pluginDescriptor["enabledByDefault"].as<bool>(false);
-			desc.modules = pluginDescriptor["modules"].as<std::vector<std::string>>();
-			desc.plugins = pluginDescriptor["plugins"].as<std::vector<std::string>>();
+			std::string_view pluginName;
+			plugin.get(pluginName);
+			desc.plugins.emplace_back(pluginName);
 		}
 
 		return true;
 	}
-				
+
 	Ref<Plugin> CreatePluginObject(const std::filesystem::path& descFilePath)
 	{
 		auto& c = GetAppContext().pluginContext;
