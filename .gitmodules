@@ -22,9 +22,6 @@
 [submodule "ThirdParty/glfw"]
 	path = ThirdParty/glfw
 	url = https://github.com/johmani/glfw.git
-[submodule "ThirdParty/yaml-cpp"]
-	path = ThirdParty/yaml-cpp
-	url = https://github.com/johmani/yaml-cpp.git
 [submodule "ThirdParty/nativefiledialog-extended"]
 	path = ThirdParty/nativefiledialog-extended
 	url = https://github.com/johmani/nativefiledialog-extended.git
