@@ -1,0 +1,32 @@
+name: Build HydraEngine
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        configuration: [Debug, Release, Profile, Dist]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Add MSBuild to PATH
+      uses: microsoft/setup-msbuild@v2
+
+    - name: Update submodules
+      run: git submodule update --init --recursive
+      shell: cmd
+
+    - name: Setup
+      run: ThirdParty\Premake\Windows\premake5.exe --file=premake.lua vs2022
+      shell: cmd
+
+    - name: Build
+      run: msbuild HydraEngine.sln /p:Configuration=${{ matrix.configuration }} /verbosity:minimal
