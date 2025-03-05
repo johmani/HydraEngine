@@ -3,15 +3,15 @@ module;
 #include "HydraEngine/Base.h"
 
 #ifdef HE_PLATFORM_WINDOWS
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#undef WIN32_LEAN_AND_MEAN
+#	ifndef WIN32_LEAN_AND_MEAN
+#		define WIN32_LEAN_AND_MEAN
+#		include <windows.h>
+#		undef WIN32_LEAN_AND_MEAN
+#	else
+#		include <windows.h>
+#	endif
 #else
-#include <windows.h>
-#endif
-#else
-#include <dlfcn.h>
+	#include <dlfcn.h>
 #endif
 
 module HydraEngine;

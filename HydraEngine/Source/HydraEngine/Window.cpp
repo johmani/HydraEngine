@@ -496,8 +496,8 @@ namespace HydraEngine {
 	{
 #ifdef HE_PLATFORM_WINDOWS
 		return (void*)glfwGetWin32Window((GLFWwindow*)m_WindowHandle);
-#elif HE_PLATFORM_LINUX
-		return (void*)glfwGetX11Window((GLFWwindow*)m_WindowHandle); // not tested yet
+#elif defined(HE_PLATFORM_LINUX)
+		return (void*)glfwGetX11Window((GLFWwindow*)m_WindowHandle); // not yet tested
 #else
 		HE_CORE_VERIFY(false, "unsupported platform");
 		return nullptr;

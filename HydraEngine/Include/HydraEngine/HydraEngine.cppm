@@ -2004,7 +2004,7 @@ export namespace HydraEngine {
 		Future RunTaskflow(Taskflow& taskflow)                 { return GetAppContext().executor.run(taskflow); }
 		void WaitForAll()                                      { GetAppContext().executor.wait_for_all();       }
 		
-		void SubmitToMainThread(const std::function<void()>& function)
+		HYDRA_API void SubmitToMainThread(const std::function<void()>& function)
 		{
 			auto& c = GetAppContext();
 			std::scoped_lock<std::mutex> lock(c.mainThreadQueueMutex);
