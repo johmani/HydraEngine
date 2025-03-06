@@ -165,8 +165,7 @@
 #	ifndef TRACY_ENABLE
 #		define TRACY_ENABLE
 #	endif
-#	include "Tracy.hpp"
-#	include "TracyC.h"
+#	include "tracy/Tracy.hpp"
 #	define HE_PROFILE_SCOPE(name) ZoneScopedN(name)
 #	define HE_PROFILE_SCOPE_COLOR(color) ZoneScopedC(color)
 #	define HE_PROFILE_SCOPE_NC(name,color) ZoneScopedNC(name,color)

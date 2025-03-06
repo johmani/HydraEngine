@@ -98,7 +98,7 @@ project "HydraEngine"
     filter "configurations:Profile"
     	runtime "Release"
     	optimize "On"
-        files { "%{wks.location}/ThirdParty/tracy/public/TracyClient.cpp" }
+        files { "%{IncludeDir.tracy}/TracyClient.cpp" }
         includedirs { "%{IncludeDir.tracy}" }
         defines { "HE_PROFILE", "TRACY_EXPORTS" , "TRACY_ENABLE" }
     

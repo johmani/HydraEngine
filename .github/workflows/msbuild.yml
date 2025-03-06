@@ -25,7 +25,9 @@ jobs:
       shell: cmd
 
     - name: Setup
-      run: ThirdParty\Premake\Windows\premake5.exe --file=premake.lua vs2022
+      run: |
+        cd Scripts
+        call Setup-Windows.bat
       shell: cmd
 
     - name: Build
