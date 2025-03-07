@@ -1617,6 +1617,7 @@ export namespace HydraEngine {
 		float sizeRatio = 0.7f;				// Percentage of screen size to use when width/height is 0
 		bool resizeable = true;
 		bool customTitlebar = false;
+		bool decorated = true;
 		bool centered = true;
 		bool fullScreen = false;
 		bool maximized = false;

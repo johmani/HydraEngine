@@ -132,8 +132,8 @@ namespace HydraEngine {
 			glfwWindowHint(GLFW_SCALE_TO_MONITOR, desc.scaleToMonitor);
 			glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 			glfwWindowHint(GLFW_MAXIMIZED, windowDesc.maximized && !windowDesc.fullScreen);
-			//if (windowDesc.CustomTitlebar)
-			//	glfwWindowHint(GLFW_TITLEBAR, false);
+			glfwWindowHint(GLFW_TITLEBAR, !windowDesc.customTitlebar);
+			glfwWindowHint(GLFW_DECORATED, windowDesc.decorated);
 		}
 
 		GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor();
@@ -260,11 +260,11 @@ namespace HydraEngine {
 
 		glfwSetWindowUserPointer(glfwWindow, this);
 
-		//glfwSetTitlebarHitTestCallback(m_WindowHandle, [](GLFWwindow* window, int x, int y, int* hit)
-		//{
-		//	WindowState* app = (WindowState*)glfwGetWindowUserPointer(window);
-		//	*hit = app->m_isTitleBarHovered;
-		//});
+		glfwSetTitlebarHitTestCallback(glfwWindow, [](GLFWwindow* window, int x, int y, int* hit)
+		{
+			Window* app = (Window*)glfwGetWindowUserPointer(window);
+			*hit = app->m_isTitleBarHovered;
+		});
 
 		glfwSetWindowSizeCallback(glfwWindow, [](GLFWwindow* window, int width, int height)
 		{
