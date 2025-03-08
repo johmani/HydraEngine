@@ -222,7 +222,7 @@ namespace HydraEngine {
 		if (!applicatoinDesc.workingDirectory.empty())
 			std::filesystem::current_path(applicatoinDesc.workingDirectory);
 
-		mainWindow.Init(applicatoinDesc.windowDesc, applicatoinDesc.deviceSpecification);
+		mainWindow.Init(applicatoinDesc.windowDesc, applicatoinDesc.deviceDesc);
 		mainWindow.SetEventCallback(OnEvent);
 	}
 }

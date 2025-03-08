@@ -1929,7 +1929,7 @@ export namespace HydraEngine {
 		std::filesystem::path workingDirectory;
 
 		WindowDesc windowDesc;
-		DeviceDesc deviceSpecification;
+		DeviceDesc deviceDesc;
 		ApplicationCommandLineArgs commandLineArgs;
 	};
 
