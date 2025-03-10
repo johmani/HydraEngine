@@ -195,7 +195,7 @@ namespace HydraEngine::FileDialog {
 	std::filesystem::path OpenFile(std::initializer_list<std::pair<std::string_view, std::string_view>> filters)
 	{
 		std::array<nfdfilteritem_t, 32> nfdFilters;
-        HE_CORE_ASSERT(filters.size() >= nfdFilters.size());
+        HE_CORE_ASSERT(filters.size() < nfdFilters.size());
 		
         uint32_t filterCount = 0;
 		for (const auto& filter : filters)
@@ -214,7 +214,7 @@ namespace HydraEngine::FileDialog {
 	std::filesystem::path SaveFile(std::initializer_list<std::pair<std::string_view, std::string_view>> filters)
 	{
 		std::array<nfdfilteritem_t, 32> nfdFilters;
-        HE_CORE_ASSERT(filters.size() >= nfdFilters.size());
+        HE_CORE_ASSERT(filters.size() < nfdFilters.size());
 		
         uint32_t filterCount = 0;
 		for (const auto& filter : filters)

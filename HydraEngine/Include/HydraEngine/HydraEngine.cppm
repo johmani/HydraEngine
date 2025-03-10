@@ -1931,6 +1931,8 @@ export namespace HydraEngine {
 		WindowDesc windowDesc;
 		DeviceDesc deviceDesc;
 		ApplicationCommandLineArgs commandLineArgs;
+
+		uint32_t workersNumber;
 	};
 
 	struct Stats
@@ -2001,9 +2003,9 @@ export namespace HydraEngine {
 		using Executor = tf::Executor;
 		using Future = tf::Future<void>;
 
-		void SubmitTask(const std::function<void()>& function) { GetAppContext().executor.async(function);      }
-		Future RunTaskflow(Taskflow& taskflow)                 { return GetAppContext().executor.run(taskflow); }
-		void WaitForAll()                                      { GetAppContext().executor.wait_for_all();       }
+		HYDRA_API void SubmitTask(const std::function<void()>& function) { GetAppContext().executor.async(function);      }
+		HYDRA_API Future RunTaskflow(Taskflow& taskflow)                 { return GetAppContext().executor.run(taskflow); }
+		HYDRA_API void WaitForAll()                                      { GetAppContext().executor.wait_for_all();       }
 		
 		HYDRA_API void SubmitToMainThread(const std::function<void()>& function)
 		{

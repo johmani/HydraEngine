@@ -201,7 +201,9 @@ namespace HydraEngine {
 		}
 	}
 
-	ApplicationContext::ApplicationContext(const ApplicationDesc& desc) : applicatoinDesc(desc)
+	ApplicationContext::ApplicationContext(const ApplicationDesc& desc) 
+		: applicatoinDesc(desc)
+		, executor(desc.workersNumber)
 	{
 		HE_PROFILE_FUNCTION();
 
