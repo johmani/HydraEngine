@@ -16,6 +16,7 @@ project "HydraEngine"
         "%{IncludeDir.HydraEngine}/**.cppm",
         "%{IncludeDir.glm}/**.cppm",
         "%{IncludeDir.simdjson}/**.cppm",
+        "%{IncludeDir.simdjson}/**.cpp",
     }
 
     buildoptions 
@@ -31,6 +32,7 @@ project "HydraEngine"
         "GLFW_DLL",
         "_CRT_SECURE_NO_WARNINGS",
         "NVRHI_SHARED_LIBRARY_INCLUDE",
+        "SIMDJSON_BUILDING_WINDOWS_DYNAMIC_LIBRARY",
         "_SILENCE_STDEXT_ARR_ITERS_DEPRECATION_WARNING",
     }
     

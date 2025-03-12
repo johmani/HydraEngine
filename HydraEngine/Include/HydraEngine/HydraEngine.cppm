@@ -235,6 +235,39 @@ export namespace HydraEngine {
 		Buffer m_Buffer;
 	};
 
+	class HYDRA_API Image
+	{
+	public:
+		Image(const std::filesystem::path& filename, int desiredChannels = 4, bool flipVertically = false);
+		Image(Buffer buffer, int desiredChannels = 4, bool flipVertically = false);
+		Image(int width, int height, int channels, unsigned char* data);
+		~Image();
+
+		Image(const Image&) = delete;
+		Image& operator=(const Image&) = delete;
+
+		Image(Image&& other) noexcept;
+		Image& operator=(Image&& other) noexcept;
+
+		bool isValid() const { return data != nullptr; }
+
+		static bool GetImageInfo(const std::filesystem::path& filename, int& out_width, int& out_height, int& out_channels);
+		static bool SaveAsPNG(const std::filesystem::path& filename, int w, int h, int c, const void* data, int stride_in_bytes);
+		static bool SaveAsJPG(const std::filesystem::path& filename, int w, int h, int c, const void* data, int quality = 90);
+
+		int GetWidth() const { return width; }
+		int GetHeight() const { return height; }
+		int GetChannels() const { return channels; }
+		unsigned char* GetData() const { return data; }
+		void SetData(unsigned char* data);
+
+	private:
+		unsigned char* data = nullptr;
+		int width = 0;
+		int height = 0;
+		int channels = 0;
+	};
+
 	//////////////////////////////////////////////////////////////////////////
 	// Event
 	//////////////////////////////////////////////////////////////////////////

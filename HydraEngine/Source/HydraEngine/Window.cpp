@@ -17,7 +17,6 @@ module;
 
 #include "GLFW/glfw3.h"
 #include "GLFW/glfw3native.h"
-#include "stb_image.h"
 
 module HydraEngine;
 import Math;
@@ -191,11 +190,12 @@ namespace HydraEngine {
 		
 		if (std::filesystem::exists(windowDesc.iconFilePath))
 		{
+			Image image(windowDesc.iconFilePath);
 			GLFWimage icon;
-			int channels;
-			icon.pixels = stbi_load((const char*)windowDesc.iconFilePath.data(), &icon.width, &icon.height, &channels, 4);
+			icon.pixels = image.GetData();
+			icon.width = image.GetWidth();
+			icon.height = image.GetHeight();
 			glfwSetWindowIcon(glfwWindow, 1, &icon);
-			stbi_image_free(icon.pixels);
 		}
 
 		// create device
