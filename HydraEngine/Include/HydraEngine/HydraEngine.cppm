@@ -1965,7 +1965,7 @@ export namespace HydraEngine {
 		DeviceDesc deviceDesc;
 		ApplicationCommandLineArgs commandLineArgs;
 
-		uint32_t workersNumber;
+		uint32_t workersNumber = std::thread::hardware_concurrency() - 1;
 	};
 
 	struct Stats

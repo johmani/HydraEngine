@@ -3,6 +3,7 @@ project "HydraEngine"
     language "C++"
     cppdialect "C++latest"
     staticruntime "off"
+	location (projectLocation)
     targetdir (binOutputDir)
     objdir (IntermediatesOutputDir)
 
