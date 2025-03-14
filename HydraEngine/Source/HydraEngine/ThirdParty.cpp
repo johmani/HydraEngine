@@ -37,10 +37,10 @@ namespace HydraEngine {
         }
     }
 
-    Image::Image(int w, int h, int ch, unsigned char* pData)
-        : width(w)
-        , height(h)
-        , channels(ch)
+    Image::Image(int pWidth, int pHeight, int pChannels, uint8_t* pData)
+        : width(pWidth)
+        , height(pHeight)
+        , channels(pChannels)
         , data(pData)
     {
     }
@@ -79,24 +79,30 @@ namespace HydraEngine {
         return *this;
     }
 
-    bool Image::GetImageInfo(const std::filesystem::path& filename, int& out_width, int& out_height, int& out_channels)
+    bool Image::GetImageInfo(const std::filesystem::path& filePath, int& outWidth, int& outHeight, int& outChannels)
     {
-        return stbi_info(filename.string().c_str(), &out_width, &out_height, &out_channels);
+        return stbi_info(filePath.string().c_str(), &outWidth, &outHeight, &outChannels);
     }
 
-    bool Image::SaveAsPNG(const std::filesystem::path& filename, int width, int height, int channels, const void* data, int stride_in_bytes)
-    {
-        if (!data) return false;
-        return stbi_write_png(filename.string().c_str(), width, height, channels, data, stride_in_bytes);
-    }
-
-    bool Image::SaveAsJPG(const std::filesystem::path& filename, int width, int height, int channels, const void* data, int quality)
+    bool Image::SaveAsPNG(const std::filesystem::path& filePath, int width, int height, int channels, const void* data, int strideInBytes)
     {
         if (!data) return false;
-        return stbi_write_jpg(filename.string().c_str(), width, height, channels, data, quality);
+        return stbi_write_png(filePath.string().c_str(), width, height, channels, data, strideInBytes);
     }
 
-    void Image::SetData(unsigned char* pData)
+    bool Image::SaveAsJPG(const std::filesystem::path& filePath, int width, int height, int channels, const void* data, int quality)
+    {
+        if (!data) return false;
+        return stbi_write_jpg(filePath.string().c_str(), width, height, channels, data, quality);
+    }
+
+    bool Image::SaveAsBMP(const std::filesystem::path& filePath, int width, int height, int channels, const void* data)
+    {
+        if (!data) return false;
+        return stbi_write_bmp(filePath.string().c_str(), width, height, channels, data);
+    }
+
+    void Image::SetData(uint8_t* pData)
     {
         if (data)
         {

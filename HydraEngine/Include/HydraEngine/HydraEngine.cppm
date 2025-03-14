@@ -249,20 +249,21 @@ export namespace HydraEngine {
 		Image(Image&& other) noexcept;
 		Image& operator=(Image&& other) noexcept;
 
+
+		static bool GetImageInfo(const std::filesystem::path& filePath, int& outWidth, int& outWeight, int& outChannels);
+		static bool SaveAsPNG(const std::filesystem::path& filePath, int width, int height, int channels, const void* data, int strideInBytes);
+		static bool SaveAsJPG(const std::filesystem::path& filePath, int width, int height, int channels, const void* data, int quality = 90);
+		static bool SaveAsBMP(const std::filesystem::path& filePath, int width, int height, int channels, const void* data);
+
 		bool isValid() const { return data != nullptr; }
-
-		static bool GetImageInfo(const std::filesystem::path& filename, int& out_width, int& out_height, int& out_channels);
-		static bool SaveAsPNG(const std::filesystem::path& filename, int w, int h, int c, const void* data, int stride_in_bytes);
-		static bool SaveAsJPG(const std::filesystem::path& filename, int w, int h, int c, const void* data, int quality = 90);
-
 		int GetWidth() const { return width; }
 		int GetHeight() const { return height; }
 		int GetChannels() const { return channels; }
 		unsigned char* GetData() const { return data; }
-		void SetData(unsigned char* data);
+		void SetData(uint8_t* data);
 
 	private:
-		unsigned char* data = nullptr;
+		uint8_t* data = nullptr;
 		int width = 0;
 		int height = 0;
 		int channels = 0;
