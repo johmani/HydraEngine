@@ -7,9 +7,9 @@ module;
 #include "stb_image.h"
 #include "stb_image_write.h"
 
-module HydraEngine;
+module HE;
 
-namespace HydraEngine {
+namespace HE {
 
     //////////////////////////////////////////////////////////////////////////
 	// Image

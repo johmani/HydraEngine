@@ -1,6 +1,6 @@
 #pragma once
 
-int HydraEngine::Main(int argc, char** argv)
+int HE::Main(int argc, char** argv)
 {
 #ifdef HE_ENABLE_LOGGING
 	Log::Init("HydraEngine");
@@ -8,7 +8,7 @@ int HydraEngine::Main(int argc, char** argv)
 
 	while (Application::IsApplicationRunning())
 	{
-		auto app = HydraEngine::CreateApplication({ argv, argc });
+		auto app = HE::CreateApplication({ argv, argc });
 		if (app)
 		{
 			app->Run();
@@ -30,14 +30,14 @@ int HydraEngine::Main(int argc, char** argv)
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine, int nCmdShow)
 {
-	return HydraEngine::Main(__argc, __argv);
+	return HE::Main(__argc, __argv);
 }
 
 #else
 
 int main(int argc, char** argv)
 {
-	return HydraEngine::Main(argc, argv);
+	return HE::Main(argc, argv);
 }
 
 #endif

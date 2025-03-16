@@ -6,7 +6,7 @@ module;
 #include <vulkan/vulkan.hpp>
 #include <GLFW/glfw3.h>
 
-module HydraEngine;
+module HE;
 import nvrhi;
 
 // Based on NVIDIA Donut framework (MIT License), with slight modifications
@@ -17,7 +17,7 @@ import nvrhi;
 // Define the Vulkan dynamic dispatcher - this needs to occur in exactly one cpp file in the program.
 VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
 
-namespace HydraEngine {
+namespace HE {
 
 	class DeviceManagerVK : public DeviceManager
 	{

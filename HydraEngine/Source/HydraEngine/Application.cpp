@@ -2,10 +2,10 @@ module;
 
 #include "HydraEngine/Base.h"
 
-module HydraEngine;
+module HE;
 import std;
 
-namespace HydraEngine {
+namespace HE {
 
 	//////////////////////////////////////////////////////////////////////////
 	// Layer Stack

@@ -14,9 +14,9 @@ module;
 	#include <dlfcn.h>
 #endif
 
-module HydraEngine;
+module HE;
 
-namespace HydraEngine {
+namespace HE {
 
 	namespace Modules {
 

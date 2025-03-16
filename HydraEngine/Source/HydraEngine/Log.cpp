@@ -10,11 +10,11 @@ module;
 #include <spdlog/sinks/basic_file_sink.h> 
 #endif
 
-module HydraEngine;
+module HE;
 
 #ifdef HE_ENABLE_LOGGING
 
-namespace HydraEngine {
+namespace HE {
 
 	static std::shared_ptr<spdlog::logger> s_CoreLogger;
 	static std::shared_ptr<spdlog::logger> s_ClientLogger;

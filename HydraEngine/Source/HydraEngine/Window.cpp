@@ -18,7 +18,7 @@ module;
 #include "GLFW/glfw3.h"
 #include "GLFW/glfw3native.h"
 
-module HydraEngine;
+module HE;
 import Math;
 import nvrhi;
 import std;
@@ -33,7 +33,7 @@ extern "C"
 }
 #endif
 
-namespace HydraEngine {
+namespace HE {
 
 	float Application::GetTime() { return static_cast<float>(glfwGetTime()); }
 

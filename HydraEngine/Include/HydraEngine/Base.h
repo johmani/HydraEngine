@@ -96,17 +96,17 @@
 //////////////////////////////////////////////////////////////////////////
 
 #ifdef HE_ENABLE_LOGGING
-	#define HE_CORE_TRACE(...)    HydraEngine::Log::CoreTrace(std::format(__VA_ARGS__).c_str())
-	#define HE_CORE_INFO(...)     HydraEngine::Log::CoreInfo(std::format(__VA_ARGS__).c_str())
-	#define HE_CORE_WARN(...)     HydraEngine::Log::CoreWarn(std::format(__VA_ARGS__).c_str())
-	#define HE_CORE_ERROR(...)    HydraEngine::Log::CoreError(std::format(__VA_ARGS__).c_str())
-	#define HE_CORE_CRITICAL(...) HydraEngine::Log::CoreCritical(std::format(__VA_ARGS__).c_str())
+	#define HE_CORE_TRACE(...)    HE::Log::CoreTrace(std::format(__VA_ARGS__).c_str())
+	#define HE_CORE_INFO(...)     HE::Log::CoreInfo(std::format(__VA_ARGS__).c_str())
+	#define HE_CORE_WARN(...)     HE::Log::CoreWarn(std::format(__VA_ARGS__).c_str())
+	#define HE_CORE_ERROR(...)    HE::Log::CoreError(std::format(__VA_ARGS__).c_str())
+	#define HE_CORE_CRITICAL(...) HE::Log::CoreCritical(std::format(__VA_ARGS__).c_str())
 
-	#define HE_TRACE(...)         HydraEngine::Log::ClientTrace(std::format(__VA_ARGS__).c_str()) 
-	#define HE_INFO(...)          HydraEngine::Log::ClientInfo(std::format(__VA_ARGS__).c_str())
-	#define HE_WARN(...)          HydraEngine::Log::ClientWarn(std::format(__VA_ARGS__).c_str())
-	#define HE_ERROR(...)         HydraEngine::Log::ClientError(std::format(__VA_ARGS__).c_str())
-	#define HE_CRITICAL(...) 	  HydraEngine::Log::ClientCritical(std::format(__VA_ARGS__).c_str())
+	#define HE_TRACE(...)         HE::Log::ClientTrace(std::format(__VA_ARGS__).c_str()) 
+	#define HE_INFO(...)          HE::Log::ClientInfo(std::format(__VA_ARGS__).c_str())
+	#define HE_WARN(...)          HE::Log::ClientWarn(std::format(__VA_ARGS__).c_str())
+	#define HE_ERROR(...)         HE::Log::ClientError(std::format(__VA_ARGS__).c_str())
+	#define HE_CRITICAL(...) 	  HE::Log::ClientCritical(std::format(__VA_ARGS__).c_str())
 #else
 	#define HE_CORE_TRACE(...)    
 	#define HE_CORE_INFO(...)     
@@ -194,18 +194,18 @@
 //////////////////////////////////////////////////////////////////////////
 
 #ifdef NVRHI_HAS_D3D11
-#	define STATIC_SHADER_D3D11(NAME) HydraEngine::Buffer{g_##NAME##_dxbc, std::size(g_##NAME##_dxbc)}
+#	define STATIC_SHADER_D3D11(NAME) HE::Buffer{g_##NAME##_dxbc, std::size(g_##NAME##_dxbc)}
 #else
-#	define STATIC_SHADER_D3D11(NAME) HydraEngine::Buffer()
+#	define STATIC_SHADER_D3D11(NAME) HE::Buffer()
 #endif
 #ifdef NVRHI_HAS_D3D12
-#	define STATIC_SHADER_D3D12(NAME) HydraEngine::Buffer{ g_##NAME##_dxil, std::size(g_##NAME##_dxil) }
+#	define STATIC_SHADER_D3D12(NAME) HE::Buffer{ g_##NAME##_dxil, std::size(g_##NAME##_dxil) }
 #else
-#	define STATIC_SHADER_D3D12(NAME) HydraEngine::Buffer()
+#	define STATIC_SHADER_D3D12(NAME) HE::Buffer()
 #endif
 #ifdef NVRHI_HAS_VULKAN
-#	define STATIC_SHADER_SPIRV(NAME) HydraEngine::Buffer{ g_##NAME##_spirv, std::size(g_##NAME##_spirv) }
+#	define STATIC_SHADER_SPIRV(NAME) HE::Buffer{ g_##NAME##_spirv, std::size(g_##NAME##_spirv) }
 #else
-#	define STATIC_SHADER_SPIRV(NAME) HydraEngine::Buffer()
+#	define STATIC_SHADER_SPIRV(NAME) HE::Buffer()
 #endif
-#define STATIC_SHADER(NAME) HydraEngine::RHI::StaticShader{ STATIC_SHADER_D3D11(NAME) ,STATIC_SHADER_D3D12(NAME) ,STATIC_SHADER_SPIRV(NAME) }
+#define STATIC_SHADER(NAME) HE::RHI::StaticShader{ STATIC_SHADER_D3D11(NAME) ,STATIC_SHADER_D3D12(NAME) ,STATIC_SHADER_SPIRV(NAME) }

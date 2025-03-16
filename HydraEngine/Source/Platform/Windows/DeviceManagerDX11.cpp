@@ -10,14 +10,14 @@ module;
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
 
-module HydraEngine;
+module HE;
 import std;
 import nvrhi;
 
 // Based on NVIDIA Donut framework (MIT License), with slight modifications
 // Source: https://github.com/NVIDIA-RTX/Donut/blob/main/src/app/dx11/DeviceManager_DX11.cpp
 
-namespace HydraEngine {
+namespace HE {
 
 	class DeviceManagerDX11 : public DeviceManager
 	{

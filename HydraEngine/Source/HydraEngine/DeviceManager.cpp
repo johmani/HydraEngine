@@ -4,16 +4,16 @@ module;
 #include <ShaderMake/ShaderBlob.h>
 #include <GLFW/glfw3.h>
 
-module HydraEngine;
+module HE;
 import nvrhi;
 import std;
 
-namespace HydraEngine {
+namespace HE {
 
 	namespace RHI {
 
-		nvrhi::DeviceHandle GetDevice() { return HydraEngine::GetAppContext().mainWindow.GetDeviceManager()->GetDevice(); }
-		nvrhi::IFramebuffer* GetCurrentFramebuffer() { return HydraEngine::GetAppContext().mainWindow.GetDeviceManager()->GetCurrentFramebuffer(); }
+		nvrhi::DeviceHandle GetDevice() { return HE::GetAppContext().mainWindow.GetDeviceManager()->GetDevice(); }
+		nvrhi::IFramebuffer* GetCurrentFramebuffer() { return HE::GetAppContext().mainWindow.GetDeviceManager()->GetCurrentFramebuffer(); }
 
 		nvrhi::ShaderHandle CreateStaticShader(nvrhi::IDevice* device, StaticShader staticShader, const std::vector<ShaderMacro>* pDefines, const nvrhi::ShaderDesc& desc)
 		{

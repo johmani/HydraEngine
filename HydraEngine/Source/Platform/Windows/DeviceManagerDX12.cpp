@@ -16,14 +16,14 @@ module;
 
 #define HR_RETURN(hr) if(FAILED(hr)) return false
 
-module HydraEngine;
+module HE;
 import std;
 import nvrhi;
 
 // Based on NVIDIA Donut framework (MIT License), with slight modifications
 // Source: https://github.com/NVIDIA-RTX/Donut/blob/main/src/app/dx12/DeviceManager_DX12.cpp
 
-namespace HydraEngine {
+namespace HE {
 
 	class DeviceManagerDX12 : public DeviceManager
 	{

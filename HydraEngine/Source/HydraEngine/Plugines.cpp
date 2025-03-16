@@ -2,10 +2,10 @@ module;
 
 #include "HydraEngine/Base.h"
 
-module HydraEngine;
+module HE;
 import simdjson;
 
-namespace HydraEngine::Plugins {
+namespace HE::Plugins {
 
 	bool DeserializePluginDesc(const std::filesystem::path& filePath, PluginDesc& desc)
 	{

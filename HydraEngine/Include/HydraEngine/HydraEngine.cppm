@@ -17,7 +17,7 @@ module;
 #include <vulkan/vulkan.h>
 #endif
 
-export module HydraEngine;
+export module HE;
 
 import std;
 import nvrhi;
@@ -31,7 +31,7 @@ export {
 	using std::size_t;
 }
 
-export namespace HydraEngine {
+export namespace HE {
 
 	//////////////////////////////////////////////////////////////////////////
 	// Basic
@@ -1879,8 +1879,6 @@ export namespace HydraEngine {
 		struct PluginContext
 		{
 			std::unordered_map<PluginHandle, Ref<Plugin>> plugins;
-
-			//HYDRA_API ~PluginContext() { plugins.clear(); }
 		};
 
 		HYDRA_API void LoadPluginsInDirectory(const std::filesystem::path& directory);

@@ -8,10 +8,10 @@ module;
 #undef DeleteFile
 #endif
 
-module HydraEngine;
+module HE;
 import std;
 
-namespace HydraEngine::FileSystem {
+namespace HE::FileSystem {
 
     bool Delete(const std::filesystem::path& path)
     {
@@ -119,7 +119,7 @@ namespace HydraEngine::FileSystem {
         file.seekg(0, std::ios::beg);
         size_t size = file.tellg();
         uint8_t* data = new uint8_t[size];
-        HydraEngine::Buffer buffer(data, size);
+        HE::Buffer buffer(data, size);
         file.read(reinterpret_cast<char*>(data), size);
 
         return buffer;
@@ -190,7 +190,7 @@ namespace HydraEngine::FileSystem {
     }
 }
 
-namespace HydraEngine::FileDialog {
+namespace HE::FileDialog {
 
 	std::filesystem::path OpenFile(std::initializer_list<std::pair<std::string_view, std::string_view>> filters)
 	{
