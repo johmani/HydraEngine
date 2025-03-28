@@ -83,11 +83,11 @@ namespace HE {
 		HE_CORE_ERROR("[GLFW] : ({}): {}", error, description);
 	}
 
-	void Window::Init(const WindowDesc& windowDesc, DeviceDesc& deviceDesc)
+	void Window::Init(const WindowDesc& windowDesc, const DeviceDesc& deviceDesc)
 	{
-		desc = windowDesc;
-
 		HE_PROFILE_FUNCTION();
+
+		desc = windowDesc;
 		
 #ifdef HE_PLATFORM_WINDOWS
 		if (!desc.perMonitorDPIAware)
@@ -198,64 +198,7 @@ namespace HE {
 			glfwSetWindowIcon(glfwWindow, 1, &icon);
 		}
 
-		// create device
-		{
-			size_t apiCount = deviceDesc.api.size();
-			if (deviceDesc.api[0] == nvrhi::GraphicsAPI(-1))
-			{
-#ifdef HE_PLATFORM_WINDOWS
-				deviceDesc.api = {
-			#if NVRHI_HAS_D3D12
-					nvrhi::GraphicsAPI::D3D12,
-			#endif
-			#if NVRHI_HAS_VULKAN
-					nvrhi::GraphicsAPI::VULKAN,
-			#endif
-			#if NVRHI_HAS_D3D11
-					nvrhi::GraphicsAPI::D3D11
-			#endif
-				};
-#else
-				deviceDesc.api = { nvrhi::GraphicsAPI::VULKAN };
-#endif
-				apiCount = deviceDesc.api.size();
-			}
-
-			for (size_t i = 0; i < apiCount; i++)
-			{
-				auto api = deviceDesc.api[i];
-
-				if (api == nvrhi::GraphicsAPI(-1))
-					continue;
-
-				HE_CORE_INFO("Trying to create backend API: {}", nvrhi::utils::GraphicsAPIToString(api));
-
-				m_DeviceManager = DeviceManager::Create(api);
-				if (m_DeviceManager)
-				{
-					bool deviceCreated = false;
-					if (deviceDesc.headlessDevice)
-						deviceCreated = m_DeviceManager->CreateHeadlessDevice(deviceDesc);
-					else
-						deviceCreated = m_DeviceManager->CreateWindowDeviceAndSwapChain(deviceDesc, { windowDesc.fullScreen, windowDesc.maximized }, m_WindowHandle);
-
-					if (deviceCreated)
-						break;
-
-					m_DeviceManager->Shutdown();
-					delete m_DeviceManager;
-				}
-
-				HE_CORE_ERROR("Failed to create backend API: {}", nvrhi::utils::GraphicsAPIToString(api));
-			}
-
-			if (!m_DeviceManager)
-			{
-				HE_CORE_CRITICAL("No graphics backend could be initialized!");
-				std::exit(EXIT_FAILURE);
-			}
-		}
-
+		
 		glfwShowWindow(glfwWindow);
 
 		glfwSetWindowUserPointer(glfwWindow, this);
@@ -460,15 +403,7 @@ namespace HE {
 	Window::~Window()
 	{
 		HE_PROFILE_FUNCTION();
-
-		if (m_DeviceManager)
-		{
-			m_DeviceManager->GetDevice()->waitForIdle();
-			m_DeviceManager->Shutdown();
-
-			delete m_DeviceManager;
-		}
-
+	
 		if(m_WindowHandle)
 		{
 			glfwDestroyWindow((GLFWwindow*)m_WindowHandle);
@@ -478,10 +413,6 @@ namespace HE {
 				glfwTerminate();
 		}
 	}
-
-	void Window::SetVSync(bool enabled) { if (m_DeviceManager) m_DeviceManager->SetVsyncEnabled(enabled); }
-
-	bool Window::IsVSync() const { return m_DeviceManager ? m_DeviceManager->IsVsyncEnabled() : false; }
 
 	void Window::SetWindowTitle(const std::string_view& title)
 	{
@@ -617,27 +548,7 @@ namespace HE {
 		glfwPollEvents();
 	}
 
-	nvrhi::IFramebuffer* Window::BeginFrame()
-	{
-		if (m_DeviceManager)
-		{
-			m_DeviceManager->UpdateWindowSize();
-			if (m_DeviceManager->BeginFrame())
-			{
-				return m_DeviceManager->GetCurrentFramebuffer();
-			}
-		}
 
-		return nullptr;
-	}
-
-	void Window::EndFrame()
-	{
-		if (m_DeviceManager)
-		{
-			m_DeviceManager->PresentResult();
-		}
-	}
 
 	//////////////////////////////////////////////////////////////////////////
 	// Input

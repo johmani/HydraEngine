@@ -1543,13 +1543,17 @@ export namespace HE {
 	class DeviceManager
 	{
 	public:
-		virtual ~DeviceManager() = default;
+		HYDRA_API virtual ~DeviceManager() = default;
 
-		static DeviceManager* Create(nvrhi::GraphicsAPI api);
+		HYDRA_API static DeviceManager* Create(nvrhi::GraphicsAPI api);
 
-		bool CreateHeadlessDevice(const DeviceDesc& desc);
-		bool CreateWindowDeviceAndSwapChain(const DeviceDesc& desc, WindowState windowState, void* windowHandle);
+		HYDRA_API bool CreateHeadlessDevice(const DeviceDesc& desc);
+		HYDRA_API bool CreateWindowDeviceAndSwapChain(const DeviceDesc& desc, WindowState windowState, void* windowHandle);
 		bool CreateInstance(const DeviceInstanceDesc& desc);
+
+		// Enumerates adapters or physical devices present in the system.
+		// Note: a call to CreateInstance() or Create*Device*() is required before EnumerateAdapters().
+		virtual bool EnumerateAdapters(std::vector<AdapterInfo>& outAdapters) = 0;
 
 		void UpdateWindowSize();
 		void PresentResult();
@@ -1558,7 +1562,6 @@ export namespace HE {
 		nvrhi::IFramebuffer* GetFramebuffer(uint32_t index);
 		const DeviceDesc& GetDeviceDesc() { return m_DeviceDesc; }
 		bool IsVsyncEnabled() const { return m_DeviceDesc.vsyncEnabled; }
-		uint32_t GetFrameIndex() const { return m_FrameIndex; }
 
 		virtual void Shutdown();
 		virtual bool BeginFrame() = 0;
@@ -1585,10 +1588,8 @@ export namespace HE {
 		bool m_IsNvidia = false;
 		bool m_RequestedVSync = false;
 		bool m_InstanceCreated = false;
-		uint32_t m_FrameIndex = 0;
 		std::vector<nvrhi::FramebufferHandle> m_SwapChainFramebuffers;
 
-		virtual bool EnumerateAdapters(std::vector<AdapterInfo>& outAdapters) = 0;
 		DeviceManager() = default;
 
 		void BackBufferResizing();
@@ -1619,8 +1620,16 @@ export namespace HE {
 
 	namespace RHI {
 
-		HYDRA_API nvrhi::DeviceHandle GetDevice();
-		HYDRA_API nvrhi::IFramebuffer* GetCurrentFramebuffer();
+		struct DeviceContext
+		{
+			std::vector<DeviceManager*> managers;
+
+			HYDRA_API ~DeviceContext();
+			HYDRA_API void TryCreateDefaultDevice();
+		};
+
+		HYDRA_API DeviceManager* GetDeviceManager(uint32_t index = 0);
+		HYDRA_API nvrhi::DeviceHandle GetDevice(uint32_t index = 0);
 
 		struct StaticShader
 		{
@@ -1631,8 +1640,8 @@ export namespace HE {
 
 		struct ShaderMacro
 		{
-			std::string_view Name;
-			std::string_view Definition;
+			std::string_view name;
+			std::string_view definition;
 		};
 
 		HYDRA_API nvrhi::ShaderHandle CreateStaticShader(nvrhi::IDevice* device, StaticShader staticShader, const std::vector<ShaderMacro>* pDefines, const nvrhi::ShaderDesc& desc);
@@ -1696,12 +1705,11 @@ export namespace HE {
 	public:
 		using EventCallback = std::function<void(Event&)>;
 
-		void Init(const WindowDesc& windowDesc, DeviceDesc& deviceDesc);
+		void Init(const WindowDesc& windowDesc, const DeviceDesc& deviceDesc);
 		HYDRA_API ~Window();
 
 		HYDRA_API void* GetNativeWindow();
-		HYDRA_API void SetVSync(bool enabled);
-		HYDRA_API bool IsVSync() const;
+
 		HYDRA_API void SetWindowTitle(const std::string_view& title);
 		HYDRA_API void MaximizeWindow();
 		HYDRA_API void MinimizeWindow();
@@ -1718,7 +1726,6 @@ export namespace HE {
 		uint32_t GetWidth() const { return desc.width; }
 		uint32_t GetHeight() const { return desc.height; }
 		void* GetWindowHandle() const { return m_WindowHandle; }
-		DeviceManager* GetDeviceManager() { return m_DeviceManager; };
 		
 		// internal
 		InputState inputData;
@@ -1727,11 +1734,8 @@ export namespace HE {
 		void SetEventCallback(const EventCallback& callback) { eventCallback = callback; }
 		void CallEvent(Event& e) { eventCallback(e); }
 		void UpdateEvent();
-		nvrhi::IFramebuffer* BeginFrame();
-		void EndFrame();
 
 		void* m_WindowHandle = nullptr;
-		DeviceManager* m_DeviceManager = nullptr;
 
 		bool m_isTitleBarHovered = false;
 		int m_PrevPosX = 0, m_PrevPosY = 0, m_PrevWidth = 0, m_PrevHeight = 0;
@@ -1958,12 +1962,11 @@ export namespace HE {
 
 	struct ApplicationDesc
 	{
-		std::filesystem::path workingDirectory;
-
 		WindowDesc windowDesc;
 		DeviceDesc deviceDesc;
 		ApplicationCommandLineArgs commandLineArgs;
-
+		std::filesystem::path workingDirectory;
+		bool createDefaultDevice = true;
 		uint32_t workersNumber = std::thread::hardware_concurrency() - 1;
 	};
 
@@ -1976,6 +1979,7 @@ export namespace HE {
 	struct ApplicationContext
 	{
 		ApplicationDesc applicatoinDesc;
+		RHI::DeviceContext deviceContext;
 		Window mainWindow;
 		LayerStack layerStack;
 		Modules::ModulesContext modulesContext;
@@ -2018,6 +2022,8 @@ export namespace HE {
 		HYDRA_API float GetAverageFrameTimeSeconds();
 		HYDRA_API float GetLastFrameTimestamp();
 		HYDRA_API void  SetFrameTimeUpdateInterval(float seconds);
+		HYDRA_API void SetVSync(bool enabled);
+		HYDRA_API bool IsVSync();
 		HYDRA_API Window& GetWindow();
 	}
 

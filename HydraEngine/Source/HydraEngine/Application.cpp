@@ -78,36 +78,14 @@ namespace HE {
 		void PushOverlay(Layer* layer) { GetAppContext().layerStack.PushOverlay(layer); }
 		void PopLayer(Layer* layer) { GetAppContext().layerStack.PopLayer(layer); }
 		void PopOverlay(Layer* overlay) { GetAppContext().layerStack.PopOverlay(overlay); }
-		Window& GetWindow() { return  GetAppContext().mainWindow; }
-		float GetTime();
-
 		const Stats& GetStats() { return GetAppContext().appStats; }
 		const ApplicationDesc& GetApplicationDesc() { return GetAppContext().applicatoinDesc; }
 		float GetAverageFrameTimeSeconds() { return GetAppContext().averageFrameTime; }
 		float GetLastFrameTimestamp() { return GetAppContext().lastFrameTime; }
 		void  SetFrameTimeUpdateInterval(float seconds) { GetAppContext().averageTimeUpdateInterval = seconds; }
-	}
-
-	bool OnWindowClose(WindowCloseEvent& e)
-	{
-		Application::Shutdown();
-		return true;
-	}
-
-	bool OnWindowResize(WindowResizeEvent& e)
-	{
-		HE_PROFILE_FUNCTION();
-
-		auto& c = GetAppContext();
-
-		if (e.GetWidth() == 0 || e.GetHeight() == 0)
-		{
-			c.minimized = true;
-			return false;
-		}
-
-		c.minimized = false;
-		return false;
+		void SetVSync(bool enabled) { RHI::GetDeviceManager()->SetVsyncEnabled(enabled); }
+		bool IsVSync() { return RHI::GetDeviceManager()->IsVsyncEnabled(); }
+		Window& GetWindow() { return  GetAppContext().mainWindow; }
 	}
 
 	void OnEvent(Event& e)
@@ -117,8 +95,27 @@ namespace HE {
 		auto& c = GetAppContext();
 
 		EventDispatcher dispatcher(e);
-		dispatcher.Dispatch<WindowCloseEvent>(OnWindowClose);
-		dispatcher.Dispatch<WindowResizeEvent>(OnWindowResize);
+		dispatcher.Dispatch<WindowCloseEvent>([](WindowCloseEvent& e)
+		{
+			Application::Shutdown();
+			return true;
+		});
+
+		dispatcher.Dispatch<WindowResizeEvent>([](WindowResizeEvent& e)
+		{
+			HE_PROFILE_FUNCTION();
+
+			auto& c = GetAppContext();
+
+			if (e.GetWidth() == 0 || e.GetHeight() == 0)
+			{
+				c.minimized = true;
+				return false;
+			}
+
+			c.minimized = false;
+			return false;
+		});
 
 		for (auto it = c.layerStack.rbegin(); it != c.layerStack.rend(); ++it)
 		{
@@ -151,10 +148,24 @@ namespace HE {
 				mainThreadQueue.clear();
 			}
 
+			bool headlessDevice = applicatoinDesc.deviceDesc.headlessDevice;
+
 			if (!minimized)
 			{
-				nvrhi::IFramebuffer* framebuffer = mainWindow.BeginFrame();
-				if (!framebuffer) continue;
+				nvrhi::IFramebuffer* framebuffer = nullptr;
+				if(!headlessDevice)
+				{
+					DeviceManager* dm = RHI::GetDeviceManager();
+
+					if (dm)
+					{
+						dm->UpdateWindowSize();
+						if (dm->BeginFrame())
+						{
+							framebuffer = dm->GetCurrentFramebuffer();
+						}
+					}
+				}
 
 				FrameInfo info = { timestep, framebuffer };
 
@@ -176,10 +187,19 @@ namespace HE {
 						layer->OnEnd(info);
 				}
 
-				mainWindow.EndFrame();
+				if(!headlessDevice)
+				{
+					DeviceManager* dm = RHI::GetDeviceManager();
+
+					if (dm)
+					{
+						dm->PresentResult();
+					}
+				}
 			}
 
-			mainWindow.UpdateEvent();
+			if (!headlessDevice)
+				mainWindow.UpdateEvent();
 
 			// time
 			{
@@ -224,7 +244,13 @@ namespace HE {
 		if (!applicatoinDesc.workingDirectory.empty())
 			std::filesystem::current_path(applicatoinDesc.workingDirectory);
 
-		mainWindow.Init(applicatoinDesc.windowDesc, applicatoinDesc.deviceDesc);
-		mainWindow.SetEventCallback(OnEvent);
+		if (!applicatoinDesc.deviceDesc.headlessDevice)
+		{
+			mainWindow.Init(applicatoinDesc.windowDesc, applicatoinDesc.deviceDesc);
+			mainWindow.SetEventCallback(OnEvent);
+		}
+
+		if (applicatoinDesc.createDefaultDevice)
+			deviceContext.TryCreateDefaultDevice();
 	}
 }

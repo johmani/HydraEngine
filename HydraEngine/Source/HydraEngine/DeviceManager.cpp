@@ -12,11 +12,110 @@ namespace HE {
 
 	namespace RHI {
 
-		nvrhi::DeviceHandle GetDevice() { return HE::GetAppContext().mainWindow.GetDeviceManager()->GetDevice(); }
-		nvrhi::IFramebuffer* GetCurrentFramebuffer() { return HE::GetAppContext().mainWindow.GetDeviceManager()->GetCurrentFramebuffer(); }
+		DeviceContext::~DeviceContext()
+		{
+			HE_PROFILE_FUNCTION();
+
+			for (auto dm : GetAppContext().deviceContext.managers)
+			{
+				if (dm)
+				{
+					dm->GetDevice()->waitForIdle();
+					dm->Shutdown();
+					delete dm;
+				}
+			}
+		}
+
+		void DeviceContext::TryCreateDefaultDevice()
+		{
+			HE_PROFILE_FUNCTION();
+
+			auto& c = GetAppContext();
+			auto& dm = c.deviceContext.managers.emplace_back();
+
+			auto deviceDesc = c.applicatoinDesc.deviceDesc;
+			auto windowDesc = c.applicatoinDesc.windowDesc;
+			size_t apiCount = deviceDesc.api.size();
+			if (deviceDesc.api[0] == nvrhi::GraphicsAPI(-1))
+			{
+#ifdef HE_PLATFORM_WINDOWS
+				deviceDesc.api = {
+			#if NVRHI_HAS_D3D12
+					nvrhi::GraphicsAPI::D3D12,
+			#endif
+			#if NVRHI_HAS_VULKAN
+					nvrhi::GraphicsAPI::VULKAN,
+			#endif
+			#if NVRHI_HAS_D3D11
+					nvrhi::GraphicsAPI::D3D11
+			#endif
+				};
+#else
+				deviceDesc.api = { nvrhi::GraphicsAPI::VULKAN };
+#endif
+				apiCount = deviceDesc.api.size();
+			}
+
+			for (size_t i = 0; i < apiCount; i++)
+			{
+				auto api = deviceDesc.api[i];
+
+				if (api == nvrhi::GraphicsAPI(-1))
+					continue;
+
+				HE_CORE_INFO("Trying to create backend API: {}", nvrhi::utils::GraphicsAPIToString(api));
+
+				dm = DeviceManager::Create(api);
+				if (dm)
+				{
+					bool deviceCreated = false;
+					if (deviceDesc.headlessDevice)
+						deviceCreated = dm->CreateHeadlessDevice(deviceDesc);
+					else
+						deviceCreated = dm->CreateWindowDeviceAndSwapChain(deviceDesc, { windowDesc.fullScreen, windowDesc.maximized }, c.mainWindow.GetWindowHandle());
+
+					if (deviceCreated)
+						break;
+
+					dm->Shutdown();
+					delete dm;
+				}
+
+				HE_CORE_ERROR("Failed to create backend API: {}", nvrhi::utils::GraphicsAPIToString(api));
+			}
+
+			if (!dm)
+			{
+				HE_CORE_CRITICAL("No graphics backend could be initialized!");
+				std::exit(1);
+			}
+		}
+
+		DeviceManager* GetDeviceManager(uint32_t index) 
+		{ 
+			auto& managers = GetAppContext().deviceContext.managers;
+			
+			if(managers.size() >= 1)
+				return managers[index];
+
+			return nullptr;
+		}
+
+		nvrhi::DeviceHandle GetDevice(uint32_t index) 
+		{
+			auto& managers = GetAppContext().deviceContext.managers;
+
+			if(managers.size() >= 1)
+				return managers[index]->GetDevice();
+			
+			return {};
+		}
 
 		nvrhi::ShaderHandle CreateStaticShader(nvrhi::IDevice* device, StaticShader staticShader, const std::vector<ShaderMacro>* pDefines, const nvrhi::ShaderDesc& desc)
 		{
+			HE_PROFILE_FUNCTION();
+
 			nvrhi::ShaderHandle shader;
 
 			Buffer buffer;
@@ -35,7 +134,7 @@ namespace HE {
 				std::vector<ShaderMake::ShaderConstant> constants;
 				constants.reserve(pDefines->size());
 				for (const ShaderMacro& define : *pDefines)
-					constants.emplace_back(define.Name.data(), define.Definition.data());
+					constants.emplace_back(define.name.data(), define.definition.data());
 
 				if (!ShaderMake::FindPermutationInBlob(buffer.data, buffer.size, constants.data(), uint32_t(constants.size()), &permutationBytecode, &permutationSize))
 				{
@@ -143,7 +242,6 @@ namespace HE {
 
 		Present();
 		GetDevice()->runGarbageCollection();
-		++m_FrameIndex;
 	}
 
 	void DeviceManager::UpdateWindowSize()
