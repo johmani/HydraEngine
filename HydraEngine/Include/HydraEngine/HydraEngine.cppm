@@ -1655,9 +1655,10 @@ export namespace HE {
 	{
 		std::string title = "Hydra Engine";
 		std::string iconFilePath;
-		uint32_t width = 0;	
-		uint32_t height = 0;
-		float sizeRatio = 0.7f;				// Percentage of screen size to use when width/height is 0
+		uint32_t width = 0, height = 0;
+		uint32_t minWidth = -1, minHeight = -1;
+		uint32_t maxWidth = -1, maxHeight = -1;
+		float sizeRatio = 0.7f;				    // Percentage of screen size to use when width/height is 0
 		bool resizeable = true;
 		bool customTitlebar = false;
 		bool decorated = true;

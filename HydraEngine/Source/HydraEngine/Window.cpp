@@ -170,6 +170,8 @@ namespace HE {
 		}
 
 		GLFWwindow* glfwWindow = (GLFWwindow*)m_WindowHandle;
+
+		glfwSetWindowSizeLimits(glfwWindow, desc.minWidth, desc.minHeight, desc.maxWidth, desc.maxHeight);
 	
 		m_PrevPosX = 0, m_PrevPosY = 0, m_PrevWidth = 0, m_PrevHeight = 0;
 		glfwGetWindowSize(glfwWindow, &m_PrevWidth, &m_PrevHeight);
