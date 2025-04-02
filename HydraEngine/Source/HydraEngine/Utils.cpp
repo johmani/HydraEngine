@@ -96,48 +96,63 @@ namespace HE::FileSystem {
 #endif
     }
 
-    std::vector<uint8_t> FileSystem::ReadBinaryFile(const std::filesystem::path& filePath)
+    std::vector<uint8_t> ReadBinaryFile(const std::filesystem::path& filePath)
     {
-        std::vector<uint8_t> buffer;
-        std::ifstream inputFile(filePath, std::ios::binary);
+        std::ifstream inputFile(filePath, std::ios::binary | std::ios::ate);
 
         if (!inputFile)
         {
-            HE_CORE_ERROR("Error: Unable to open input file {}", filePath.string());
-            return buffer;
+            HE_CORE_ERROR("Unable to open input file {}", filePath.string());
+            return {};
         }
 
-        buffer.assign(std::istreambuf_iterator<char>(inputFile), {});
-        inputFile.close();
+        std::streamsize fileSize = inputFile.tellg();
+        inputFile.seekg(0, std::ios::beg);
+
+        std::vector<uint8_t> buffer;
+        buffer.resize(static_cast<size_t>(fileSize));
+        inputFile.read(reinterpret_cast<char*>(buffer.data()), fileSize);
 
         return buffer;
     }
 
-    Buffer ReadBinaryFileToBuffer(const std::filesystem::path& filePath)
+    bool ReadBinaryFile(const std::filesystem::path& filePath, Buffer buffer)
     {
-        std::ifstream file(filePath, std::ios::binary | std::ios::ate);
-        file.seekg(0, std::ios::beg);
-        size_t size = file.tellg();
-        uint8_t* data = new uint8_t[size];
-        HE::Buffer buffer(data, size);
-        file.read(reinterpret_cast<char*>(data), size);
+        std::ifstream inputFile(filePath, std::ios::binary | std::ios::ate);
+        if (!inputFile)
+        {
+            HE_CORE_ERROR("Unable to open input file {}", filePath.string());
+            return false;
+        }
 
-        return buffer;
+        std::streamsize fileSize = inputFile.tellg();
+        inputFile.seekg(0, std::ios::beg);
+
+        if (buffer.size < static_cast<size_t>(fileSize))
+        {
+            HE_CORE_ERROR("Provided buffer is too small. Required size: {}", fileSize);
+            return false;
+        }
+
+        inputFile.read(reinterpret_cast<char*>(buffer.data), fileSize);
+
+        return true;
     }
 
     std::string FileSystem::ReadTextFile(const std::filesystem::path& filePath)
     {
-        std::ifstream infile(filePath);
-        if (!infile.is_open())
+        std::ifstream infile(filePath, std::ios::in | std::ios::ate);
+        if (!infile)
         {
             HE_CORE_ERROR("Could not open input file: {}", filePath.string());
-            return "";
+            return {};
         }
 
-        std::stringstream buffer;
-        buffer << infile.rdbuf();
-        std::string content = buffer.str();
-        infile.close();
+        std::streamsize size = infile.tellg();
+        infile.seekg(0, std::ios::beg);
+
+        std::string content(size, '\0');
+        infile.read(content.data(), size);
 
         return content;
     }
@@ -186,6 +201,43 @@ namespace HE::FileSystem {
         outputFile << "#endif //" << arrayName << "_H" << std::endl;
 
         outputFile.close();
+        return true;
+    }
+
+    bool GenerateFileWithReplacements(const std::filesystem::path& input, const std::filesystem::path& output, const std::initializer_list<std::pair<std::string_view, std::string_view>>& replacements)
+    {
+        std::ifstream infile(input, std::ios::binary | std::ios::ate);
+        if (!infile)
+        {
+            HE_CORE_ERROR("Could not open input file: {}", input.string());
+            return false;
+        }
+
+        std::streamsize size = infile.tellg();
+        infile.seekg(0, std::ios::beg);
+
+        std::string content(size, '\0');
+        infile.read(content.data(), size);
+
+        for (const auto& [oldText, newText] : replacements)
+        {
+            size_t pos = 0;
+            while ((pos = content.find(oldText, pos)) != std::string::npos)
+            {
+                content.replace(pos, oldText.length(), newText);
+                pos += newText.length();
+            }
+        }
+
+        std::ofstream outfile(output, std::ios::binary);
+        if (!outfile)
+        {
+            HE_CORE_ERROR("Could not open output file: {}", output.string());
+            return false;
+        }
+
+        outfile.write(content.data(), content.size());
+
         return true;
     }
 }

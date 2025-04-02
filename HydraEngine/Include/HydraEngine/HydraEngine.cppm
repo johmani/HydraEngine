@@ -2064,9 +2064,10 @@ export namespace HE {
 		HYDRA_API bool Copy(const std::filesystem::path& from, const std::filesystem::path& to);
 		HYDRA_API void Open(const std::filesystem::path& path);
 		HYDRA_API std::vector<uint8_t> ReadBinaryFile(const std::filesystem::path& filePath);
-		HYDRA_API Buffer ReadBinaryFileToBuffer(const std::filesystem::path& filePath);
+		HYDRA_API bool ReadBinaryFile(const std::filesystem::path& filePath, Buffer buffer);
 		HYDRA_API std::string ReadTextFile(const std::filesystem::path& filePath);
 		HYDRA_API bool ConvertBinaryToHeader(const std::filesystem::path& inputFileName, const std::filesystem::path& outputFileName, const std::string& arrayName);
+		HYDRA_API bool GenerateFileWithReplacements(const std::filesystem::path& input, const std::filesystem::path& output, const std::initializer_list<std::pair<std::string_view, std::string_view>>& replacements);
 	}
 
 	namespace FileDialog {
