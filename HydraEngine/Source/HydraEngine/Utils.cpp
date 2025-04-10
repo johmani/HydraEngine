@@ -3,6 +3,9 @@ module;
 #include "HydraEngine/Base.h"
 #include <nfd.hpp>
 
+#ifdef HE_PLATFORM_WINDOWS
+#include <Windows.h>
+#endif
 
 #ifdef DeleteFile
 #undef DeleteFile
@@ -297,4 +300,58 @@ namespace HE::FileDialog {
 
 		return {};
 	}
+}
+
+namespace HE::OS {
+
+    void SetEnvVar(const char* var, const char* value)
+    {
+#ifdef HE_PLATFORM_WINDOWS
+        HKEY hKey;
+        if (RegOpenKeyExA(HKEY_CURRENT_USER, "Environment", 0, KEY_WRITE, &hKey) == ERROR_SUCCESS)
+        {
+        	if (RegSetValueExA(hKey, var, 0, REG_SZ, (const BYTE*)value, (DWORD)strlen(value) + 1) == ERROR_SUCCESS)
+        	{
+        		HE_INFO("Environment variable  [{}] : {}  set successfully!", var, value);
+        	}
+        	else
+        	{
+        		HE_ERROR("Failed to set environment variable {}", var);
+        	}
+        	RegCloseKey(hKey);
+        }
+        else
+        {
+        	HE_ERROR("Failed to open registry key!");
+        }
+#else
+        NOT_YET_IMPLEMENTED();
+#endif
+    }
+
+    void RemoveEnvVar(const char* var)
+    {
+#ifdef HE_PLATFORM_WINDOWS
+        HKEY hKey;
+        if (RegOpenKeyExA(HKEY_CURRENT_USER, "Environment", 0, KEY_WRITE, &hKey) == ERROR_SUCCESS)
+        {
+            if (RegDeleteValueA(hKey, var) == ERROR_SUCCESS)
+            {
+                HE_INFO("Environment variable [{}] removed successfully!", var);
+            }
+            else
+            {
+                HE_ERROR("Failed to remove environment variable {}", var);
+            }
+            RegCloseKey(hKey);
+        }
+        else
+        {
+            HE_ERROR("Failed to open registry key!");
+        }
+
+#else
+        NOT_YET_IMPLEMENTED();
+#endif
+    }
 }

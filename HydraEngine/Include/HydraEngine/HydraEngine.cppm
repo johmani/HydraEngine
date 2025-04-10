@@ -2077,4 +2077,10 @@ export namespace HE {
 		HYDRA_API std::filesystem::path SaveFile(std::initializer_list<std::pair<std::string_view, std::string_view>> filters);
 		HYDRA_API std::filesystem::path SelectFolder();
 	}
+
+	namespace OS {
+
+		HYDRA_API void SetEnvVar(const char* var, const char* value);
+		HYDRA_API void RemoveEnvVar(const char* var);
+	}
 }
