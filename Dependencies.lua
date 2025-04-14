@@ -37,11 +37,20 @@ end
 
 function Extract(archive, outputDir)
     if os.host() == "windows" then
-        os.execute("powershell -Command \"Expand-Archive -Path '" .. archive .. "' -DestinationPath '" .. outputDir .. "' -Force\"")
+        local command = 'powershell -Command "Expand-Archive -Path \'' .. archive .. '\' -DestinationPath \'' .. outputDir .. '\' -Force"'
+        os.execute(command)
     else
-        os.execute("tar -xzf " .. archive .. " -C " .. outputDir)
+        os.execute("mkdir -p \"" .. outputDir .. "\"")
+        if archive:match("%.zip$") then
+            os.execute("unzip -o \"" .. archive .. "\" -d \"" .. outputDir .. "\"")
+        elseif archive:match("%.tar%.gz$") then
+            os.execute("tar -xzf \"" .. archive .. "\" -C \"" .. outputDir .. "\"")
+        else
+            print("Unsupported archive format: " .. archive)
+        end
     end
 end
+
 
 function FindFxc()
     local sdkRoot = "C:/Program Files (x86)/Windows Kits/10/bin/"
@@ -58,7 +67,7 @@ function BuildShaders(apiList ,src, cache, flags, includeDirs)
     local exeExt = (os.host() == "windows") and ".exe" or ""
     local sm    = "%{binOutputDir}/ShaderMake" .. exeExt
     local cfg   = path.join(src, "shaders.cfg")
-    local dxc   = "%{HE}/ThirdParty/dxc/bin/x64/dxc" .. exeExt
+    local dxc   = "%{HE}/ThirdParty/Lib/dxc/bin/x64/dxc" .. exeExt
     local fxc   = FindFxc()
     local inc   = table.concat(includeDirs, "\" -I \"", 1, -1, "-I \"")
     local sep   = (os.host() == "windows") and " && " or " ; "
@@ -97,5 +106,29 @@ function AddCppm(arg1, arg2) --  (name) or (directory, name)
         else
             return "/reference " .. path.join("%{wks.location}", "Build", "Intermediates", outputdir, arg1, (arg1 .. ".cppm.ifc"))
         end
+    end
+end
+
+function Setup()
+    local repoURL
+    if os.host() == "windows" then
+        repoURL = "https://github.com/johmani/HydraEngineLibs_Windows_x64.git"
+    else
+        print("HydraEngineLibs not supported yet on this platform.")
+        return
+    end
+
+    local targetDir = "ThirdParty/Lib"
+
+    if not os.isdir(targetDir) then
+        print("Cloning HydraEngineLibs...")
+        os.execute('git clone "' .. repoURL .. '" "' .. targetDir .. '"')
+    end 
+
+    local zips = os.matchfiles(targetDir .. "/*.zip")
+    for _, zip in ipairs(zips) do
+        print("Extracting " .. zip .. " to " .. targetDir)
+        Extract(zip, targetDir)
+        os.remove(zip)
     end
 end

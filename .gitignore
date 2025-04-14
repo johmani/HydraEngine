@@ -4,4 +4,4 @@ Build
 *.vcxproj
 *.user
 *.filters
-ThirdParty/dxc
+ThirdParty/Lib
