@@ -83,7 +83,7 @@ function BuildShaders(apiList ,src, cache, flags, includeDirs)
     local cmds = {}
     for _, c in ipairs(conf) do
         table.insert(cmds, string.format(
-            "\"%s\" --config \"%s\" %s --outputExt .bin --colorize --verbose --out %s %s %s",
+            "\"%s\" --config \"%s\" %s --outputExt .bin --colorize --verbose --out \"%s\" %s %s",
             sm, cfg, inc, path.join(cache, c.out), flags, c.args))
     end
 
@@ -98,16 +98,19 @@ function AddCppm(arg1, arg2) --  (name) or (directory, name)
         return ""
     end
 
+    local base = path.join("%{wks.location}", "Build", "Intermediates", outputdir)
+
     if arg2 then -- (directory, name)
-        return "/reference " .. path.join("%{wks.location}", "Build", "Intermediates", outputdir, arg1, (arg2 .. ".cppm.ifc"))
+        return '/reference "' .. path.join(base, arg1, arg2 .. ".cppm.ifc") .. '"'
     else -- (name)
         if arg1 == "std" then
-            return "/reference " .. path.join("%{wks.location}", "Build", "Intermediates", outputdir, "HydraEngine", "microsoft", "STL", "std.ixx.ifc")
+            return '/reference "' .. path.join(base, "HydraEngine", "microsoft", "STL", "std.ixx.ifc") .. '"'
         else
-            return "/reference " .. path.join("%{wks.location}", "Build", "Intermediates", outputdir, arg1, (arg1 .. ".cppm.ifc"))
+            return '/reference "' .. path.join(base, arg1, arg1 .. ".cppm.ifc") .. '"'
         end
     end
 end
+
 
 function Setup()
     local repoURL
