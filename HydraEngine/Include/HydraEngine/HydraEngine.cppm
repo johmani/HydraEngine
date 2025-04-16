@@ -1863,6 +1863,7 @@ export namespace HE {
 		{
 			std::string name;
 			std::string description;
+			std::string URL;
 			bool reloadable = false;
 			bool enabledByDefault = false;
 			std::vector<std::string> modules;	// the base name of module without extension

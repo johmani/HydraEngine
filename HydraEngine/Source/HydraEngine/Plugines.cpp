@@ -25,6 +25,9 @@ namespace HE::Plugins {
 		std::string_view description;
 		desc.description = (pluginDescriptor["description"].get(description) != simdjson::SUCCESS) ? "" : description;
 
+		std::string_view URL;
+		desc.URL = (pluginDescriptor["URL"].get(URL) != simdjson::SUCCESS) ? "" : URL;
+
 		pluginDescriptor["reloadable"].get(desc.reloadable);
 		pluginDescriptor["enabledByDefault"].get(desc.enabledByDefault);
 
