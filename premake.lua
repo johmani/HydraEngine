@@ -5,7 +5,12 @@ include "Dependencies.lua"
 -------------------------------------------------------------------------------------
 -- Setup
 -------------------------------------------------------------------------------------
-Setup()
+CloneLibs(
+    {
+        windows = "https://github.com/johmani/HydraEngineLibs_Windows_x64",
+    },
+    "ThirdParty/Lib"
+)
 
 -------------------------------------------------------------------------------------
 -- workspace
@@ -18,7 +23,7 @@ workspace "HydraEngine"
       "MultiProcessorCompile",
 	}
 
-    group "Dependencies"
+    group "ThirdParty"
         include "ThirdParty/glfw"
         include "ThirdParty/nativefiledialog-extended"
         include "ThirdParty/nvrhi"

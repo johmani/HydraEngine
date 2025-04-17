@@ -111,27 +111,30 @@ function AddCppm(arg1, arg2) --  (name) or (directory, name)
     end
 end
 
-
-function Setup()
-    local repoURL
-    if os.host() == "windows" then
-        repoURL = "https://github.com/johmani/HydraEngineLibs_Windows_x64.git"
-    else
-        print("HydraEngineLibs not supported yet on this platform.")
-        return
+function CloneLibs(platformRepoURLs, targetDir, branchOrTag)
+    local repoURL = platformRepoURLs[os.host()]
+    if not repoURL then
+        error("No repository URL defined for platform: " .. os.host())
     end
 
-    local targetDir = "ThirdParty/Lib"
+    targetDir = targetDir or "ThirdParty/Lib"
 
     if not os.isdir(targetDir) then
-        print("Cloning HydraEngineLibs...")
-        os.execute('git clone "' .. repoURL .. '" "' .. targetDir .. '"')
-    end 
+        local cloneCmd = string.format(
+            'git clone --depth 1 %s"%s" "%s"',
+            branchOrTag and ('--branch ' .. branchOrTag .. ' ') or '',
+            repoURL,
+            targetDir
+        )
 
-    local zips = os.matchfiles(targetDir .. "/*.zip")
-    for _, zip in ipairs(zips) do
+        print("Cloning " .. repoURL)
+        os.execute(cloneCmd)
+    end
+
+    for _, zip in ipairs(os.matchfiles(targetDir .. "/*.zip")) do
         print("Extracting " .. zip .. " to " .. targetDir)
         Extract(zip, targetDir)
         os.remove(zip)
     end
 end
+
