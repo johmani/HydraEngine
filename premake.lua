@@ -1,6 +1,6 @@
 HE = "%{wks.location}"
 
-include "Dependencies.lua"
+include "build.lua"
 
 -------------------------------------------------------------------------------------
 -- Setup

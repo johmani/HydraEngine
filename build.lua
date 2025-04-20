@@ -1,6 +1,7 @@
 -------------------------------------------------------------------------------------
 -- global variables
 -------------------------------------------------------------------------------------
+HE = path.getabsolute(".")
 outputdir = "%{CapitalizeFirstLetter(cfg.system)}-%{cfg.architecture}/%{cfg.buildcfg}"
 binOutputDir = "%{wks.location}/Build/" .. outputdir .. "/Bin"
 libOutputDir = "%{wks.location}/Build/" .. outputdir .. "/Lib/%{prj.name}"
@@ -19,6 +20,9 @@ IncludeDir["tracy"] = "%{HE}/ThirdParty/tracy/public"
 IncludeDir["taskflow"] = "%{HE}/ThirdParty/taskflow"
 IncludeDir["Vulkan_Headers"] = "%{HE}/ThirdParty/Vulkan-Headers/Include"
 IncludeDir["simdjson"] = "%{HE}/ThirdParty/simdjson"
+
+LibDir = {}
+LibDir["HydraEngine"] = HE .. "/Build/" .. outputdir .. "/Bin"
 
 -------------------------------------------------------------------------------------
 -- helper functions
@@ -51,7 +55,6 @@ function Extract(archive, outputDir)
     end
 end
 
-
 function FindFxc()
     local sdkRoot = "C:/Program Files (x86)/Windows Kits/10/bin/"
     local versions = os.matchdirs(sdkRoot .. "*")
@@ -64,8 +67,9 @@ function FindFxc()
 end
 
 function BuildShaders(apiList ,src, cache, flags, includeDirs)
+    includeDirs = includeDirs or {}
     local exeExt = (os.host() == "windows") and ".exe" or ""
-    local sm    = "%{binOutputDir}/ShaderMake" .. exeExt
+    local sm    = "%{LibDir.HydraEngine}/ShaderMake" .. exeExt
     local cfg   = path.join(src, "shaders.cfg")
     local dxc   = "%{HE}/ThirdParty/Lib/dxc/bin/x64/dxc" .. exeExt
     local fxc   = FindFxc()
@@ -90,7 +94,36 @@ function BuildShaders(apiList ,src, cache, flags, includeDirs)
     return table.concat(cmds, sep)
 end
 
+function SetupShaders(apiList ,src, cache, flags, includeDirs)
+    filter { "files:**.hlsl" }
+        buildcommands {
+            BuildShaders(apiList ,src, cache, flags, includeDirs)
+        }
+        buildoutputs { "%{wks.location}/dumy" }
+    filter {}
+end
+
 -- TODO: Maybe we should reconsider this approach or refine the logic.
+function AddProjCppm(projDir, arg1, arg2) --  (name) or (directory, name)
+    local isMSVC = _OPTIONS["cc"] == "msc" or os.target() == "windows"
+    if not isMSVC then
+        print("Error: AddCppm works only for MSVC currently")
+        return ""
+    end
+
+    local base = path.join(projDir, "Build", "Intermediates", outputdir)
+
+    if arg2 then -- (directory, name)
+        return '/reference "' .. path.join(base, arg1, arg2 .. ".cppm.ifc") .. '"'
+    else -- (name)
+        if arg1 == "std" then
+            return '/reference "' .. path.join(base, "HydraEngine", "microsoft", "STL", "std.ixx.ifc") .. '"'
+        else
+            return '/reference "' .. path.join(base, arg1, arg1 .. ".cppm.ifc") .. '"'
+        end
+    end
+end
+
 function AddCppm(arg1, arg2) --  (name) or (directory, name)
     local isMSVC = _OPTIONS["cc"] == "msc" or os.target() == "windows"
     if not isMSVC then
@@ -109,6 +142,131 @@ function AddCppm(arg1, arg2) --  (name) or (directory, name)
             return '/reference "' .. path.join(base, arg1, arg1 .. ".cppm.ifc") .. '"'
         end
     end
+end
+
+function InitProject()
+    architecture "x86_64"
+    configurations { "Debug", "Release", "Profile", "Dist" }
+    flags {  "MultiProcessorCompile" }
+end
+
+function IncludeHydraProject(inc)
+    if inc then 
+        group "HydraEngine"
+            group "HydraEngine/ThirdParty"
+                include (HE .. "/ThirdParty/glfw")
+                include (HE .. "/ThirdParty/nativefiledialog-extended")
+                include (HE .. "/ThirdParty/nvrhi")
+                include (HE .. "/ThirdParty/ShaderMake")
+            group "HydraEngine"
+            include (HE .. "/HydraEngine")
+        group ""
+    end
+end
+
+function LinkHydra(inc, extra)
+
+    buildoptions {
+
+        AddProjCppm(HE, "std"),
+        AddProjCppm(HE, "HydraEngine"),
+        AddProjCppm(HE, "nvrhi"),
+        AddProjCppm(HE, "HydraEngine", "glm"),
+        AddProjCppm(HE, "HydraEngine", "simdjson"),
+    }
+
+    if not inc then
+        libdirs {
+
+            "%{LibDir.HydraEngine}",
+        }
+    end
+ 
+    defines {
+
+        "HE_IMPORT_SHAREDLIB",
+        "NVRHI_SHARED_LIBRARY_INCLUDE",
+        "_CRT_SECURE_NO_WARNINGS",
+        "_SILENCE_STDEXT_ARR_ITERS_DEPRECATION_WARNING",
+    }
+
+    includedirs {
+
+        "%{IncludeDir.HydraEngine}",
+    }
+
+    links {
+
+        "HydraEngine",
+        "nvrhi",
+        extra
+    }
+end
+
+function LinkHydraApp(inc, extra)
+
+    LinkHydra(inc, extra)
+
+    if not inc then
+        prebuildcommands {
+
+            "{COPY} \"%{LibDir.HydraEngine}/*.dll\" \"%{binOutputDir}\""
+        }
+    end
+
+    filter "configurations:Dist"
+        kind "WindowedApp"
+    filter {}
+end
+
+function SetHydraFilters()
+    filter "system:windows"
+        systemversion "latest"
+        defines {
+            "NVRHI_HAS_D3D11",
+            "NVRHI_HAS_D3D12",
+            "NVRHI_HAS_VULKAN",
+        }
+
+    filter "system:linux"
+        systemversion "latest"
+        defines {
+        
+            "NVRHI_HAS_VULKAN"
+        }
+    
+    filter "configurations:Debug"
+        defines "HE_DEBUG"
+        runtime "Debug"
+        symbols "On"
+    
+    filter "configurations:Release"
+        defines "HE_RELEASE"
+        runtime "Release"
+        optimize "On"
+    
+    filter "configurations:Profile"
+        includedirs { "%{IncludeDir.tracy}" }
+        defines { "HE_PROFILE", "TRACY_IMPORTS" }
+        runtime "Release"
+        optimize "On"
+    
+    filter "configurations:Dist"
+        defines "HE_DIST"
+        runtime "Release"
+        optimize "Speed"
+        symbols "Off"
+    filter {}
+end
+
+function AddPlugins()
+    group "Plugins"
+        local pluginsDir = path.getabsolute("Plugins")
+        local plugins = os.matchdirs(pluginsDir .. "/*")
+        for _, plugin in ipairs(plugins) do
+            include(plugin)
+        end
+    group ""
 end
 
 function CloneLibs(platformRepoURLs, targetDir, branchOrTag)
