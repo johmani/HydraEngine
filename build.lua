@@ -2,9 +2,11 @@
 -- global variables
 -------------------------------------------------------------------------------------
 HE = path.getabsolute(".")
+if includSourceCode == nil then includSourceCode = true end -- includSourceCode defaults to true, it should be included in client project
+
 outputdir = "%{CapitalizeFirstLetter(cfg.system)}-%{cfg.architecture}/%{cfg.buildcfg}"
-binOutputDir = "%{wks.location}/Build/" .. outputdir .. "/Bin"
-libOutputDir = "%{wks.location}/Build/" .. outputdir .. "/Lib/%{prj.name}"
+binOutputDir = "%{wks.location}/Build/%{outputdir}/Bin"
+libOutputDir = "%{wks.location}/Build/%{outputdir}/Lib/%{prj.name}"
 IntermediatesOutputDir = "%{wks.location}/Build/Intermediates/%{outputdir}/%{prj.name}"
 
 IncludeDir = {}
@@ -22,7 +24,10 @@ IncludeDir["Vulkan_Headers"] = "%{HE}/ThirdParty/Vulkan-Headers/Include"
 IncludeDir["simdjson"] = "%{HE}/ThirdParty/simdjson"
 
 LibDir = {}
-LibDir["HydraEngine"] = HE .. "/Build/" .. outputdir .. "/Bin"
+LibDir["HydraEngine"] = includSourceCode and binOutputDir or "%{HE}/Build/%{outputdir}/Bin" 
+
+Tools = {}
+Tools["ShaderMake"] = "%{LibDir.HydraEngine}/ShaderMake"
 
 -------------------------------------------------------------------------------------
 -- helper functions
@@ -36,22 +41,6 @@ function Download(url, output)
         os.execute("powershell -Command \"Invoke-WebRequest -Uri '" .. url .. "' -OutFile '" .. output .. "'\"")
     else
         os.execute("curl -L -o " .. output .. " " .. url)
-    end
-end
-
-function Extract(archive, outputDir)
-    if os.host() == "windows" then
-        local command = 'powershell -Command "Expand-Archive -Path \'' .. archive .. '\' -DestinationPath \'' .. outputDir .. '\' -Force"'
-        os.execute(command)
-    else
-        os.execute("mkdir -p \"" .. outputDir .. "\"")
-        if archive:match("%.zip$") then
-            os.execute("unzip -o \"" .. archive .. "\" -d \"" .. outputDir .. "\"")
-        elseif archive:match("%.tar%.gz$") then
-            os.execute("tar -xzf \"" .. archive .. "\" -C \"" .. outputDir .. "\"")
-        else
-            print("Unsupported archive format: " .. archive)
-        end
     end
 end
 
@@ -69,7 +58,7 @@ end
 function BuildShaders(apiList ,src, cache, flags, includeDirs)
     includeDirs = includeDirs or {}
     local exeExt = (os.host() == "windows") and ".exe" or ""
-    local sm    = "%{LibDir.HydraEngine}/ShaderMake" .. exeExt
+    local sm    = "%{Tools.ShaderMake}" .. exeExt
     local cfg   = path.join(src, "shaders.cfg")
     local dxc   = "%{HE}/ThirdParty/Lib/dxc/bin/x64/dxc" .. exeExt
     local fxc   = FindFxc()
@@ -166,22 +155,31 @@ end
 
 function LinkHydra(inc, extra)
 
-    buildoptions {
-
-        AddProjCppm(HE, "std"),
-        AddProjCppm(HE, "HydraEngine"),
-        AddProjCppm(HE, "nvrhi"),
-        AddProjCppm(HE, "HydraEngine", "glm"),
-        AddProjCppm(HE, "HydraEngine", "simdjson"),
-    }
-
     if not inc then
+        buildoptions {
+
+            AddProjCppm(HE, "std"),
+            AddProjCppm(HE, "HydraEngine"),
+            AddProjCppm(HE, "nvrhi"),
+            AddProjCppm(HE, "HydraEngine", "glm"),
+            AddProjCppm(HE, "HydraEngine", "simdjson"),
+        }
+
         libdirs {
 
             "%{LibDir.HydraEngine}",
         }
+    else
+        buildoptions {
+
+            AddCppm("std"),
+            AddCppm("HydraEngine"),
+            AddCppm("nvrhi"),
+            AddCppm("HydraEngine", "glm"),
+            AddCppm("HydraEngine", "simdjson"),
+        }
     end
- 
+
     defines {
 
         "HE_IMPORT_SHAREDLIB",
@@ -291,7 +289,7 @@ function CloneLibs(platformRepoURLs, targetDir, branchOrTag)
 
     for _, zip in ipairs(os.matchfiles(targetDir .. "/*.zip")) do
         print("Extracting " .. zip .. " to " .. targetDir)
-        Extract(zip, targetDir)
+        zip.extract(zip, targetDir)
         os.remove(zip)
     end
 end
