@@ -287,10 +287,10 @@ function CloneLibs(platformRepoURLs, targetDir, branchOrTag)
         os.execute(cloneCmd)
     end
 
-    for _, zip in ipairs(os.matchfiles(targetDir .. "/*.zip")) do
-        print("Extracting " .. zip .. " to " .. targetDir)
-        zip.extract(zip, targetDir)
-        os.remove(zip)
+    for _, z in ipairs(os.matchfiles(targetDir .. "/*.zip")) do
+        print("Extracting " .. z .. " to " .. targetDir)
+        zip.extract(z, targetDir)
+        os.remove(z)
     end
 end
 
