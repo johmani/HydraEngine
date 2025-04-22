@@ -58,6 +58,8 @@ namespace HE {
 
 		bool BeginFrame() override
 		{
+			HE_PROFILE_FUNCTION();
+
 			DXGI_SWAP_CHAIN_DESC newSwapChainDesc;
 			if (SUCCEEDED(swapChain->GetDesc(&newSwapChainDesc)))
 			{
@@ -82,6 +84,8 @@ namespace HE {
 		
 		void ReportLiveObjects() override
 		{
+			HE_PROFILE_FUNCTION();
+
 			nvrhi::RefCountPtr<IDXGIDebug> pDebug;
 			DXGIGetDebugInterface1(0, IID_PPV_ARGS(&pDebug));
 
@@ -91,6 +95,8 @@ namespace HE {
 		
 		bool EnumerateAdapters(std::vector<AdapterInfo>& outAdapters) override
 		{
+			HE_PROFILE_FUNCTION();
+
 			if (!dxgiFactory)
 				return false;
 
@@ -127,6 +133,8 @@ namespace HE {
 
 		bool CreateInstanceInternal() override
 		{
+			HE_PROFILE_FUNCTION();
+
 			if (!dxgiFactory)
 			{
 				HRESULT hres = CreateDXGIFactory1(IID_PPV_ARGS(&dxgiFactory));
@@ -145,6 +153,8 @@ namespace HE {
 		
 		bool CreateDevice() override
 		{
+			HE_PROFILE_SCOPE("Create D11 Device");
+
 			int adapterIndex = m_DeviceDesc.adapterIndex;
 			if (adapterIndex < 0)
 				adapterIndex = 0;
@@ -204,6 +214,8 @@ namespace HE {
 		
 		bool CreateSwapChain(WindowState windowState) override
 		{
+			HE_PROFILE_FUNCTION();
+
 			hWnd = glfwGetWin32Window((GLFWwindow*)m_Window);
 
 			RECT clientRect;
@@ -261,6 +273,8 @@ namespace HE {
 		
 		void DestroyDeviceAndSwapChain() override
 		{
+			HE_PROFILE_FUNCTION();
+
 			m_RhiBackBuffer = nullptr;
 			nvrhiDevice = nullptr;
 
@@ -278,6 +292,8 @@ namespace HE {
 		
 		void ResizeSwapChain() override
 		{
+			HE_PROFILE_FUNCTION();
+
 			ReleaseRenderTarget();
 
 			if (!swapChain)
@@ -303,6 +319,8 @@ namespace HE {
 		
 		void Shutdown() override
 		{
+			HE_PROFILE_FUNCTION();
+
 			DeviceManager::Shutdown();
 
 			if (m_DeviceDesc.enableDebugRuntime)
@@ -313,6 +331,8 @@ namespace HE {
 
 		bool CreateRenderTarget()
 		{
+			HE_PROFILE_FUNCTION();
+
 			ReleaseRenderTarget();
 
 			const HRESULT hr = swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&D3D11BackBuffer);  // NOLINT(clang-diagnostic-language-extension-token)

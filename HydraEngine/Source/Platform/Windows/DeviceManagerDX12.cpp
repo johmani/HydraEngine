@@ -62,6 +62,8 @@ namespace HE {
 		// Adjust window rect so that it is centred on the given adapter.  Clamps to fit if it's too big.
 		static bool MoveWindowOntoAdapter(IDXGIAdapter* targetAdapter, RECT& rect)
 		{
+			HE_PROFILE_FUNCTION();
+
 			HE_CORE_ASSERT(targetAdapter != NULL);
 
 			HRESULT hres = S_OK;
@@ -108,6 +110,8 @@ namespace HE {
 
 		void ReportLiveObjects() override
 		{
+			HE_PROFILE_FUNCTION();
+
 			nvrhi::RefCountPtr<IDXGIDebug> pDebug;
 			DXGIGetDebugInterface1(0, IID_PPV_ARGS(&pDebug));
 
@@ -124,6 +128,8 @@ namespace HE {
 
 		bool EnumerateAdapters(std::vector<AdapterInfo>& outAdapters) override
 		{
+			HE_PROFILE_FUNCTION();
+
 			if (!dxgiFactory2)
 				return false;
 
@@ -160,6 +166,8 @@ namespace HE {
 
 		bool CreateInstanceInternal() override
 		{
+			HE_PROFILE_FUNCTION();
+
 			if (!dxgiFactory2)
 			{
 				HRESULT hres = CreateDXGIFactory2(m_DeviceDesc.enableDebugRuntime ? DXGI_CREATE_FACTORY_DEBUG : 0, IID_PPV_ARGS(&dxgiFactory2));
@@ -176,6 +184,8 @@ namespace HE {
 
 		bool CreateDevice() override
 		{
+			HE_PROFILE_SCOPE("Create D12 Device");
+
 			if (m_DeviceDesc.enableDebugRuntime)
 			{
 				nvrhi::RefCountPtr<ID3D12Debug> pDebug;
@@ -303,6 +313,8 @@ namespace HE {
 
 		bool CreateSwapChain(WindowState windowState) override
 		{
+			HE_PROFILE_FUNCTION();
+
 			UINT windowStyle = windowState.fullscreen
 				? (WS_POPUP | WS_SYSMENU | WS_VISIBLE)
 				: windowState.maximized
@@ -395,6 +407,8 @@ namespace HE {
 		
 		void DestroyDeviceAndSwapChain() override
 		{
+			HE_PROFILE_FUNCTION();
+
 			rhiSwapChainBuffers.clear();
 			rendererString.clear();
 
@@ -427,6 +441,8 @@ namespace HE {
 		
 		void ResizeSwapChain() override
 		{
+			HE_PROFILE_FUNCTION();
+
 			ReleaseRenderTargets();
 
 			if (!nvrhiDevice)
@@ -462,6 +478,8 @@ namespace HE {
 		
 		bool BeginFrame() override
 		{
+			HE_PROFILE_FUNCTION();
+
 			DXGI_SWAP_CHAIN_DESC1 newSwapChainDesc;
 			DXGI_SWAP_CHAIN_FULLSCREEN_DESC newFullScreenDesc;
 			if (SUCCEEDED(swapChain->GetDesc1(&newSwapChainDesc)) && SUCCEEDED(swapChain->GetFullscreenDesc(&newFullScreenDesc)))
@@ -492,6 +510,8 @@ namespace HE {
 		
 		void Present() override
 		{
+			HE_PROFILE_FUNCTION();
+
 			auto bufferIndex = swapChain->GetCurrentBackBufferIndex();
 
 			UINT presentFlags = 0;
@@ -507,6 +527,8 @@ namespace HE {
 		
 		void Shutdown() override
 		{
+			HE_PROFILE_FUNCTION();
+
 			DeviceManager::Shutdown();
 
 			dxgiAdapter = nullptr;
@@ -520,6 +542,8 @@ namespace HE {
 
 		bool CreateRenderTargets()
 		{
+			HE_PROFILE_FUNCTION();
+
 			swapChainBuffers.resize(swapChainDesc.BufferCount);
 			rhiSwapChainBuffers.resize(swapChainDesc.BufferCount);
 
@@ -548,6 +572,8 @@ namespace HE {
 		
 		void ReleaseRenderTargets()
 		{
+			HE_PROFILE_FUNCTION();
+
 			if (nvrhiDevice)
 			{
 				// Make sure that all frames have finished rendering

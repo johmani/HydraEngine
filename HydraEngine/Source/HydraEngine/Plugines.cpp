@@ -9,6 +9,8 @@ namespace HE::Plugins {
 
 	bool DeserializePluginDesc(const std::filesystem::path& filePath, PluginDesc& desc)
 	{
+		HE_PROFILE_FUNCTION();
+
 		static simdjson::dom::parser parser;
 
 		simdjson::dom::element pluginDescriptor;
@@ -56,6 +58,8 @@ namespace HE::Plugins {
 
 	Ref<Plugin> CreatePluginObject(const std::filesystem::path& descFilePath)
 	{
+		HE_PROFILE_FUNCTION();
+
 		auto& c = GetAppContext().pluginContext;
 
 		Ref<Plugin> plugin = CreateRef<Plugin>();
@@ -75,6 +79,8 @@ namespace HE::Plugins {
 
 	void LoadPlugin(const std::filesystem::path& descriptor)
 	{
+		HE_PROFILE_FUNCTION();
+
 		auto lexicallyNormal = descriptor.lexically_normal();
 		if (!std::filesystem::exists(lexicallyNormal))
 		{
@@ -89,6 +95,8 @@ namespace HE::Plugins {
 
 	void LoadPlugin(PluginHandle handle)
 	{
+		HE_PROFILE_FUNCTION();
+
 		auto& c = GetAppContext().pluginContext;
 
 		auto it = c.plugins.find(handle);
@@ -123,6 +131,8 @@ namespace HE::Plugins {
 
 	bool UnloadPlugin(PluginHandle handle)
 	{
+		HE_PROFILE_FUNCTION();
+
 		auto& c = GetAppContext().pluginContext;
 
 		if (c.plugins.contains(handle))
@@ -160,6 +170,8 @@ namespace HE::Plugins {
 
 	void ReloadPlugin(PluginHandle handle)
 	{
+		HE_PROFILE_FUNCTION();
+
 		auto& c = GetAppContext().pluginContext;
 
 		std::filesystem::path pluginDescFilePath;
@@ -183,6 +195,8 @@ namespace HE::Plugins {
 
 	void LoadPluginsInDirectory(const std::filesystem::path& directory)
 	{
+		HE_PROFILE_FUNCTION();
+
 		if (!std::filesystem::exists(directory))
 		{
 			HE_CORE_ERROR("LoadPluginsInDirectory failed: directory {} does not exist.", directory.string());

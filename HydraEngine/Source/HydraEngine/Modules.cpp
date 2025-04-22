@@ -30,6 +30,8 @@ namespace HE {
 
 		void* SharedLib::Open(const char* path) noexcept
 		{
+			HE_PROFILE_FUNCTION();
+
 #		ifdef HE_PLATFORM_WINDOWS
 			return LoadLibraryA(path);
 #		else
@@ -48,6 +50,8 @@ namespace HE {
 
 		void SharedLib::Close(void* handle) noexcept
 		{
+			HE_PROFILE_FUNCTION();
+
 #		ifdef HE_PLATFORM_WINDOWS
 			FreeLibrary((NativeHandleType)handle);
 #		else
@@ -73,6 +77,8 @@ namespace HE {
 
 		ModulesContext::~ModulesContext()
 		{
+			HE_PROFILE_FUNCTION();
+
 			struct ModuleToShutdown
 			{
 				uint32_t LoadOrder;
@@ -100,6 +106,8 @@ namespace HE {
 
 		bool LoadModule(const std::filesystem::path& filePath)
 		{
+			HE_PROFILE_FUNCTION();
+
 			if (!std::filesystem::exists(filePath))
 			{
 				HE_CORE_ERROR("LoadModule failed: File {} does not exist.", filePath.string());
@@ -133,6 +141,8 @@ namespace HE {
 
 		bool IsModuleLoaded(ModuleHandle handle)
 		{
+			HE_PROFILE_FUNCTION();
+
 			auto& c = GetAppContext().modulesContext;
 
 			if (c.modules.contains(handle))
@@ -143,6 +153,8 @@ namespace HE {
 
 		bool UnloadModule(ModuleHandle handle)
 		{
+			HE_PROFILE_FUNCTION();
+
 			auto& c = GetAppContext().modulesContext;
 
 			auto it = c.modules.find(handle);
@@ -170,6 +182,8 @@ namespace HE {
 
 		Ref<ModuleData> GetModuleData(ModuleHandle handle)
 		{
+			HE_PROFILE_FUNCTION();
+
 			auto& c = GetAppContext().modulesContext;
 
 			auto it = c.modules.find(handle);

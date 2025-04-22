@@ -219,6 +219,8 @@ namespace HE {
 
 	void DeviceManager::BackBufferResizing()
 	{
+		HE_PROFILE_FUNCTION();
+
 		m_SwapChainFramebuffers.clear();
 	}
 

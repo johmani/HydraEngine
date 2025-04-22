@@ -199,6 +199,8 @@ namespace HE {
 
 		bool EnumerateAdapters(std::vector<AdapterInfo>& outAdapters) override
 		{
+			HE_PROFILE_FUNCTION();
+
 			if (!vulkanInstance)
 				return false;
 
@@ -253,6 +255,8 @@ namespace HE {
 
 		bool CreateInstance()
 		{
+			HE_PROFILE_FUNCTION();
+
 			if (!m_DeviceDesc.headlessDevice)
 			{
 				if (!glfwVulkanSupported())
@@ -407,6 +411,8 @@ namespace HE {
 
 		bool CreateInstanceInternal()
 		{
+			HE_PROFILE_FUNCTION();
+
 			if (m_DeviceDesc.enableDebugRuntime)
 			{
 				enabledExtensions.instance.insert("VK_EXT_debug_report");
@@ -422,6 +428,8 @@ namespace HE {
 
 		bool CreateDevice() override
 		{
+			HE_PROFILE_SCOPE("Create VK Device");
+
 			if (m_DeviceDesc.enableDebugRuntime)
 			{
 				InstallDebugCallback();
@@ -493,6 +501,8 @@ namespace HE {
 		
 		bool CreateSwapChain(WindowState windowState) override
 		{
+			HE_PROFILE_FUNCTION();
+
 			CHECK(CreateSwapChain())
 
 			presentSemaphores.reserve(m_DeviceDesc.maxFramesInFlight + 1);
@@ -508,6 +518,8 @@ namespace HE {
 		
 		void DestroyDeviceAndSwapChain() override
 		{
+			HE_PROFILE_FUNCTION();
+
 			DestroySwapChain();
 
 			for (auto& semaphore : presentSemaphores)
@@ -559,6 +571,8 @@ namespace HE {
 
 		void ResizeSwapChain() override
 		{
+			HE_PROFILE_FUNCTION();
+
 			if (device)
 			{
 				DestroySwapChain();
@@ -573,6 +587,8 @@ namespace HE {
 
 		bool BeginFrame() override
 		{
+			HE_PROFILE_FUNCTION();
+
 			const auto& semaphore = acquireSemaphores[acquireSemaphoreIndex];
 
 			vk::Result res;
@@ -613,6 +629,8 @@ namespace HE {
 		
 		void Present() override
 		{
+			HE_PROFILE_FUNCTION();
+
 			const auto& semaphore = presentSemaphores[presentSemaphoreIndex];
 
 			nvrhiDevice->queueSignalSemaphore(nvrhi::CommandQueue::Graphics, semaphore, 0);
@@ -708,6 +726,8 @@ namespace HE {
 		
 		bool CreateWindowSurface()
 		{
+			HE_PROFILE_FUNCTION();
+
 			const VkResult res = glfwCreateWindowSurface(vulkanInstance, (GLFWwindow*)m_Window, nullptr, (VkSurfaceKHR*)&windowSurface);
 			if (res != VK_SUCCESS)
 			{
@@ -720,6 +740,8 @@ namespace HE {
 		
 		void InstallDebugCallback()
 		{
+			HE_PROFILE_FUNCTION();
+
 			auto info = vk::DebugReportCallbackCreateInfoEXT()
 				.setFlags(
 					vk::DebugReportFlagBitsEXT::eError |
@@ -737,6 +759,8 @@ namespace HE {
 		
 		bool PickPhysicalDevice()
 		{
+			HE_PROFILE_FUNCTION();
+
 			VkFormat requestedFormat = nvrhi::vulkan::convertFormat(m_DeviceDesc.swapChainFormat);
 			vk::Extent2D requestedExtent(m_DeviceDesc.backBufferWidth, m_DeviceDesc.backBufferHeight);
 
@@ -893,6 +917,8 @@ namespace HE {
 		
 		bool FindQueueFamilies(vk::PhysicalDevice physicalDevice)
 		{
+			HE_PROFILE_FUNCTION();
+
 			auto props = physicalDevice.getQueueFamilyProperties();
 
 			for (int i = 0; i < int(props.size()); i++)
@@ -952,6 +978,8 @@ namespace HE {
 		
 		bool CreateDeviceImp()
 		{
+			HE_PROFILE_FUNCTION();
+
 			// figure out which optional extensions are supported
 			auto deviceExtensions = vulkanPhysicalDevice.enumerateDeviceExtensionProperties();
 			for (const auto& ext : deviceExtensions)
@@ -1165,6 +1193,8 @@ namespace HE {
 		
 		bool CreateSwapChain()
 		{
+			HE_PROFILE_FUNCTION();
+
 			DestroySwapChain();
 
 			swapChainFormat = {
@@ -1259,6 +1289,8 @@ namespace HE {
 		
 		void DestroySwapChain()
 		{
+			HE_PROFILE_FUNCTION();
+
 			if (device)
 			{
 				device.waitIdle();
