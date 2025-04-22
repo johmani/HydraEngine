@@ -206,24 +206,32 @@ namespace HE::Plugins {
 		PluginHandle discoveredPLugins[4096];
 		uint32_t count = 0;
 
-		// (optimization) we know once we find one .hplugin file that there shouldn't be anymore in the same folder hierarchy.
-		for (const auto& entry : std::filesystem::recursive_directory_iterator(directory))
 		{
-			if (entry.is_regular_file() && entry.path().extension() == c_PluginDescriptorExtension)
+			HE_PROFILE_SCOPE("Find Plugins");
+
+			for (const auto& entry : std::filesystem::directory_iterator(directory))
 			{
-				Ref<Plugin> plugin = CreatePluginObject(entry.path());
-				discoveredPLugins[count] = Hash(plugin->desc.name);
-				count++;
+				auto pluginsDescFilePath = entry.path() / (entry.path().stem().string() + c_PluginDescriptorExtension);
+				if (std::filesystem::exists(pluginsDescFilePath))
+				{
+					Ref<Plugin> plugin = CreatePluginObject(pluginsDescFilePath);
+					discoveredPLugins[count] = Hash(plugin->desc.name);
+					count++;
+				}
 			}
 		}
 
-		auto& c = GetAppContext().pluginContext;
-
-		for (uint32_t i = 0; i < count; i++)
 		{
-			auto handle = discoveredPLugins[i];
-			if(c.plugins.at(handle)->desc.enabledByDefault)
-				LoadPlugin(handle);
+			HE_PROFILE_SCOPE("Load Plugins");
+
+			auto& c = GetAppContext().pluginContext;
+
+			for (uint32_t i = 0; i < count; i++)
+			{
+				auto handle = discoveredPLugins[i];
+				if (c.plugins.at(handle)->desc.enabledByDefault)
+					LoadPlugin(handle);
+			}
 		}
 	}
 }
