@@ -385,7 +385,9 @@ namespace HE {
 
 		glfwSetWindowIconifyCallback(glfwWindow, [](GLFWwindow* window, int iconified)
 		{
-
+			Window& w = *(Window*)glfwGetWindowUserPointer(window);
+			WindowMinimizeEvent event(iconified);
+			w.eventCallback(event);
 		});
 
 		glfwSetWindowPosCallback(glfwWindow, [](GLFWwindow* window, int xpos, int ypos)

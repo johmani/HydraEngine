@@ -958,7 +958,7 @@ export namespace HE {
 	enum class EventType
 	{
 		None = 0,
-		WindowClose, WindowResize, WindowFocus, WindowLostFocus, WindowMoved, WindowDrop, WindowContentScale, WindowMaximize,
+		WindowClose, WindowResize, WindowFocus, WindowLostFocus, WindowMoved, WindowDrop, WindowContentScale, WindowMaximize, WindowMinimized,
 		KeyPressed, KeyReleased, KeyTyped,
 		MouseButtonPressed, MouseButtonReleased, MouseMoved, MouseScrolled, MouseEnter,
 		GamepadButtonPressed, GamepadButtonReleased, GamepadAxisMoved, GamepadConnected
@@ -1087,12 +1087,17 @@ export namespace HE {
 	class WindowContentScaleEvent : public Event
 	{
 	public:
-		WindowContentScaleEvent(float sx, float sy) : scaleX(sx), scaleY(sy) {}
+		WindowContentScaleEvent(float sx, float sy) : m_ScaleX(sx), m_ScaleY(sy) {}
+
+		std::pair<float, float> GetScale() const { return { m_ScaleX, m_ScaleY }; }
+
+		float GetScaleX() const { return m_ScaleX; }
+		float GetScaleY() const { return m_ScaleY; }
 
 		std::string ToString() const override
 		{
 			std::stringstream ss;
-			ss << "WindowContentScaleEvent: " << scaleX << ", " << scaleY <<  "\n";
+			ss << "WindowContentScaleEvent: " << m_ScaleX << ", " << m_ScaleY;
 			return ss.str();
 		}
 
@@ -1100,18 +1105,20 @@ export namespace HE {
 		EVENT_CLASS_CATEGORY(EventCategoryApplication)
 
 	private:
-		float scaleX, scaleY;
+		float m_ScaleX, m_ScaleY;
 	};
 
 	class WindowMaximizeEvent : public Event
 	{
 	public:
-		WindowMaximizeEvent(int maximized) : maximized(maximized) {}
+		WindowMaximizeEvent(int maximized) : m_Maximized(maximized) {}
+
+		bool IsIconified() { return (bool)m_Maximized; }
 
 		std::string ToString() const override
 		{
 			std::stringstream ss;
-			ss << "WindowMaximizeEvent: " << (maximized ? "maximized" : "restored") << "\n";
+			ss << "WindowMaximizeEvent: " << (m_Maximized ? "maximized" : "restored");
 			return ss.str();
 		}
 
@@ -1119,7 +1126,28 @@ export namespace HE {
 		EVENT_CLASS_CATEGORY(EventCategoryApplication)
 
 	private:
-		int maximized;
+		int m_Maximized;
+	};
+
+	class WindowMinimizeEvent : public Event
+	{
+	public:
+		WindowMinimizeEvent(int minimized) : m_Minimized(minimized) {}
+
+		bool IsMinimized() { return (bool)m_Minimized; }
+
+		std::string ToString() const override
+		{
+			std::stringstream ss;
+			ss << "WindowMinimizeEvent: " << (m_Minimized ? "true" : "false");
+			return ss.str();
+		}
+
+		EVENT_CLASS_TYPE(WindowMinimized)
+		EVENT_CLASS_CATEGORY(EventCategoryApplication)
+
+	private:
+		int m_Minimized;
 	};
 
 	//////////////////////////////////////////////////////////////////////////
