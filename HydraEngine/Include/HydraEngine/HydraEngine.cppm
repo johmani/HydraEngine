@@ -1855,7 +1855,7 @@ export namespace HE {
 	
 	namespace Plugins {
 
-		constexpr const char* c_PluginDescriptorExtension = ".hplugin";
+		inline constexpr const char* c_PluginDescriptorExtension = ".hplugin";
 		
 		using PluginHandle = uint64_t;
 
