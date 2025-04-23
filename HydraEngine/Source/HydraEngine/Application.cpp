@@ -101,19 +101,13 @@ namespace HE {
 			return true;
 		});
 
-		dispatcher.Dispatch<WindowResizeEvent>([](WindowResizeEvent& e)
+		dispatcher.Dispatch<WindowMinimizeEvent>([](WindowMinimizeEvent& e)
 		{
 			HE_PROFILE_FUNCTION();
 
 			auto& c = GetAppContext();
+			c.minimized = e.IsMinimized();
 
-			if (e.GetWidth() == 0 || e.GetHeight() == 0)
-			{
-				c.minimized = true;
-				return false;
-			}
-
-			c.minimized = false;
 			return false;
 		});
 
