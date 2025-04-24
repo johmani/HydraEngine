@@ -221,6 +221,8 @@ namespace HE {
 	{
 		HE_PROFILE_FUNCTION();
 
+		Log::Init(desc.logFile);
+
 		HE_CORE_INFO("Creat Application [{}]", applicatoinDesc.windowDesc.title);
 
 		s_Instance = this;

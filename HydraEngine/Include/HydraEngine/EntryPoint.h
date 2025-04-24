@@ -2,13 +2,10 @@
 
 int HE::Main(int argc, char** argv)
 {
-#ifdef HE_ENABLE_LOGGING
-	Log::Init("HydraEngine");
-#endif
-
 	while (Application::IsApplicationRunning())
 	{
 		auto app = HE::CreateApplication({ argv, argc });
+
 		if (app)
 		{
 			app->Run();
@@ -16,11 +13,11 @@ int HE::Main(int argc, char** argv)
 			app = nullptr;
 		}
 		else break;
-	}
 
 #ifdef HE_ENABLE_LOGGING
-	Log::Shutdown();
+		Log::Shutdown();
 #endif 
+	}
 
 	return 0;
 }
