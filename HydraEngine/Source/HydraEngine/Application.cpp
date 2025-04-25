@@ -221,7 +221,9 @@ namespace HE {
 	{
 		HE_PROFILE_FUNCTION();
 
+#ifdef HE_ENABLE_LOGGING
 		Log::Init(desc.logFile);
+#endif
 
 		HE_CORE_INFO("Creat Application [{}]", applicatoinDesc.windowDesc.title);
 
