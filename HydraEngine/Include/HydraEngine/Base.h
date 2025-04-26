@@ -9,7 +9,8 @@
         #define HE_PLATFORM_WINDOWS
         constexpr const char* c_SharedLibExtension = ".dll";
         constexpr const char* c_System = "Windows";
-        constexpr const char* c_Architecture = "x86_64";
+		constexpr const char* c_Architecture = "x86_64";
+		constexpr const char* c_ExecutableExtension = ".exe";
     #else
         #error "x86 Builds are not supported!"
     #endif
@@ -18,6 +19,7 @@
     constexpr const char* c_SharedLibExtension = ".so";
     constexpr const char* c_System = "Linux";
     constexpr const char* c_Architecture = "x86_64";
+	constexpr const char* c_ExecutableExtension = "";
 #else
     #error "Unknown platform!"
 #endif
