@@ -27,13 +27,11 @@ namespace HE::FileSystem {
                 if (fs::is_regular_file(path))
                 {
                     fs::remove(path);
-                    HE_CORE_INFO("File deleted successfully {}", path.string());
                     return true;
                 }
                 else if (fs::is_directory(path))
                 {
                     fs::remove_all(path);
-                    HE_CORE_INFO("Directory {} deleted successfully", path.string());
                     return true;
                 }
                 else
@@ -310,19 +308,15 @@ namespace HE::OS {
         HKEY hKey;
         if (RegOpenKeyExA(HKEY_CURRENT_USER, "Environment", 0, KEY_WRITE, &hKey) == ERROR_SUCCESS)
         {
-        	if (RegSetValueExA(hKey, var, 0, REG_SZ, (const BYTE*)value, (DWORD)strlen(value) + 1) == ERROR_SUCCESS)
+        	if (RegSetValueExA(hKey, var, 0, REG_SZ, (const BYTE*)value, (DWORD)strlen(value) + 1) != ERROR_SUCCESS)
         	{
-        		HE_INFO("Environment variable  [{}] : {}  set successfully!", var, value);
-        	}
-        	else
-        	{
-        		HE_ERROR("Failed to set environment variable {}", var);
+                HE_CORE_ERROR("Failed to set environment variable {}", var);
         	}
         	RegCloseKey(hKey);
         }
         else
         {
-        	HE_ERROR("Failed to open registry key!");
+            HE_CORE_ERROR("Failed to open registry key!");
         }
 #else
         NOT_YET_IMPLEMENTED();
@@ -335,19 +329,15 @@ namespace HE::OS {
         HKEY hKey;
         if (RegOpenKeyExA(HKEY_CURRENT_USER, "Environment", 0, KEY_WRITE, &hKey) == ERROR_SUCCESS)
         {
-            if (RegDeleteValueA(hKey, var) == ERROR_SUCCESS)
+            if (RegDeleteValueA(hKey, var) != ERROR_SUCCESS)
             {
-                HE_INFO("Environment variable [{}] removed successfully!", var);
-            }
-            else
-            {
-                HE_ERROR("Failed to remove environment variable {}", var);
+                HE_CORE_ERROR("Failed to remove environment variable {}", var);
             }
             RegCloseKey(hKey);
         }
         else
         {
-            HE_ERROR("Failed to open registry key!");
+            HE_CORE_ERROR("Failed to open registry key!");
         }
 
 #else
