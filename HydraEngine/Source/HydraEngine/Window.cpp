@@ -447,6 +447,8 @@ namespace HE {
 
 	bool Window::IsMaximize() { return (bool)glfwGetWindowAttrib((GLFWwindow*)m_WindowHandle, GLFW_MAXIMIZED); }
 
+	bool Window::IsMinimized() { return (bool)glfwGetWindowAttrib((GLFWwindow*)m_WindowHandle, GLFW_ICONIFIED); }
+	
 	bool Window::IsFullScreen() { return desc.fullScreen; }
 
 	bool Window::ToggleScreenState()

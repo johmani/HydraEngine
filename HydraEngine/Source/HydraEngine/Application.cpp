@@ -101,16 +101,6 @@ namespace HE {
 			return true;
 		});
 
-		dispatcher.Dispatch<WindowMinimizeEvent>([](WindowMinimizeEvent& e)
-		{
-			HE_PROFILE_FUNCTION();
-
-			auto& c = GetAppContext();
-			c.minimized = e.IsMinimized();
-
-			return false;
-		});
-
 		for (auto it = c.layerStack.rbegin(); it != c.layerStack.rend(); ++it)
 		{
 			if (e.Handled)
@@ -144,7 +134,7 @@ namespace HE {
 
 			bool headlessDevice = applicatoinDesc.deviceDesc.headlessDevice;
 
-			if (!minimized)
+			if (!mainWindow.IsMinimized())
 			{
 				nvrhi::IFramebuffer* framebuffer = nullptr;
 				if(!headlessDevice)
@@ -190,6 +180,10 @@ namespace HE {
 						dm->PresentResult();
 					}
 				}
+			}
+			else
+			{
+				std::this_thread::sleep_for(std::chrono::milliseconds(10));
 			}
 
 			if (!headlessDevice)

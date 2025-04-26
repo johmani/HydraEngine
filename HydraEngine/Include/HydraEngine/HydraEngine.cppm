@@ -1744,6 +1744,7 @@ export namespace HE {
 		HYDRA_API void MinimizeWindow();
 		HYDRA_API void RestoreWindow();
 		HYDRA_API bool IsMaximize();
+		HYDRA_API bool IsMinimized();
 		HYDRA_API bool IsFullScreen();
 		HYDRA_API bool ToggleScreenState();
 		HYDRA_API void FocusMainWindow();
@@ -2018,7 +2019,6 @@ export namespace HE {
 
 		Stats appStats;
 		bool running = true;
-		bool minimized = false;
 		float lastFrameTime = 0.0f;
 		float averageFrameTime = 0.0;
 		float averageTimeUpdateInterval = 0.5;
