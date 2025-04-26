@@ -33,7 +33,10 @@ namespace HE {
 		s_CoreLogger->set_level(spdlog::level::trace);
 		s_CoreLogger->flush_on(spdlog::level::trace);
 
-		s_ClientLogger = std::make_shared<spdlog::logger>(client, begin(logSinks), end(logSinks));
+		std::filesystem::path p(client);
+		std::string loggerName = p.stem().string();
+
+		s_ClientLogger = std::make_shared<spdlog::logger>(loggerName, begin(logSinks), end(logSinks));
 		spdlog::register_logger(s_ClientLogger);
 		s_ClientLogger->set_level(spdlog::level::trace);
 		s_ClientLogger->flush_on(spdlog::level::trace);
