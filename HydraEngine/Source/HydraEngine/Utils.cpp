@@ -72,11 +72,11 @@ namespace HE::FileSystem {
         return false;
     }
 
-    bool Copy(const std::filesystem::path& from, const std::filesystem::path& to)
+    bool Copy(const std::filesystem::path& from, const std::filesystem::path& to, std::filesystem::copy_options options)
     {
         try
         {
-            std::filesystem::copy(from, to, std::filesystem::copy_options::recursive);
+            std::filesystem::copy(from, to, options);
             return true;
         }
         catch (const std::exception& ex)
