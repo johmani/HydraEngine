@@ -3,6 +3,11 @@ module;
 #include "HydraEngine/Base.h"
 #include <nfd.hpp>
 
+#define MINIZ_NO_DEFLATE_APIS
+#define MINIZ_NO_ARCHIVE_WRITING_APIS
+#define MINIZ_NO_ZLIB_COMPATIBLE_NAME
+#include <miniz.c>
+
 #ifdef HE_PLATFORM_WINDOWS
 #include <Windows.h>
 #endif
@@ -239,6 +244,39 @@ namespace HE::FileSystem {
 
         outfile.write(content.data(), content.size());
 
+        return true;
+    }
+
+    bool ExtractZip(const std::filesystem::path& zipPath, const std::filesystem::path& outputDir)
+    {
+        mz_zip_archive zip;
+        memset(&zip, 0, sizeof(zip));
+
+        auto pathStr = zipPath.string();
+        if (!mz_zip_reader_init_file(&zip, pathStr.c_str(), 0))
+            return false;
+
+        int fileCount = (int)mz_zip_reader_get_num_files(&zip);
+        for (int i = 0; i < fileCount; i++)
+        {
+            mz_zip_archive_file_stat file_stat;
+            if (!mz_zip_reader_file_stat(&zip, i, &file_stat))
+                continue;
+
+            std::filesystem::path destPath = outputDir / file_stat.m_filename;
+
+            if (file_stat.m_is_directory)
+            {
+                std::filesystem::create_directories(destPath);
+            }
+            else
+            {
+                std::filesystem::create_directories(destPath.parent_path());
+                mz_zip_reader_extract_to_file(&zip, i, destPath.string().c_str(), 0);
+            }
+        }
+
+        mz_zip_reader_end(&zip);
         return true;
     }
 }

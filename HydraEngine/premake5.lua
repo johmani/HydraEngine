@@ -47,10 +47,10 @@ project "HydraEngine"
         "%{IncludeDir.taskflow}",
         "%{IncludeDir.stb_image}",
         "%{IncludeDir.simdjson}",
-        
         "%{IncludeDir.nvrhi}",
         "%{IncludeDir.Vulkan_Headers}",
         "%{IncludeDir.ShaderMake}",
+        "%{IncludeDir.miniz}",
     }
     
     libdirs 

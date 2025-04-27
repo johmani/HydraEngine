@@ -34,3 +34,6 @@
 [submodule "ThirdParty/simdjson"]
 	path = ThirdParty/simdjson
 	url = https://github.com/johmani/simdjson.git
+[submodule "ThirdParty/miniz"]
+	path = ThirdParty/miniz
+	url = https://github.com/johmani/miniz.git

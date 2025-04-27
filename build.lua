@@ -22,6 +22,7 @@ IncludeDir["tracy"] = "%{HE}/ThirdParty/tracy/public"
 IncludeDir["taskflow"] = "%{HE}/ThirdParty/taskflow"
 IncludeDir["Vulkan_Headers"] = "%{HE}/ThirdParty/Vulkan-Headers/Include"
 IncludeDir["simdjson"] = "%{HE}/ThirdParty/simdjson"
+IncludeDir["miniz"] = "%{HE}/ThirdParty/miniz"
 
 LibDir = {}
 LibDir["HydraEngine"] = includSourceCode and binOutputDir or "%{HE}/Build/%{outputdir}/Bin" 

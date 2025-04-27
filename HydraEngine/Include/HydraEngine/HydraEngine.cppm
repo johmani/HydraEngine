@@ -2099,6 +2099,7 @@ export namespace HE {
 		HYDRA_API std::string ReadTextFile(const std::filesystem::path& filePath);
 		HYDRA_API bool ConvertBinaryToHeader(const std::filesystem::path& inputFileName, const std::filesystem::path& outputFileName, const std::string& arrayName);
 		HYDRA_API bool GenerateFileWithReplacements(const std::filesystem::path& input, const std::filesystem::path& output, const std::initializer_list<std::pair<std::string_view, std::string_view>>& replacements);
+		HYDRA_API bool ExtractZip(const std::filesystem::path& zipPath, const std::filesystem::path& outputDir);
 	}
 
 	namespace FileDialog {
