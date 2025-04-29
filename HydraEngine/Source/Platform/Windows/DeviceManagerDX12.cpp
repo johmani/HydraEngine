@@ -315,20 +315,6 @@ namespace HE {
 		{
 			HE_PROFILE_FUNCTION();
 
-			UINT windowStyle = windowState.fullscreen
-				? (WS_POPUP | WS_SYSMENU | WS_VISIBLE)
-				: windowState.maximized
-				? (WS_OVERLAPPEDWINDOW | WS_VISIBLE | WS_MAXIMIZE)
-				: (WS_OVERLAPPEDWINDOW | WS_VISIBLE);
-
-			RECT rect = { 0, 0, LONG(m_DeviceDesc.backBufferWidth), LONG(m_DeviceDesc.backBufferHeight) };
-			AdjustWindowRect(&rect, windowStyle, FALSE);
-
-			if (MoveWindowOntoAdapter(dxgiAdapter, rect))
-			{
-				glfwSetWindowPos((GLFWwindow*)m_Window, rect.left, rect.top);
-			}
-
 			hWnd = glfwGetWin32Window((GLFWwindow*)m_Window);
 
 			HRESULT hr = E_FAIL;
