@@ -2093,7 +2093,7 @@ export namespace HE {
 		HYDRA_API bool Delete(const std::filesystem::path& path);
 		HYDRA_API bool Rename(const std::filesystem::path& oldPath, const std::filesystem::path& newPath);
 		HYDRA_API bool Copy(const std::filesystem::path& from, const std::filesystem::path& to, std::filesystem::copy_options options = std::filesystem::copy_options::recursive);
-		HYDRA_API void Open(const std::filesystem::path& path);
+		HYDRA_API bool Open(const std::filesystem::path& path);
 		HYDRA_API std::vector<uint8_t> ReadBinaryFile(const std::filesystem::path& filePath);
 		HYDRA_API bool ReadBinaryFile(const std::filesystem::path& filePath, Buffer buffer);
 		HYDRA_API std::string ReadTextFile(const std::filesystem::path& filePath);

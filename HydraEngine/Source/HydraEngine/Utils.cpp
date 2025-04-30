@@ -91,17 +91,6 @@ namespace HE::FileSystem {
         return false;
     }
 
-    void Open(const std::filesystem::path& path)
-    {
-#ifdef HE_PLATFORM_WINDOWS
-        system(std::format("explorer {}", path.string()).c_str());
-#elif HE_PLATFORM_LINUX
-        system(std::format("xdg-open {}", path.string()).c_str());
-#else
-        HE_CORE_VERIFY(false, "unsupported platform");
-#endif
-    }
-
     std::vector<uint8_t> ReadBinaryFile(const std::filesystem::path& filePath)
     {
         std::ifstream inputFile(filePath, std::ios::binary | std::ios::ate);
