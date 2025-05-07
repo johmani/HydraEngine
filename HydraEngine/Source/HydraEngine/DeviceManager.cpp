@@ -147,6 +147,42 @@ namespace HE {
 
 			return shader;
 		}
+
+		nvrhi::ShaderLibraryHandle CreateShaderLibrary(nvrhi::IDevice* device, StaticShader staticShader, const std::vector<ShaderMacro>* pDefines)
+		{
+			HE_PROFILE_FUNCTION();
+
+			nvrhi::ShaderLibraryHandle shader;
+
+			Buffer buffer;
+			switch (device->getGraphicsAPI())
+			{
+			case nvrhi::GraphicsAPI::D3D11:  buffer = staticShader.dxbc;  break;
+			case nvrhi::GraphicsAPI::D3D12:  buffer = staticShader.dxil;  break;
+			case nvrhi::GraphicsAPI::VULKAN: buffer = staticShader.spirv; break;
+			}
+
+			const void* permutationBytecode = buffer.data;
+			size_t permutationSize = buffer.size;
+
+			if (pDefines)
+			{
+				std::vector<ShaderMake::ShaderConstant> constants;
+				constants.reserve(pDefines->size());
+				for (const ShaderMacro& define : *pDefines)
+					constants.emplace_back(define.name.data(), define.definition.data());
+
+				if (!ShaderMake::FindPermutationInBlob(buffer.data, buffer.size, constants.data(), uint32_t(constants.size()), &permutationBytecode, &permutationSize))
+				{
+					const std::string message = ShaderMake::FormatShaderNotFoundMessage(buffer.data, buffer.size, constants.data(), uint32_t(constants.size()));
+					HE_CORE_ERROR("CreateStaticShader : {}", message.c_str());
+				}
+			}
+
+			shader = device->createShaderLibrary(permutationBytecode, permutationSize);
+
+			return shader;
+		}
 	}
 
 	bool DeviceManager::CreateInstance(const DeviceInstanceDesc& desc)

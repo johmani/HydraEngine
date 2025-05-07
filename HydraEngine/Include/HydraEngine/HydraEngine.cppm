@@ -1673,6 +1673,7 @@ export namespace HE {
 		};
 
 		HYDRA_API nvrhi::ShaderHandle CreateStaticShader(nvrhi::IDevice* device, StaticShader staticShader, const std::vector<ShaderMacro>* pDefines, const nvrhi::ShaderDesc& desc);
+		HYDRA_API nvrhi::ShaderLibraryHandle CreateShaderLibrary(nvrhi::IDevice* device, StaticShader staticShader, const std::vector<ShaderMacro>* pDefines);
 	}
 
 	//////////////////////////////////////////////////////////////////////////
