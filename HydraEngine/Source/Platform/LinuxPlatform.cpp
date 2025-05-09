@@ -17,7 +17,7 @@ using NativeSymbolType = void*;
 
 void* HE::Modules::SharedLib::Open(const char* path) noexcept
 {
-	HE_PROFILE_FUNCTION();
+    HE_PROFILE_FUNCTION();
 
     return dlopen(path, RTLD_NOW | RTLD_LOCAL);
 }
@@ -38,8 +38,8 @@ std::string HE::Modules::SharedLib::GetError() noexcept
 {
     HE_PROFILE_FUNCTION();
 
-	auto description = dlerror();
-	return (description == nullptr) ? "Unknown error (dlerror failed)" : description;
+    auto description = dlerror();
+    return (description == nullptr) ? "Unknown error (dlerror failed)" : description;
 }
 
 
@@ -47,7 +47,7 @@ bool HE::FileSystem::Open(const std::filesystem::path& path)
 {
     HE_PROFILE_FUNCTION();
 
-	const char* args[] { "xdg-open", path.c_str(), NULL };
+    const char* args[] { "xdg-open", path.c_str(), NULL };
     pid_t pid = fork();
     if (pid < 0)
         return false;

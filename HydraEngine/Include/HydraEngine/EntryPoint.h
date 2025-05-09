@@ -2,24 +2,24 @@
 
 int HE::Main(int argc, char** argv)
 {
-	while (Application::IsApplicationRunning())
-	{
-		auto app = HE::CreateApplication({ argv, argc });
+    while (Application::IsApplicationRunning())
+    {
+        auto app = HE::CreateApplication({ argv, argc });
 
-		if (app)
-		{
-			app->Run();
-			delete app;
-			app = nullptr;
-		}
-		else break;
+        if (app)
+        {
+            app->Run();
+            delete app;
+            app = nullptr;
+        }
+        else break;
 
 #ifdef HE_ENABLE_LOGGING
-		Log::Shutdown();
+        Log::Shutdown();
 #endif 
-	}
+    }
 
-	return 0;
+    return 0;
 }
 
 #if defined(HE_PLATFORM_WINDOWS) && defined(HE_DIST)
@@ -27,14 +27,14 @@ int HE::Main(int argc, char** argv)
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine, int nCmdShow)
 {
-	return HE::Main(__argc, __argv);
+    return HE::Main(__argc, __argv);
 }
 
 #else
 
 int main(int argc, char** argv)
 {
-	return HE::Main(argc, argv);
+    return HE::Main(argc, argv);
 }
 
 #endif

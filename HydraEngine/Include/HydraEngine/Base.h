@@ -9,8 +9,8 @@
         #define HE_PLATFORM_WINDOWS
         constexpr const char* c_SharedLibExtension = ".dll";
         constexpr const char* c_System = "Windows";
-		constexpr const char* c_Architecture = "x86_64";
-		constexpr const char* c_ExecutableExtension = ".exe";
+        constexpr const char* c_Architecture = "x86_64";
+        constexpr const char* c_ExecutableExtension = ".exe";
     #else
         #error "x86 Builds are not supported!"
     #endif
@@ -19,7 +19,7 @@
     constexpr const char* c_SharedLibExtension = ".so";
     constexpr const char* c_System = "Linux";
     constexpr const char* c_Architecture = "x86_64";
-	constexpr const char* c_ExecutableExtension = "";
+    constexpr const char* c_ExecutableExtension = "";
 #else
     #error "Unknown platform!"
 #endif
@@ -58,20 +58,20 @@
 #endif
 
 #if HE_DEBUG
-	constexpr const char* c_BuildConfig = "Debug";
+    constexpr const char* c_BuildConfig = "Debug";
 #   define HE_ENABLE_ASSERTS
 #   define HE_ENABLE_VERIFY
 #	define HE_ENABLE_LOGGING
 #elif HE_RELEASE
-	constexpr const char* c_BuildConfig = "Release";
+    constexpr const char* c_BuildConfig = "Release";
 #   define HE_ENABLE_VERIFY
 #	define HE_ENABLE_LOGGING
 #elif HE_PROFILE
-	constexpr const char* c_BuildConfig = "Profile";
+    constexpr const char* c_BuildConfig = "Profile";
 #   define HE_ENABLE_VERIFY
 #	define HE_ENABLE_LOGGING
 #else
-	constexpr const char* c_BuildConfig = "Dist";
+    constexpr const char* c_BuildConfig = "Dist";
 #endif
 
 #define HE_EXPAND_MACRO(x) x
@@ -98,29 +98,29 @@
 //////////////////////////////////////////////////////////////////////////
 
 #ifdef HE_ENABLE_LOGGING
-	#define HE_CORE_TRACE(...)    HE::Log::CoreTrace(std::format(__VA_ARGS__).c_str())
-	#define HE_CORE_INFO(...)     HE::Log::CoreInfo(std::format(__VA_ARGS__).c_str())
-	#define HE_CORE_WARN(...)     HE::Log::CoreWarn(std::format(__VA_ARGS__).c_str())
-	#define HE_CORE_ERROR(...)    HE::Log::CoreError(std::format(__VA_ARGS__).c_str())
-	#define HE_CORE_CRITICAL(...) HE::Log::CoreCritical(std::format(__VA_ARGS__).c_str())
+    #define HE_CORE_TRACE(...)    HE::Log::CoreTrace(std::format(__VA_ARGS__).c_str())
+    #define HE_CORE_INFO(...)     HE::Log::CoreInfo(std::format(__VA_ARGS__).c_str())
+    #define HE_CORE_WARN(...)     HE::Log::CoreWarn(std::format(__VA_ARGS__).c_str())
+    #define HE_CORE_ERROR(...)    HE::Log::CoreError(std::format(__VA_ARGS__).c_str())
+    #define HE_CORE_CRITICAL(...) HE::Log::CoreCritical(std::format(__VA_ARGS__).c_str())
 
-	#define HE_TRACE(...)         HE::Log::ClientTrace(std::format(__VA_ARGS__).c_str()) 
-	#define HE_INFO(...)          HE::Log::ClientInfo(std::format(__VA_ARGS__).c_str())
-	#define HE_WARN(...)          HE::Log::ClientWarn(std::format(__VA_ARGS__).c_str())
-	#define HE_ERROR(...)         HE::Log::ClientError(std::format(__VA_ARGS__).c_str())
-	#define HE_CRITICAL(...) 	  HE::Log::ClientCritical(std::format(__VA_ARGS__).c_str())
+    #define HE_TRACE(...)         HE::Log::ClientTrace(std::format(__VA_ARGS__).c_str()) 
+    #define HE_INFO(...)          HE::Log::ClientInfo(std::format(__VA_ARGS__).c_str())
+    #define HE_WARN(...)          HE::Log::ClientWarn(std::format(__VA_ARGS__).c_str())
+    #define HE_ERROR(...)         HE::Log::ClientError(std::format(__VA_ARGS__).c_str())
+    #define HE_CRITICAL(...) 	  HE::Log::ClientCritical(std::format(__VA_ARGS__).c_str())
 #else
-	#define HE_CORE_TRACE(...)    
-	#define HE_CORE_INFO(...)     
-	#define HE_CORE_WARN(...)     
-	#define HE_CORE_ERROR(...)    
-	#define HE_CORE_CRITICAL(...) 
-	
-	#define HE_TRACE(...)         
-	#define HE_INFO(...)          
-	#define HE_WARN(...)          
-	#define HE_ERROR(...)         
-	#define HE_CRITICAL(...)   
+    #define HE_CORE_TRACE(...)    
+    #define HE_CORE_INFO(...)     
+    #define HE_CORE_WARN(...)     
+    #define HE_CORE_ERROR(...)    
+    #define HE_CORE_CRITICAL(...) 
+    
+    #define HE_TRACE(...)         
+    #define HE_INFO(...)          
+    #define HE_WARN(...)          
+    #define HE_ERROR(...)         
+    #define HE_CRITICAL(...)   
 #endif
 
 

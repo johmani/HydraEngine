@@ -264,57 +264,57 @@ namespace HE::FileSystem {
 
 namespace HE::FileDialog {
 
-	std::filesystem::path OpenFile(std::initializer_list<std::pair<std::string_view, std::string_view>> filters)
-	{
-		std::array<nfdfilteritem_t, 32> nfdFilters;
+    std::filesystem::path OpenFile(std::initializer_list<std::pair<std::string_view, std::string_view>> filters)
+    {
+        std::array<nfdfilteritem_t, 32> nfdFilters;
         HE_CORE_ASSERT(filters.size() < nfdFilters.size());
-		
+        
         uint32_t filterCount = 0;
-		for (const auto& filter : filters)
+        for (const auto& filter : filters)
             nfdFilters[filterCount++] = { filter.first.data(), filter.second.data() };
 
-		NFD::Guard nfdGuard;
-		NFD::UniquePath outPath;
+        NFD::Guard nfdGuard;
+        NFD::UniquePath outPath;
 
-		nfdresult_t result = NFD::OpenDialog(outPath, nfdFilters.data(), filterCount);
-		if (result == NFD_OKAY)        return outPath.get();
-		else if (result == NFD_CANCEL) return {};
-		else HE_CORE_ERROR("Error: {}", NFD::GetError());
-		return {};
-	}
+        nfdresult_t result = NFD::OpenDialog(outPath, nfdFilters.data(), filterCount);
+        if (result == NFD_OKAY)        return outPath.get();
+        else if (result == NFD_CANCEL) return {};
+        else HE_CORE_ERROR("Error: {}", NFD::GetError());
+        return {};
+    }
 
-	std::filesystem::path SaveFile(std::initializer_list<std::pair<std::string_view, std::string_view>> filters)
-	{
-		std::array<nfdfilteritem_t, 32> nfdFilters;
+    std::filesystem::path SaveFile(std::initializer_list<std::pair<std::string_view, std::string_view>> filters)
+    {
+        std::array<nfdfilteritem_t, 32> nfdFilters;
         HE_CORE_ASSERT(filters.size() < nfdFilters.size());
-		
+        
         uint32_t filterCount = 0;
-		for (const auto& filter : filters)
+        for (const auto& filter : filters)
             nfdFilters[filterCount++] = { filter.first.data(), filter.second.data() };
 
-		NFD::Guard nfdGuard;
-		NFD::UniquePath outPath;
+        NFD::Guard nfdGuard;
+        NFD::UniquePath outPath;
 
-		nfdresult_t result = NFD::SaveDialog(outPath, nfdFilters.data(), filterCount);
-		if (result == NFD_OKAY)        return outPath.get();
-		else if (result == NFD_CANCEL) return {};
-		
+        nfdresult_t result = NFD::SaveDialog(outPath, nfdFilters.data(), filterCount);
+        if (result == NFD_OKAY)        return outPath.get();
+        else if (result == NFD_CANCEL) return {};
+        
         HE_CORE_ERROR("Error: {}", NFD::GetError());
 
-		return {};
-	}
+        return {};
+    }
 
-	std::filesystem::path SelectFolder()
-	{
-		NFD::Guard nfdGuard;
-		NFD::UniquePath outPath;
+    std::filesystem::path SelectFolder()
+    {
+        NFD::Guard nfdGuard;
+        NFD::UniquePath outPath;
 
-		nfdresult_t result = NFD::PickFolder(outPath);
-		if (result == NFD_OKAY)        return outPath.get();
-		else if (result == NFD_CANCEL) return {};
-		
+        nfdresult_t result = NFD::PickFolder(outPath);
+        if (result == NFD_OKAY)        return outPath.get();
+        else if (result == NFD_CANCEL) return {};
+        
         HE_CORE_ERROR("Error: {}", NFD::GetError());
 
-		return {};
-	}
+        return {};
+    }
 }
