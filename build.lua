@@ -4,6 +4,7 @@
 HE = path.getabsolute(".")
 if includSourceCode == nil then includSourceCode = true end -- includSourceCode defaults to true, it should be included in client project
 
+if RHI == nil then RHI = {} end
 if RHI.enableD3D11  == nil then RHI.enableD3D11 = os.host() == "windows" end 
 if RHI.enableD3D12  == nil then RHI.enableD3D12 = os.host() == "windows" end 
 if RHI.enableVulkan == nil then RHI.enableVulkan = true end 
