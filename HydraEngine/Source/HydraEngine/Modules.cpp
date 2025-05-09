@@ -2,78 +2,11 @@ module;
 
 #include "HydraEngine/Base.h"
 
-#ifdef HE_PLATFORM_WINDOWS
-#	ifndef WIN32_LEAN_AND_MEAN
-#		define WIN32_LEAN_AND_MEAN
-#		include <windows.h>
-#		undef WIN32_LEAN_AND_MEAN
-#	else
-#		include <windows.h>
-#	endif
-#else
-	#include <dlfcn.h>
-#endif
-
 module HE;
 
 namespace HE {
 
 	namespace Modules {
-
-#ifdef HE_PLATFORM_WINDOWS
-		using NativeHandleType = HINSTANCE;
-		using NativeSymbolType = FARPROC;
-#else
-		using NativeHandleType = void*;
-		using NativeSymbolType = void*;
-#endif
-
-		void* SharedLib::Open(const char* path) noexcept
-		{
-			HE_PROFILE_FUNCTION();
-
-#		ifdef HE_PLATFORM_WINDOWS
-			return LoadLibraryA(path);
-#		else
-			return dlopen(path, RTLD_NOW | RTLD_LOCAL);
-#		endif
-		}
-
-		void* SharedLib::GetSymbolAddress(void* handle, const char* name) noexcept
-		{
-#		ifdef HE_PLATFORM_WINDOWS
-			return (NativeSymbolType)GetProcAddress((NativeHandleType)handle, name);
-#		else
-			return dlsym((NativeHandleType)handle, name);
-#		endif
-		}
-
-		void SharedLib::Close(void* handle) noexcept
-		{
-			HE_PROFILE_FUNCTION();
-
-#		ifdef HE_PLATFORM_WINDOWS
-			FreeLibrary((NativeHandleType)handle);
-#		else
-			dlclose((NativeHandleType)lib);
-#		endif
-		}
-
-		std::string SharedLib::GetError() noexcept
-		{
-#		ifdef HE_PLATFORM_WINDOWS
-			constexpr const size_t bufferSize = 512;
-			auto error_code = GetLastError();
-			if (!error_code) return "Unknown error (GetLastError failed)";
-			char description[512];
-			auto lang = MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US);
-			const DWORD length = FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, nullptr, error_code, lang, description, bufferSize, nullptr);
-			return (length == 0) ? "Unknown error (FormatMessage failed)" : description;
-#		else
-			auto description = dlerror();
-			return (description == nullptr) ? "Unknown error (dlerror failed)" : description;
-#		endif
-		}
 
 		ModulesContext::~ModulesContext()
 		{

@@ -5,16 +5,20 @@ module;
 #include "HydraEngine/Base.h"
 #include <taskflow/taskflow.hpp>
 
+#if defined(NVRHI_HAS_D3D11) | defined(NVRHI_HAS_D3D12)
+	#include <dxgi.h>
+#endif
+
 #if NVRHI_HAS_D3D11
-#include <d3d11.h>
+	#include <d3d11.h>
 #endif
 
 #if NVRHI_HAS_D3D12
-#include <d3d12.h>
+	#include <d3d12.h>
 #endif
 
 #if NVRHI_HAS_VULKAN
-#include <vulkan/vulkan.h>
+	#include <vulkan/vulkan.h>
 #endif
 
 export module HE;
@@ -240,7 +244,7 @@ export namespace HE {
 	public:
 		Image(const std::filesystem::path& filename, int desiredChannels = 4, bool flipVertically = false);
 		Image(Buffer buffer, int desiredChannels = 4, bool flipVertically = false);
-		Image(int width, int height, int channels, unsigned char* data);
+		Image(int width, int height, int channels, uint8_t* data);
 		~Image();
 
 		Image(const Image&) = delete;

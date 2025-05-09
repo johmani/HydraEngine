@@ -4,6 +4,10 @@
 HE = path.getabsolute(".")
 if includSourceCode == nil then includSourceCode = true end -- includSourceCode defaults to true, it should be included in client project
 
+if RHI.enableD3D11  == nil then RHI.enableD3D11 = os.host() == "windows" end 
+if RHI.enableD3D12  == nil then RHI.enableD3D12 = os.host() == "windows" end 
+if RHI.enableVulkan == nil then RHI.enableVulkan = true end 
+
 outputdir = "%{CapitalizeFirstLetter(cfg.system)}-%{cfg.architecture}/%{cfg.buildcfg}"
 binOutputDir = "%{wks.location}/Build/%{outputdir}/Bin"
 libOutputDir = "%{wks.location}/Build/%{outputdir}/Lib/%{prj.name}"
@@ -221,35 +225,42 @@ end
 function SetHydraFilters()
     filter "system:windows"
         systemversion "latest"
-        defines {
-            "NVRHI_HAS_D3D11",
-            "NVRHI_HAS_D3D12",
-            "NVRHI_HAS_VULKAN",
-        }
+
+        if RHI.enableD3D11 then
+            defines { "NVRHI_HAS_D3D11" }
+        end
+
+        if RHI.enableD3D12 then
+            defines { "NVRHI_HAS_D3D12" }
+        end
+
+        if RHI.enableVulkan then
+            defines { "NVRHI_HAS_VULKAN" }
+        end
 
     filter "system:linux"
         systemversion "latest"
-        defines {
-        
-            "NVRHI_HAS_VULKAN"
-        }
-    
+
+        if RHI.enableVulkan then
+            defines { "NVRHI_HAS_VULKAN" }
+        end
+
     filter "configurations:Debug"
         defines "HE_DEBUG"
         runtime "Debug"
         symbols "On"
-    
+
     filter "configurations:Release"
         defines "HE_RELEASE"
         runtime "Release"
         optimize "On"
-    
+
     filter "configurations:Profile"
         includedirs { "%{IncludeDir.tracy}" }
         defines { "HE_PROFILE", "TRACY_IMPORTS" }
         runtime "Release"
         optimize "On"
-    
+
     filter "configurations:Dist"
         defines "HE_DIST"
         runtime "Release"

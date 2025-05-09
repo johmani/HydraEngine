@@ -350,7 +350,7 @@ namespace HE {
 #endif
 		}
 
-		HE_CORE_ERROR("DeviceManager::Create: Unsupported Graphics API ({})", (int)api);
+		HE_CORE_ERROR("[DeviceManager::Create] : Failed to create backend API: {}", nvrhi::utils::GraphicsAPIToString(api));
 		return nullptr;
 	}
 

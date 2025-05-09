@@ -3,30 +3,29 @@ project "HydraEngine"
     language "C++"
     cppdialect "C++latest"
     staticruntime "off"
-	location (projectLocation)
+    location (projectLocation)
     targetdir (binOutputDir)
     objdir (IntermediatesOutputDir)
 
-    files 
-    { 
+    files {
+
         "Source/HydraEngine/**.cpp",
         "Include/**.h",
         "Include/**.cppm",
         "*.lua",
-        
-        "%{IncludeDir.HydraEngine}/**.cppm",
+
         "%{IncludeDir.glm}/**.cppm",
         "%{IncludeDir.simdjson}/**.cppm",
         "%{IncludeDir.simdjson}/**.cpp",
     }
 
-    buildoptions 
-    {
+    buildoptions {
+
         AddCppm("nvrhi"),
     }
 
-    defines 
-    {
+    defines {
+
         --"HE_FORCE_DISCRETE_GPU",
         "HE_BUILD_SHAREDLIB",
         "GLFW_INCLUDE_NONE",
@@ -36,9 +35,9 @@ project "HydraEngine"
         "SIMDJSON_BUILDING_WINDOWS_DYNAMIC_LIBRARY",
         "_SILENCE_STDEXT_ARR_ITERS_DEPRECATION_WARNING",
     }
-    
-    includedirs
-    {
+
+    includedirs {
+
         "%{IncludeDir.HydraEngine}",
         "%{IncludeDir.spdlog}",
         "%{IncludeDir.glfw}",
@@ -52,14 +51,9 @@ project "HydraEngine"
         "%{IncludeDir.ShaderMake}",
         "%{IncludeDir.miniz}",
     }
-    
-    libdirs 
-    {
-    
-    }
 
-    links
-    {
+    links {
+
         "glfw",
         "nvrhi",
         "NFDE",
@@ -68,45 +62,57 @@ project "HydraEngine"
 
     filter "system:windows"
         systemversion "latest"
-        files 
-        {  
-            "Source/Platform/Windows/**.cpp" 
-        }
-        
-        links
-        {
+        files { "Source/Platform/WindowsPlatform.cpp" }
+
+        links {
+
             "DXGI.lib",
             "dxguid.lib",
-            "D3D11.lib",
-            "D3D12.lib",
         }
-        
-        defines
-        {
-            "NVRHI_HAS_D3D11",
-            "NVRHI_HAS_D3D12",
-            "NVRHI_HAS_VULKAN",
-        }
-    
+
+        if RHI.enableD3D11 then
+            links { "D3D11.lib" }
+            defines { "NVRHI_HAS_D3D11" }
+        end
+
+        if RHI.enableD3D12 then
+             links { "D3D12.lib" }
+        defines { "NVRHI_HAS_D3D12" }
+        end
+
+        if RHI.enableVulkan then
+            defines { "NVRHI_HAS_VULKAN" }
+            file { "Source/Platform/DeviceManagerVulkan.cpp" }
+        end
+
+    filter "system:linux"
+        systemversion "latest"
+        files { "Source/Platform/LinuxPlatform.cpp" }
+
+        if RHI.enableVulkan then
+            defines { "NVRHI_HAS_VULKAN" }
+            files { "Source/Platform/DeviceManagerVulkan.cpp" }
+        end
+
     filter "configurations:Debug"
-    	defines "HE_DEBUG"
-    	runtime "Debug"
-    	symbols "On"
-    
+        defines "HE_DEBUG"
+        runtime "Debug"
+        symbols "On"
+
     filter "configurations:Release"
-    	defines "HE_RELEASE"
-    	runtime "Release"
-    	optimize "On"
-    
+        defines "HE_RELEASE"
+        runtime "Release"
+        optimize "On"
+
     filter "configurations:Profile"
-    	runtime "Release"
-    	optimize "On"
+        runtime "Release"
+        optimize "On"
         files { "%{IncludeDir.tracy}/TracyClient.cpp" }
         includedirs { "%{IncludeDir.tracy}" }
         defines { "HE_PROFILE", "TRACY_EXPORTS" , "TRACY_ENABLE" }
-    
+
     filter "configurations:Dist"
-    	defines "HE_DIST"
-    	runtime "Release"
-    	optimize "Speed"
+        defines "HE_DIST"
+        runtime "Release"
+        optimize "Speed"
         symbols "Off"
