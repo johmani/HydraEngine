@@ -76,13 +76,13 @@ project "HydraEngine"
         end
 
         if RHI.enableD3D12 then
-             links { "D3D12.lib" }
-        defines { "NVRHI_HAS_D3D12" }
+            links { "D3D12.lib" }
+            defines { "NVRHI_HAS_D3D12" }
         end
 
         if RHI.enableVulkan then
             defines { "NVRHI_HAS_VULKAN" }
-            file { "Source/Platform/DeviceManagerVulkan.cpp" }
+            files { "Source/Platform/DeviceManagerVulkan.cpp" }
         end
 
     filter "system:linux"
