@@ -1065,6 +1065,17 @@ export namespace HE {
     // Input
     //////////////////////////////////////////////////////////////////////////
 
+    constexpr int c_MaxModifierCount = 4;
+
+    struct KeyBindingDesc
+    {
+        std::string name;
+        std::array<uint16_t, c_MaxModifierCount> modifier;
+        uint16_t code;
+        EventType eventType;
+        EventCategory eventCategory;
+    };
+
     namespace Input {
     
         HYDRA_API bool IsKeyPressed(KeyCode key);
@@ -1090,6 +1101,12 @@ export namespace HE {
 
         HYDRA_API void SetCursorMode(Cursor::Mode mode);
         HYDRA_API Cursor::Mode GetCursorMode();
+
+        HYDRA_API bool Triggered(const std::string_view& name);
+        HYDRA_API bool RegisterKeyBinding(const KeyBindingDesc& action);
+        HYDRA_API const std::map<uint64_t, KeyBindingDesc>& GetKeyBindings();
+        HYDRA_API void SerializeKeyBindings(const std::filesystem::path& filePath);
+        HYDRA_API bool DeserializeKeyBindings(const std::filesystem::path& filePath);
     }
 
     //////////////////////////////////////////////////////////////////////////
@@ -1643,6 +1660,7 @@ export namespace HE {
         ApplicationDesc applicatoinDesc;
         RHI::DeviceContext deviceContext;
         Window mainWindow;
+        std::map<uint64_t, KeyBindingDesc> keyBindings;
         LayerStack layerStack;
         Modules::ModulesContext modulesContext;
         Plugins::PluginContext pluginContext;

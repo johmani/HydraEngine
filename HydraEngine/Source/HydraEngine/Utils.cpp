@@ -103,6 +103,92 @@ namespace HE {
         return EventCategory::EventCategoryNone;
     }
 
+    void Input::SerializeKeyBindings(const std::filesystem::path& filePath)
+    {
+        std::ofstream file(filePath);
+        if (!file.is_open())
+        {
+            HE_ERROR("Unable to open file for writing, {}", filePath.string());
+        }
+
+        std::ostringstream os;
+        os << "{\n";
+        os << "\t\"bindings\" : [\n";
+
+
+        for (int bindingIndex = 0; auto & [key, desc] : Input::GetKeyBindings())
+        {
+            if (bindingIndex != 0) os << ",\n"; bindingIndex++;
+
+            os << "\t\t{\n";
+            os << "\t\t\t\"name\" : \"" << desc.name << "\",\n";
+            os << "\t\t\t\"modifier\" : [ ";
+            for (int i = 0; i < desc.modifier.size(); i++)
+            {
+                if (desc.modifier[i] != 0)
+                {
+                    if (i > 0) os << ", ";
+                    os << "\"" << Key::ToString(desc.modifier[i]) << "\"";
+                }
+            }
+            os << " ],\n";
+            os << "\t\t\t\"code\" : \"" << Key::ToString(desc.code) << "\",\n";
+            os << "\t\t\t\"eventType\" : \"" << ToString(desc.eventType) << "\",\n";
+            os << "\t\t\t\"eventCategory\" : \"" << ToString(desc.eventCategory) << "\"\n";
+            os << "\t\t}";
+        }
+
+
+        os << "\n\t]\n";
+        os << "}\n";
+
+        file << os.str();
+    }
+
+    bool Input::DeserializeKeyBindings(const std::filesystem::path& filePath)
+    {
+        if (!std::filesystem::exists(filePath))
+        {
+            HE_ERROR("Unable to open file for reaading, {}", filePath.string());
+            return false;
+        }
+
+        static simdjson::dom::parser parser;
+        auto doc = parser.load(filePath.string());
+
+        if (doc["bindings"].error())
+            return false;
+
+        auto bindings = doc["bindings"].get_array();
+        if (!bindings.error())
+        {
+            for (auto desc : bindings)
+            {
+                auto modifier = desc["modifier"].get_array();
+                std::array<uint16_t, c_MaxModifierCount> arr = {};
+                if (!modifier.error())
+                {
+                    for (int i = 0; i < modifier.size(); i++)
+                        arr[i] = Key::FromString(modifier.at(i).get_c_str().value());
+                }
+
+                const char* name = !desc["name"].error() ? desc["name"].get_c_str().value() : "None";
+                uint16_t code = !desc["code"].error() ? Key::FromString(desc["code"].get_c_str().value()) : -1;
+                EventType eventType = !desc["eventType"].error() ? FromStringToEventType(desc["eventType"].get_c_str().value()) : EventType::None;
+                EventCategory eventCategory = !desc["eventCategory"].error() ? FromStringToEventCategory(desc["eventCategory"].get_c_str().value()) : EventCategory::EventCategoryNone;
+
+                Input::RegisterKeyBinding({
+                    .name = name,
+                    .modifier = arr,
+                    .code = code,
+                    .eventType = eventType,
+                    .eventCategory = eventCategory,
+                    });
+            }
+        }
+
+        return true;
+    }
 }
 
 namespace HE::FileSystem {

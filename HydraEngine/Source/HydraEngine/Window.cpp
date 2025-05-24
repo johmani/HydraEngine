@@ -1051,4 +1051,54 @@ namespace HE {
         auto& w = GetAppContext().mainWindow;
         return w.inputData.cursor.CursorMode;
     }
+
+    bool Input::Triggered(const std::string_view& name)
+    {
+        auto& c = GetAppContext();
+
+        auto hash = Hash(name);
+        
+        if (!c.keyBindings.contains(hash)) return false;
+
+        const auto& keysData = c.keyBindings.at(hash);
+
+        for (const auto& m : keysData.modifier)
+            if (m != 0 && !Input::IsKeyDown(m))
+                return false;
+
+        if (keysData.eventType == EventType::KeyPressed && (keysData.eventCategory & EventCategory::EventCategoryKeyboard) && Input::IsKeyPressed(keysData.code))
+            return true;
+
+        if (keysData.eventType == EventType::KeyReleased && (keysData.eventCategory & EventCategory::EventCategoryKeyboard) && Input::IsKeyReleased(keysData.code))
+            return true;
+
+        if (keysData.eventType == EventType::MouseButtonPressed && (keysData.eventCategory == EventCategory::EventCategoryMouseButton) && Input::IsMouseButtonPressed(keysData.code))
+            return true;
+
+        if (keysData.eventType == EventType::MouseButtonReleased && (keysData.eventCategory == EventCategory::EventCategoryMouseButton) && Input::IsMouseButtonReleased(keysData.code))
+            return true;
+
+        return false;
+    }
+
+    bool Input::RegisterKeyBinding(const KeyBindingDesc& action)
+    {
+        auto& c = GetAppContext();
+        
+        auto hash = Hash(action.name);
+
+        if (!c.keyBindings.contains(hash))
+        {
+            c.keyBindings[hash] = action;
+            return true;
+        }
+
+        HE_CORE_ERROR("Input::RegisterKeyBinding action with name '{}' already regestered", action.name);
+        return false;
+    }
+    
+    const std::map<uint64_t, KeyBindingDesc>& Input::GetKeyBindings()
+    {
+        return GetAppContext().keyBindings;
+    }
 }
