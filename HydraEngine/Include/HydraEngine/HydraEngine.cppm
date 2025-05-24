@@ -288,52 +288,26 @@ export namespace HE {
     {
         enum : MouseCode
         {
-            Button0,
-            Button1,
-            Button2,
-            Button3,
-            Button4,
-            Button5,
-            Button6,
-            Button7,
-
+            Button0, Button1, Button2, Button3, Button4, Button5, Button6, Button7,
+            
             Count,
-
-            ButtonLeft = Button0,
-            ButtonRight = Button1,
-            ButtonMiddle = Button2
+            
+            Left = Button0,
+            Right = Button1,
+            Middle = Button2
         };
 
-        constexpr const CodeStrPair CodeToStringMap[8] = {
-            { ButtonLeft	, "ButtonLeft"   },
-            { ButtonRight   , "ButtonRight"  },
-            { ButtonMiddle  , "ButtonMiddle" },
-            { Button3       , "Button3" },
-            { Button4       , "Button4" },
-            { Button5       , "Button5" },
-            { Button6       , "Button6" },
-            { Button7       , "Button7" },
+        inline constexpr const CodeStrPair c_CodeToStringMap[] = {
+            { Left,    "Left"    }, { Right,   "Right"   }, { Middle,  "Middle"  },
+            { Button3, "Button3" }, { Button4, "Button4" }, { Button5, "Button5" },
+            { Button6, "Button6" }, { Button7, "Button7" },
         };
 
-        constexpr const std::string_view& ToString(MouseCode code)
-        {
-            switch (code)
-            {
-            case Button0: return "ButtonLeft";
-            case Button1: return "ButtonRight";
-            case Button2: return "ButtonMiddle";
-            case Button3: return "Button3";
-            case Button4: return "Button4";
-            case Button5: return "Button5";
-            case Button6: return "Button6";
-            case Button7: return "Button7";
-            default:      return "Unknown";
-            }
-        }
+        constexpr const std::string_view& ToString(MouseCode code) { return c_CodeToStringMap[code].codeStr; }
 
         constexpr MouseCode FromString(const std::string_view& code)
         {
-            for (auto& pair : CodeToStringMap)
+            for (auto& pair : c_CodeToStringMap)
                 if (pair.codeStr == code)
                     return pair.code;
 
@@ -347,73 +321,27 @@ export namespace HE {
     {
         enum : JoystickCode
         {
-            Joystick0,
-            Joystick1,
-            Joystick2,
-            Joystick3,
-            Joystick4,
-            Joystick5,
-            Joystick6,
-            Joystick7,
-            Joystick8,
-            Joystick9,
-            Joystick10,
-            Joystick11,
-            Joystick12,
-            Joystick13,
-            Joystick14,
-            Joystick15,
+            Joystick0,  Joystick1,  Joystick2,  Joystick3, Joystick4,  Joystick5, 
+            Joystick6,  Joystick7,  Joystick8,  Joystick9, Joystick10, Joystick11, 
+            Joystick12, Joystick13, Joystick14, Joystick15,
 
             Count
         };
 
-        constexpr CodeStrPair CodeToStringMap[16] = {
-            { Joystick0  ,"Joystick1" },
-            { Joystick1  ,"Joystick2" },
-            { Joystick2  ,"Joystick3" },
-            { Joystick3  ,"Joystick4" },
-            { Joystick4  ,"Joystick5" },
-            { Joystick5  ,"Joystick6" },
-            { Joystick6  ,"Joystick7" },
-            { Joystick7  ,"Joystick8" },
-            { Joystick8  ,"Joystick9" },
-            { Joystick9  ,"Joystick10" },
-            { Joystick10 ,"Joystick11" },
-            { Joystick11 ,"Joystick12" },
-            { Joystick12 ,"Joystick13" },
-            { Joystick13 ,"Joystick14" },
-            { Joystick14 ,"Joystick15" },
-            { Joystick15 ,"Joystick16" }
+        inline constexpr CodeStrPair c_CodeToStringMap[] = {
+            { Joystick0,  "Joystick1"  }, { Joystick1,  "Joystick2"  }, { Joystick2,  "Joystick3"  },
+            { Joystick3,  "Joystick4"  }, { Joystick4,  "Joystick5"  }, { Joystick5,  "Joystick6"  },
+            { Joystick6,  "Joystick7"  }, { Joystick7,  "Joystick8"  }, { Joystick8,  "Joystick9"  },
+            { Joystick9,  "Joystick10" }, { Joystick10, "Joystick11" }, { Joystick11, "Joystick12" },
+            { Joystick12, "Joystick13" }, { Joystick13, "Joystick14" },
+            { Joystick14, "Joystick15" }, { Joystick15, "Joystick16" }
         };
 
-        constexpr const std::string_view& ToString(JoystickCode code)
-        {
-            switch (code)
-            {
-            case Joystick0:  return "Joystick0";
-            case Joystick1:  return "Joystick1";
-            case Joystick2:  return "Joystick2";
-            case Joystick3:  return "Joystick3";
-            case Joystick4:  return "Joystick4";
-            case Joystick5:  return "Joystick5";
-            case Joystick6:  return "Joystick6";
-            case Joystick7:  return "Joystick7";
-            case Joystick8:  return "Joystick8";
-            case Joystick9:  return "Joystick9";
-            case Joystick10: return "Joystick10";
-            case Joystick11: return "Joystick11";
-            case Joystick12: return "Joystick12";
-            case Joystick13: return "Joystick13";
-            case Joystick14: return "Joystick14";
-            case Joystick15: return "Joystick15";
-            }
-
-            return "Unknown";
-        }
+        constexpr const std::string_view& ToString(JoystickCode code) { return c_CodeToStringMap[code].codeStr; }
 
         constexpr JoystickCode FromString(const std::string_view& codeStr)
         {
-            for (auto& pair : CodeToStringMap)
+            for (auto& pair : c_CodeToStringMap)
                 if (pair.codeStr == codeStr)
                     return pair.code;
 
@@ -427,79 +355,29 @@ export namespace HE {
     {
         enum : GamepadCode
         {
-            A,
-            B,
-            X,
-            Y,
-            LeftBumper,
-            RightBumper,
-            Back,
-            Start,
-            Guide,
-            LeftThumb,
-            RightThumb,
-            Up,
-            Right,
-            Down,
-            Left,
-
+            A, B, X, Y,
+            LeftBumper, RightBumper, Back, 
+            Start, Guide, LeftThumb, RightThumb,
+            Up, Right, Down, Left,
+          
             Count,
 
-            Cross = A,
-            Circle = B,
-            Square = X,
-            Triangle = Y
+            Cross = A, Circle = B, Square = X, Triangle = Y
         };
 
-        constexpr CodeStrPair CodeToStringMap[19] = {
-            { A,           "A" },
-            { B,           "B" },
-            { X,           "X" },
-            { Y,           "Y" },
-            { LeftBumper,  "LeftBumper" },
-            { RightBumper, "RightBumper" },
-            { Back,        "Back" },
-            { Start,       "Start" },
-            { Guide,       "Guide" },
-            { LeftThumb,   "LeftThumb" },
-            { RightThumb,  "RightThumb" },
-            { Up,		   "Up" },
-            { Right,	   "Right" },
-            { Down,		   "Down" },
-            { Left,		   "Left" },
-            { Cross,       "Cross" },
-            { Circle,      "Circle" },
-            { Square,      "Square" },
-            { Triangle,    "Triangle" }
+        inline constexpr CodeStrPair c_CodeToStringMap[] = {
+            { A,          "A"          }, { B,           "B"           }, { X,           "X"         }, { Y,           "Y" },
+            { LeftBumper, "LeftBumper" }, { RightBumper, "RightBumper" }, { Back,        "Back"      },
+            { Start,      "Start"      }, { Guide,       "Guide"       }, { LeftThumb,   "LeftThumb" },
+            { RightThumb, "RightThumb" }, { Up,          "Up"          }, { Right,       "Right"     },
+            { Down,       "Down"       }, { Left,        "Left"        }, { Cross,       "Cross"     },
         };
 
-        constexpr const std::string_view& ToString(GamepadCode code)
-        {
-            switch (code)
-            {
-            case A:           return "A";
-            case B:           return "B";
-            case X:           return "X";
-            case Y:           return "Y";
-            case LeftBumper:  return "LeftBumper";
-            case RightBumper: return "RightBumper";
-            case Back:        return "Back";
-            case Start:       return "Start";
-            case Guide:       return "Guide";
-            case LeftThumb:   return "LeftThumb";
-            case RightThumb:  return "RightThumb";
-            case Up:          return "Up";
-            case Right:       return "Right";
-            case Down:        return "Down";
-            case Left:        return "Left";
-            }
-
-            return "Unknown";
-        }
+        constexpr const std::string_view& ToString(GamepadCode code) { return c_CodeToStringMap[code].codeStr; }
 
         constexpr GamepadCode FromString(const std::string_view& codeStr)
         {
-            for (auto& pair : CodeToStringMap)
+            for (auto& pair : c_CodeToStringMap)
                 if (pair.codeStr == codeStr)
                     return pair.code;
 
@@ -513,31 +391,20 @@ export namespace HE {
     {
         enum : GamepadAxisCode
         {
-            Left,
-            Right,
+            Left, Right,
 
             Count
         };
 
-        constexpr CodeStrPair CodeToStringMap[2] = {
-            { Left,  "Left" },
-            { Right, "Right" }
+        inline constexpr CodeStrPair c_CodeToStringMap[] = {
+            { Left,"Left"  }, { Right, "Right" }
         };
 
-        constexpr const std::string_view& ToString(GamepadAxisCode code)
-        {
-            switch (code)
-            {
-            case Left:  return "Left";
-            case Right: return "Right";
-            }
-
-            return "Unknown";
-        }
+        constexpr const std::string_view& ToString(GamepadAxisCode code) { return c_CodeToStringMap[code].codeStr; }
 
         constexpr GamepadAxisCode FromString(const std::string_view& codeStr)
         {
-            for (auto& pair : CodeToStringMap)
+            for (auto& pair : c_CodeToStringMap)
                 if (pair.codeStr == codeStr)
                     return pair.code;
 
@@ -549,396 +416,151 @@ export namespace HE {
     using KeyCode = uint16_t;
     namespace Key
     {
-        enum : KeyCode {
-            Space,
-            Apostrophe,
-            Comma,
-            Minus,
-            Period,
-            Slash,
-
-            D0,
-            D1,
-            D2,
-            D3,
-            D4,
-            D5,
-            D6,
-            D7,
-            D8,
-            D9,
-
-            Semicolon,
-            Equal,
-
-            A,
-            B,
-            C,
-            D,
-            E,
-            F,
-            G,
-            H,
-            I,
-            J,
-            K,
-            L,
-            M,
-            N,
-            O,
-            P,
-            Q,
-            R,
-            S,
-            T,
-            U,
-            V,
-            W,
-            X,
-            Y,
-            Z,
-
-            LeftBracket,
-            Backslash,
-            RightBracket,
-            GraveAccent,
-
-            World1,
-            World2,
-
-            /* Function keys */
-            Escape,
-            Enter,
-            Tab,
-            Backspace,
-            Insert,
-            Delete,
-            Right,
-            Left,
-            Down,
-            Up,
-            PageUp,
-            PageDown,
-            Home,
-            End,
-            CapsLock,
-            ScrollLock,
-            NumLock,
-            PrintScreen,
-            Pause,
-            F1,
-            F2,
-            F3,
-            F4,
-            F5,
-            F6,
-            F7,
-            F8,
-            F9,
-            F10,
-            F11,
-            F12,
-            F13,
-            F14,
-            F15,
-            F16,
-            F17,
-            F18,
-            F19,
-            F20,
-            F21,
-            F22,
-            F23,
-            F24,
-            F25,
-
-            /* Keypad */
-            KP0,
-            KP1,
-            KP2,
-            KP3,
-            KP4,
-            KP5,
-            KP6,
-            KP7,
-            KP8,
-            KP9,
-            KPDecimal,
-            KPDivide,
-            KPMultiply,
-            KPSubtract,
-            KPAdd,
-            KPEnter,
-            KPEqual,
-
-            LeftShift,
-            LeftControl,
-            LeftAlt,
-            LeftSuper,
-            RightShift,
-            RightControl,
-            RightAlt,
-            RightSuper,
-            Menu,
+        enum : KeyCode 
+        {
+            Space, Apostrophe, Comma, Minus, Period, Slash,
+            D0, D1, D2, D3, D4, D5, D6, D7, D8, D9,
+            Semicolon, Equal,
+            A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z,
+            LeftBracket, Backslash, RightBracket, GraveAccent,
+            World1, World2,
+            Escape, Enter, Tab, Backspace, Insert, Delete, Right, Left, Down, Up, PageUp, PageDown, Home, End, CapsLock, ScrollLock, NumLock, PrintScreen, Pause,
+            F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, F12, F13, F14, F15, F16, F17, F18, F19, F20, F21, F22, F23, F24, F25,
+            KP0, KP1, KP2, KP3, KP4, KP5, KP6, KP7, KP8, KP9,
+            KPDecimal, KPDivide, KPMultiply, KPSubtract, KPAdd, KPEnter, KPEqual,
+            LeftShift, LeftControl, LeftAlt, LeftSuper, RightShift, RightControl, RightAlt, RightSuper, Menu,
 
             Count
         };
 
-        constexpr CodeStrPair CodeToStringMap[] = {
-            {Space		  , "Space"},
-            {Apostrophe	  , "Apostrophe"},
-            {Comma		  , "Comma"},
-            {Minus		  , "Minus"},
-            {Period		  , "Period"},
-            {Slash		  , "Slash"},
-            {D0			  , "D0"},
-            {D1			  , "D1"},
-            {D2			  , "D2"},
-            {D3			  , "D3"},
-            {D4			  , "D4"},
-            {D5			  , "D5"},
-            {D6			  , "D6"},
-            {D7			  , "D7"},
-            {D8			  , "D8"},
-            {D9			  , "D9"},
-            {Semicolon	  , "Semicolon"},
-            {Equal		  , "Equal"},
-            {A			  , "A"},
-            {B			  , "B"},
-            {C			  , "C"},
-            {D			  , "D"},
-            {E			  , "E"},
-            {F			  , "F"},
-            {G			  , "G"},
-            {H			  , "H"},
-            {I			  , "I"},
-            {J			  , "J"},
-            {K			  , "K"},
-            {L			  , "L"},
-            {M			  , "M"},
-            {N			  , "N"},
-            {O			  , "O"},
-            {P			  , "P"},
-            {Q			  , "Q"},
-            {R			  , "R"},
-            {S			  , "S"},
-            {T			  , "T"},
-            {U			  , "U"},
-            {V			  , "V"},
-            {W			  , "W"},
-            {X			  , "X"},
-            {Y			  , "Y"},
-            {Z			  , "Z"},
-            {LeftBracket  , "LeftBracket"},
-            {Backslash	  , "Backslash"},
-            {RightBracket , "RightBracket"},
-            {GraveAccent  , "GraveAccent "},
-            {World1		  , "World1"},
-            {World2		  , "World2"},
-            {Escape		  , "Escape"},
-            {Enter		  , "Enter"},
-            {Tab		  , "Tab"},
-            {Backspace	  , "Backspace"},
-            {Insert		  , "Insert"},
-            {Delete		  , "Delete"},
-            {Right		  , "Right"},
-            {Left		  , "Left"},
-            {Down		  , "Down"},
-            {Up			  , "Up"},
-            {PageUp		  , "PageUp"},
-            {PageDown	  , "PageDown"},
-            {Home		  , "Home"},
-            {End		  , "End"},
-            {CapsLock	  , "CapsLock"},
-            {ScrollLock	  , "ScrollLock"},
-            {NumLock	  , "NumLock"},
-            {PrintScreen  , "PrintScreen"},
-            {Pause		  , "Pause"},
-            {F1			  , "F1"},
-            {F2			  , "F2"},
-            {F3			  , "F3"},
-            {F4			  , "F4"},
-            {F5			  , "F5"},
-            {F6			  , "F6"},
-            {F7			  , "F7"},
-            {F8			  , "F8"},
-            {F9			  , "F9"},
-            {F10		  , "F10"},
-            {F11		  , "F11"},
-            {F12		  , "F12"},
-            {F13		  , "F13"},
-            {F14		  , "F14"},
-            {F15		  , "F15"},
-            {F16		  , "F16"},
-            {F17		  , "F17"},
-            {F18		  , "F18"},
-            {F19		  , "F19"},
-            {F20		  , "F20"},
-            {F21		  , "F21"},
-            {F22		  , "F22"},
-            {F23		  , "F23"},
-            {F24		  , "F24"},
-            {F25		  , "F25"},
-            {KP0		  , "KP0"},
-            {KP1		  , "KP1"},
-            {KP2		  , "KP2"},
-            {KP3		  , "KP3"},
-            {KP4		  , "KP4"},
-            {KP5		  , "KP5"},
-            {KP6		  , "KP6"},
-            {KP7		  , "KP7"},
-            {KP8		  , "KP8"},
-            {KP9		  , "KP9"},
-            {KPDecimal	  , "KPDecimal"},
-            {KPDivide	  , "KPDivide"},
-            {KPMultiply	  , "KPMultiply"},
-            {KPSubtract	  , "KPSubtract"},
-            {KPAdd		  , "KPAdd"},
-            {KPEnter	  , "KPEnter"},
-            {KPEqual	  , "KPEqual"},
-            {LeftShift	  , "LeftShift"},
-            {LeftControl  , "LeftControl"},
-            {LeftAlt	  , "LeftAlt"},
-            {LeftSuper	  , "LeftSuper"},
-            {RightShift	  , "RightShift"},
-            {RightControl , "RightControl"},
-            {RightAlt	  , "RightAlt"},
-            {RightSuper	  , "RightSuper"},
-            {Menu		  , "Menu"},
+        inline constexpr CodeStrPair c_CodeToStringMap[] = {
+            { Space,         "Space"           },
+            { Apostrophe,    "'"               },
+            { Comma,         ","               },
+            { Minus,         "-"               },
+            { Period,        "."               },
+            { Slash,         "/"               },
+            { D0,            "0"               },
+            { D1,            "1"               },
+            { D2,            "2"               },
+            { D3,            "3"               },
+            { D4,            "4"               },
+            { D5,            "5"               },
+            { D6,            "6"               },
+            { D7,            "7"               },
+            { D8,            "8"               },
+            { D9,            "9"               },
+            { Semicolon,     ";"               },
+            { Equal,         "="               },
+            { A,             "A"               },
+            { B,             "B"               },
+            { C,             "C"               },
+            { D,             "D"               },
+            { E,             "E"               },
+            { F,             "F"               },
+            { G,             "G"               },
+            { H,             "H"               },
+            { I,             "I"               },
+            { J,             "J"               },
+            { K,             "K"               },
+            { L,             "L"               },
+            { M,             "M"               },
+            { N,             "N"               },
+            { O,             "O"               },
+            { P,             "P"               },
+            { Q,             "Q"               },
+            { R,             "R"               },
+            { S,             "S"               },
+            { T,             "T"               },
+            { U,             "U"               },
+            { V,             "V"               },
+            { W,             "W"               },
+            { X,             "X"               },
+            { Y,             "Y"               },
+            { Z,             "Z"               },
+            { LeftBracket,   "["               },
+            { Backslash,     "\\"              },
+            { RightBracket,  "]"               },
+            { GraveAccent,   "`"               },
+            { World1,        "World1"          },
+            { World2,        "World2"          },
+            { Escape,        "Escape"          },
+            { Enter,         "Enter"           },
+            { Tab,           "Tab"             },
+            { Backspace,     "Backspace"       },
+            { Insert,        "Insert"          },
+            { Delete,        "Delete"          },
+            { Right,         "Right"           },
+            { Left,          "Left"            },
+            { Down,          "Down"            },
+            { Up,            "Up"              },
+            { PageUp,        "PageUp"          },
+            { PageDown,      "PageDown"        },
+            { Home,          "Home"            },
+            { End,           "End"             },
+            { CapsLock,      "CapsLock"        },
+            { ScrollLock,    "Scroll Lock"     },
+            { NumLock,       "Num Lock"        },
+            { PrintScreen,   "Print Screen"    },
+            { Pause,         "Pause"           },
+            { F1,            "F1"              },
+            { F2,            "F2"              },
+            { F3,            "F3"              },
+            { F4,            "F4"              },
+            { F5,            "F5"              },
+            { F6,            "F6"              },
+            { F7,            "F7"              },
+            { F8,            "F8"              },
+            { F9,            "F9"              },
+            { F10,           "F10"             },
+            { F11,           "F11"             },
+            { F12,           "F12"             },
+            { F13,           "F13"             },
+            { F14,           "F14"             },
+            { F15,           "F15"             },
+            { F16,           "F16"             },
+            { F17,           "F17"             },
+            { F18,           "F18"             },
+            { F19,           "F19"             },
+            { F20,           "F20"             },
+            { F21,           "F21"             },
+            { F22,           "F22"             },
+            { F23,           "F23"             },
+            { F24,           "F24"             },
+            { F25,           "F25"             },
+            { KP0,           "Keypad 0"        },
+            { KP1,           "Keypad 1"        },
+            { KP2,           "Keypad 2"        },
+            { KP3,           "Keypad 3"        },
+            { KP4,           "Keypad 4"        },
+            { KP5,           "Keypad 5"        },
+            { KP6,           "Keypad 6"        },
+            { KP7,           "Keypad 7"        },
+            { KP8,           "Keypad 8"        },
+            { KP9,           "Keypad 9"        },
+            { KPDecimal,	 "Keypad ."        },
+            { KPDivide,	     "Keypad /"        },
+            { KPMultiply,    "Keypad *"        },
+            { KPSubtract,    "Keypad -"        },
+            { KPAdd,         "Keypad +"        },
+            { KPEnter,       "Keypad Enter"    },
+            { KPEqual,       "Keypad ="        },
+            { LeftShift,     "Left Shift"      },
+            { LeftControl,   "Left Control"    },
+            { LeftAlt,       "Left Alt"        },
+            { LeftSuper,	 "Left Super"      },
+            { RightShift,    "Right Shift"     },
+            { RightControl,  "Right Control"   },
+            { RightAlt,      "Right Alt"       },
+            { RightSuper,    "Right Super"     },
+            { Menu,          "Menu"            },
         };
 
-        constexpr const std::string_view& ToString(KeyCode code)
-        {
-            switch (code)
-            {
-            case Space: return "Space";
-            case Apostrophe: return "Apostrophe";
-            case Comma: return "Comma";
-            case Minus: return "Minus";
-            case Period: return "Period";
-            case Slash: return "Slash";
-            case D0: return "D0";
-            case D1: return "D1";
-            case D2: return "D2";
-            case D3: return "D3";
-            case D4: return "D4";
-            case D5: return "D5";
-            case D6: return "D6";
-            case D7: return "D7";
-            case D8: return "D8";
-            case D9: return "D9";
-            case Semicolon: return "Semicolon";
-            case Equal: return "Equal";
-            case A: return "A";
-            case B: return "B";
-            case C: return "C";
-            case D: return "D";
-            case E: return "E";
-            case F: return "F";
-            case G: return "G";
-            case H: return "H";
-            case I: return "I";
-            case J: return "J";
-            case K: return "K";
-            case L: return "L";
-            case M: return "M";
-            case N: return "N";
-            case O: return "O";
-            case P: return "P";
-            case Q: return "Q";
-            case R: return "R";
-            case S: return "S";
-            case T: return "T";
-            case U: return "U";
-            case V: return "V";
-            case W: return "W";
-            case X: return "X";
-            case Y: return "Y";
-            case Z: return "Z";
-            case LeftBracket: return "LeftBracket";
-            case Backslash: return "Backslash";
-            case RightBracket: return "RightBracket";
-            case GraveAccent: return "GraveAccent";
-            case World1: return "World1";
-            case World2: return "World2";
-            case Escape: return "Escape";
-            case Enter: return "Enter";
-            case Tab: return "Tab";
-            case Backspace: return "Backspace";
-            case Insert: return "Insert";
-            case Delete: return "Delete";
-            case Right: return "Right";
-            case Left: return "Left";
-            case Down: return "Down";
-            case Up: return "Up";
-            case PageUp: return "PageUp";
-            case PageDown: return "PageDown";
-            case Home: return "Home";
-            case End: return "End";
-            case CapsLock: return "CapsLock";
-            case ScrollLock: return "ScrollLock";
-            case NumLock: return "NumLock";
-            case PrintScreen: return "PrintScreen";
-            case Pause: return "Pause";
-            case F1: return "F1";
-            case F2: return "F2";
-            case F3: return "F3";
-            case F4: return "F4";
-            case F5: return "F5";
-            case F6: return "F6";
-            case F7: return "F7";
-            case F8: return "F8";
-            case F9: return "F9";
-            case F10: return "F10";
-            case F11: return "F11";
-            case F12: return "F12";
-            case F13: return "F13";
-            case F14: return "F14";
-            case F15: return "F15";
-            case F16: return "F16";
-            case F17: return "F17";
-            case F18: return "F18";
-            case F19: return "F19";
-            case F20: return "F20";
-            case F21: return "F21";
-            case F22: return "F22";
-            case F23: return "F23";
-            case F24: return "F24";
-            case F25: return "F25";
-            case KP0: return "KP0";
-            case KP1: return "KP1";
-            case KP2: return "KP2";
-            case KP3: return "KP3";
-            case KP4: return "KP4";
-            case KP5: return "KP5";
-            case KP6: return "KP6";
-            case KP7: return "KP7";
-            case KP8: return "KP8";
-            case KP9: return "KP9";
-            case KPDecimal: return "KPDecimal";
-            case KPDivide: return "KPDivide";
-            case KPMultiply: return "KPMultiply";
-            case KPSubtract: return "KPSubtract";
-            case KPAdd: return "KPAdd";
-            case KPEnter: return "KPEnter";
-            case KPEqual: return "KPEqual";
-            case LeftShift: return "LeftShift";
-            case LeftControl: return "LeftControl";
-            case LeftAlt: return "LeftAlt";
-            case LeftSuper: return "LeftSuper";
-            case RightShift: return "RightShift";
-            case RightControl: return "RightControl";
-            case RightAlt: return "RightAlt";
-            case RightSuper: return "RightSuper";
-            case Menu: return "Menu";
-            }
-
-            return "Unknown";
-        }
+        constexpr const std::string_view& ToString(KeyCode code) { return c_CodeToStringMap[code].codeStr; }
 
         constexpr KeyCode FromString(const std::string_view& code)
         {
-            for (auto& pair : CodeToStringMap)
+            for (auto& pair : c_CodeToStringMap)
                 if (pair.codeStr == code)
                     return pair.code;
 
@@ -949,17 +571,17 @@ export namespace HE {
 
     struct Cursor
     {
-        enum class Mode
+        enum class Mode : uint8_t
         {
-            Normal,		// the regular arrow cursor
-            Hidden,		// the cursor to become hidden when it is over a window but still want it to behave normally,
-            Disabled	// unlimited mouse movement,This will hide the cursor and lock it to the specified window
+            Normal,     // the regular arrow cursor
+            Hidden,     // the cursor to become hidden when it is over a window but still want it to behave normally,
+            Disabled    // unlimited mouse movement,This will hide the cursor and lock it to the specified window
         };
 
         Mode CursorMode;
     };
 
-    enum class EventType
+    enum class EventType : uint8_t
     {
         None = 0,
         WindowClose, WindowResize, WindowFocus, WindowLostFocus, WindowMoved, WindowDrop, WindowContentScale, WindowMaximize, WindowMinimized,
@@ -968,9 +590,9 @@ export namespace HE {
         GamepadButtonPressed, GamepadButtonReleased, GamepadAxisMoved, GamepadConnected
     };
 
-    enum EventCategory
+    enum EventCategory : uint8_t
     {
-        None = 0,
+        EventCategoryNone = 0,
         EventCategoryApplication = BIT(0),
         EventCategoryInput = BIT(1),
         EventCategoryKeyboard = BIT(2),
@@ -980,6 +602,12 @@ export namespace HE {
         EventCategoryGamepadButton = BIT(6),
         EventCategoryGamepadAxis = BIT(7),
     };
+
+
+    HYDRA_API std::string_view ToString(EventType type);
+    HYDRA_API EventType FromStringToEventType(const std::string_view& str);
+    HYDRA_API std::string_view ToString(EventCategory cat);
+    HYDRA_API EventCategory FromStringToEventCategory(const std::string_view& str);
 
 #define EVENT_CLASS_TYPE(type)  static EventType GetStaticType() { return EventType::type; }\
                                 virtual EventType GetEventType() const override { return GetStaticType(); }\
@@ -1020,10 +648,7 @@ export namespace HE {
         Event& m_Event;
     };
 
-    inline std::ostream& operator<<(std::ostream& os, const Event& e)
-    {
-        return os << e.ToString();
-    }
+    inline std::ostream& operator<<(std::ostream& os, const Event& e) { return os << e.ToString(); }
 
     //////////////////////////////////////////////////////////////////////////
     // Application Events
@@ -1169,7 +794,7 @@ export namespace HE {
         std::string ToString() const override
         {
             std::stringstream ss;
-            ss << "KeyPressedEvent: " << m_KeyCode << " (repeat = " << m_IsRepeat << ")";
+            ss << "KeyPressedEvent: " << Key::ToString(m_KeyCode) << " (repeat = " << m_IsRepeat << ")";
             return ss.str();
         }
 
@@ -1191,7 +816,7 @@ export namespace HE {
         std::string ToString() const override
         {
             std::stringstream ss;
-            ss << "KeyReleasedEvent: " << m_KeyCode;
+            ss << "KeyReleasedEvent: " << Key::ToString(m_KeyCode);
             return ss.str();
         }
 
@@ -1212,7 +837,7 @@ export namespace HE {
         std::string ToString() const override
         {
             std::stringstream ss;
-            ss << "KeyTypedEvent: " << m_KeyCode;
+            ss << "KeyTypedEvent: " << Key::ToString(m_KeyCode);
             return ss.str();
         }
 
@@ -1304,7 +929,7 @@ export namespace HE {
         std::string ToString() const override
         {
             std::stringstream ss;
-            ss << "MouseButtonPressedEvent: " << m_Button;
+            ss << "MouseButtonPressedEvent: " << MouseKey::ToString(m_Button);
             return ss.str();
         }
 
@@ -1325,7 +950,7 @@ export namespace HE {
         std::string ToString() const override
         {
             std::stringstream ss;
-            ss << "MouseButtonReleasedEvent: " << m_Button;
+            ss << "MouseButtonReleasedEvent: " << MouseKey::ToString(m_Button);
             return ss.str();
         }
 
@@ -1401,7 +1026,7 @@ export namespace HE {
         virtual std::string ToString() const override
         {
             std::stringstream ss;
-            ss << "GamepadButtonReleasedEvent: Joystick : " << m_JoystickCode << ", button : " << m_Button;
+            ss << "GamepadButtonReleasedEvent: Joystick : " << m_JoystickCode << ", button : " << GamepadButton::ToString(m_Button);
             return ss.str();
         }
 

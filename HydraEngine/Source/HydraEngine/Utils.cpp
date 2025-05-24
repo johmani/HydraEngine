@@ -10,6 +10,100 @@ module;
 
 module HE;
 import std;
+import simdjson;
+
+namespace HE {
+
+    std::string_view ToString(EventType type)
+    {
+        switch (type)
+        {
+        case EventType::None:                  return "None";
+        case EventType::WindowClose:           return "WindowClose";
+        case EventType::WindowResize:          return "WindowResize";
+        case EventType::WindowFocus:           return "WindowFocus";
+        case EventType::WindowLostFocus:       return "WindowLostFocus";
+        case EventType::WindowMoved:           return "WindowMoved";
+        case EventType::WindowDrop:            return "WindowDrop";
+        case EventType::WindowContentScale:    return "WindowContentScale";
+        case EventType::WindowMaximize:        return "WindowMaximize";
+        case EventType::WindowMinimized:       return "WindowMinimized";
+        case EventType::KeyPressed:            return "KeyPressed";
+        case EventType::KeyReleased:           return "KeyReleased";
+        case EventType::KeyTyped:              return "KeyTyped";
+        case EventType::MouseButtonPressed:    return "MouseButtonPressed";
+        case EventType::MouseButtonReleased:   return "MouseButtonReleased";
+        case EventType::MouseMoved:            return "MouseMoved";
+        case EventType::MouseScrolled:         return "MouseScrolled";
+        case EventType::MouseEnter:            return "MouseEnter";
+        case EventType::GamepadButtonPressed:  return "GamepadButtonPressed";
+        case EventType::GamepadButtonReleased: return "GamepadButtonReleased";
+        case EventType::GamepadAxisMoved:      return "GamepadAxisMoved";
+        case EventType::GamepadConnected:      return "GamepadConnected";
+        }
+
+        return "";
+    }
+
+    EventType FromStringToEventType(const std::string_view& str)
+    {
+        if (str == "None")                  return EventType::None;
+        if (str == "WindowClose")           return EventType::WindowClose;
+        if (str == "WindowResize")          return EventType::WindowResize;
+        if (str == "WindowFocus")           return EventType::WindowFocus;
+        if (str == "WindowLostFocus")       return EventType::WindowLostFocus;
+        if (str == "WindowMoved")           return EventType::WindowMoved;
+        if (str == "WindowDrop")            return EventType::WindowDrop;
+        if (str == "WindowContentScale")    return EventType::WindowContentScale;
+        if (str == "WindowMaximize")        return EventType::WindowMaximize;
+        if (str == "WindowMinimized")       return EventType::WindowMinimized;
+        if (str == "KeyPressed")            return EventType::KeyPressed;
+        if (str == "KeyReleased")           return EventType::KeyReleased;
+        if (str == "KeyTyped")              return EventType::KeyTyped;
+        if (str == "MouseButtonPressed")    return EventType::MouseButtonPressed;
+        if (str == "MouseButtonReleased")   return EventType::MouseButtonReleased;
+        if (str == "MouseMoved")            return EventType::MouseMoved;
+        if (str == "MouseScrolled")         return EventType::MouseScrolled;
+        if (str == "MouseEnter")            return EventType::MouseEnter;
+        if (str == "GamepadButtonPressed")  return EventType::GamepadButtonPressed;
+        if (str == "GamepadButtonReleased") return EventType::GamepadButtonReleased;
+        if (str == "GamepadAxisMoved")      return EventType::GamepadAxisMoved;
+        if (str == "GamepadConnected")      return EventType::GamepadConnected;
+
+        return EventType::None;
+    }
+
+    std::string_view ToString(EventCategory cat)
+    {
+        switch (cat) {
+        case EventCategoryApplication:   return "Application";
+        case EventCategoryInput:         return "Input";
+        case EventCategoryKeyboard:      return "Keyboard";
+        case EventCategoryMouse:         return "Mouse";
+        case EventCategoryMouseButton:   return "MouseButton";
+        case EventCategoryJoystick:      return "Joystick";
+        case EventCategoryGamepadButton: return "GamepadButton";
+        case EventCategoryGamepadAxis:   return "GamepadAxis";
+        }
+
+        return "";
+    }
+
+    EventCategory FromStringToEventCategory(const std::string_view& str)
+    {
+        if (str == "Application")   return EventCategoryApplication;
+        if (str == "Input")         return EventCategoryInput;
+        if (str == "Keyboard")      return EventCategoryKeyboard;
+        if (str == "Mouse")         return EventCategoryMouse;
+        if (str == "MouseButton")   return EventCategoryMouseButton;
+        if (str == "Joystick")      return EventCategoryJoystick;
+        if (str == "GamepadButton") return EventCategoryGamepadButton;
+        if (str == "GamepadAxis")   return EventCategoryGamepadAxis;
+
+        return EventCategory::EventCategoryNone;
+    }
+
+}
 
 namespace HE::FileSystem {
 
