@@ -78,6 +78,17 @@ export namespace HE {
         return seed;
     }
 
+    // Aligns 'size' up to the next multiple of 'alignment' (power of two).
+    template<typename T>
+    constexpr T AlignUp(T size, T alignment)
+    {
+        static_assert(std::is_integral<T>::value, "AlignUp() requires an integral type");
+        HE_ASSERT(size >= 0, "'size' must be non-negative");
+        HE_ASSERT(alignment != 0 && (alignment & (alignment - 1)) == 0, "Alignment must be a power of two");
+
+        return (size + alignment - 1) & ~(alignment - 1);
+    }
+
     template<typename T>
     using Scope = std::unique_ptr<T>;
     template<typename T, typename ... Args>
