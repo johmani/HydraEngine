@@ -122,14 +122,16 @@ namespace HE {
             Timestep timestep = time - lastFrameTime;
             lastFrameTime = time;
 
-            // ExecuteMainThreadQueue
             {
                 HE_PROFILE_SCOPE("ExecuteMainThreadQueue");
-
+               
                 std::scoped_lock<std::mutex> lock(mainThreadQueueMutex);
-                for (auto& func : mainThreadQueue)
-                    func();
-                mainThreadQueue.clear();
+                size_t count = std::min(mainThreadMaxJobsPerFrame, (uint32_t)mainThreadQueue.size());
+                for (size_t i = 0; i < count; i++)
+                {
+                    mainThreadQueue.front()();
+                    mainThreadQueue.pop();
+                }
             }
 
             bool headlessDevice = applicatoinDesc.deviceDesc.headlessDevice;

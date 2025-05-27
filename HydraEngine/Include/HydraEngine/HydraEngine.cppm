@@ -1685,7 +1685,8 @@ export namespace HE {
         int numberOfAccumulatedFrames = 0;
     
         tf::Executor executor;
-        std::vector<std::function<void()>> mainThreadQueue;
+        uint32_t mainThreadMaxJobsPerFrame = 1;
+        std::queue<std::function<void()>> mainThreadQueue;
         std::mutex mainThreadQueueMutex;
 
         inline static bool s_ApplicationRunning = true;
@@ -1731,15 +1732,15 @@ export namespace HE {
         using Executor = tf::Executor;
         using Future = tf::Future<void>;
 
-        HYDRA_API void SubmitTask(const std::function<void()>& function) { GetAppContext().executor.async(function);      }
-        HYDRA_API Future RunTaskflow(Taskflow& taskflow)                 { return GetAppContext().executor.run(taskflow); }
-        HYDRA_API void WaitForAll()                                      { GetAppContext().executor.wait_for_all();       }
-        
+        HYDRA_API std::future<void> SubmitTask(const std::function<void()>& function) { return GetAppContext().executor.async(function);  }
+        HYDRA_API Future RunTaskflow(Taskflow& taskflow)                              { return GetAppContext().executor.run(taskflow);    }
+        HYDRA_API void WaitForAll()                                                   { GetAppContext().executor.wait_for_all();          }
+        HYDRA_API void SetMainThreadMaxJobsPerFrame(uint32_t max)                     { GetAppContext().mainThreadMaxJobsPerFrame = max; }
         HYDRA_API void SubmitToMainThread(const std::function<void()>& function)
         {
             auto& c = GetAppContext();
             std::scoped_lock<std::mutex> lock(c.mainThreadQueueMutex);
-            c.mainThreadQueue.emplace_back(function);
+            c.mainThreadQueue.push(function);
         }
     }
     
