@@ -276,6 +276,7 @@ export namespace HE {
         int GetChannels() const { return channels; }
         unsigned char* GetData() const { return data; }
         void SetData(uint8_t* data);
+        uint8_t* ExtractData();
 
     private:
         uint8_t* data = nullptr;

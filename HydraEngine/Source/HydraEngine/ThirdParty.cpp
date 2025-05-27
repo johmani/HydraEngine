@@ -110,4 +110,11 @@ namespace HE {
         }
         data = pData;
     }
+    
+    uint8_t* Image::ExtractData()
+    {
+        uint8_t* extracted = data;
+        data = nullptr;
+        return extracted;
+    }
 }
