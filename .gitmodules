@@ -37,3 +37,6 @@
 [submodule "ThirdParty/miniz"]
 	path = ThirdParty/miniz
 	url = https://github.com/johmani/miniz.git
+[submodule "ThirdParty/magic_enum"]
+	path = ThirdParty/magic_enum
+	url = https://github.com/johmani/magic_enum.git

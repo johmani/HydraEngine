@@ -17,6 +17,9 @@ project "HydraEngine"
         "%{IncludeDir.glm}/**.cppm",
         "%{IncludeDir.simdjson}/**.cppm",
         "%{IncludeDir.simdjson}/**.cpp",
+
+        "%{IncludeDir.magic_enum}/**.hpp",
+        "%{IncludeDir.magic_enum}/**.cppm",
     }
 
     buildoptions {
@@ -50,6 +53,7 @@ project "HydraEngine"
         "%{IncludeDir.Vulkan_Headers}",
         "%{IncludeDir.ShaderMake}",
         "%{IncludeDir.miniz}",
+        "%{IncludeDir.magic_enum}",
     }
 
     links {

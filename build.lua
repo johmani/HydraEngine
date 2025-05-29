@@ -28,6 +28,7 @@ IncludeDir["taskflow"] = "%{HE}/ThirdParty/taskflow"
 IncludeDir["Vulkan_Headers"] = "%{HE}/ThirdParty/Vulkan-Headers/Include"
 IncludeDir["simdjson"] = "%{HE}/ThirdParty/simdjson"
 IncludeDir["miniz"] = "%{HE}/ThirdParty/miniz"
+IncludeDir["magic_enum"] = "%{HE}/ThirdParty/magic_enum/include"
 
 LibDir = {}
 LibDir["HydraEngine"] = includSourceCode and binOutputDir or "%{HE}/Build/%{outputdir}/Bin" 
@@ -169,6 +170,7 @@ function LinkHydra(inc, extra)
             AddProjCppm(HE, "nvrhi"),
             AddProjCppm(HE, "HydraEngine", "glm"),
             AddProjCppm(HE, "HydraEngine", "simdjson"),
+            AddProjCppm(HE, "HydraEngine", "magic_enum"),
         }
 
         libdirs {
@@ -183,6 +185,7 @@ function LinkHydra(inc, extra)
             AddCppm("nvrhi"),
             AddCppm("HydraEngine", "glm"),
             AddCppm("HydraEngine", "simdjson"),
+            AddCppm("HydraEngine", "magic_enum"),
         }
     end
 
