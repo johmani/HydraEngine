@@ -132,7 +132,12 @@ namespace HE {
                 }
             }
             os << " ],\n";
-            os << "\t\t\t\"code\" : \"" << Key::ToString(desc.code) << "\",\n";
+
+            if(desc.eventCategory & EventCategoryKeyboard)
+                os << "\t\t\t\"code\" : \"" << Key::ToString(desc.code) << "\",\n";
+            if(desc.eventCategory & EventCategoryMouseButton)
+                os << "\t\t\t\"code\" : \"" << MouseKey::ToString(desc.code) << "\",\n";
+
             os << "\t\t\t\"eventType\" : \"" << ToString(desc.eventType) << "\",\n";
             os << "\t\t\t\"eventCategory\" : \"" << ToString(desc.eventCategory) << "\"\n";
             os << "\t\t}";
@@ -172,10 +177,16 @@ namespace HE {
                         arr[i] = Key::FromString(modifier.at(i).get_c_str().value());
                 }
 
+                uint16_t code;
+
                 const char* name = !desc["name"].error() ? desc["name"].get_c_str().value() : "None";
-                uint16_t code = !desc["code"].error() ? Key::FromString(desc["code"].get_c_str().value()) : -1;
                 EventType eventType = !desc["eventType"].error() ? FromStringToEventType(desc["eventType"].get_c_str().value()) : EventType::None;
                 EventCategory eventCategory = !desc["eventCategory"].error() ? FromStringToEventCategory(desc["eventCategory"].get_c_str().value()) : EventCategory::EventCategoryNone;
+
+                if (eventCategory & EventCategoryKeyboard)
+                    code = !desc["code"].error() ? Key::FromString(desc["code"].get_c_str().value()) : -1;
+                if (eventCategory & EventCategoryMouseButton)
+                    code = !desc["code"].error() ? MouseKey::FromString(desc["code"].get_c_str().value()) : -1;
 
                 Input::RegisterKeyBinding({
                     .name = name,
@@ -183,7 +194,7 @@ namespace HE {
                     .code = code,
                     .eventType = eventType,
                     .eventCategory = eventCategory,
-                    });
+                });
             }
         }
 
