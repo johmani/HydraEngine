@@ -96,7 +96,7 @@ namespace HE {
         { 
             auto& managers = GetAppContext().deviceContext.managers;
             
-            if(managers.size() >= 1)
+            if(index < managers.size() && managers.size() >= 1)
                 return managers[index];
 
             return nullptr;
@@ -106,7 +106,7 @@ namespace HE {
         {
             auto& managers = GetAppContext().deviceContext.managers;
 
-            if(managers.size() >= 1)
+            if(index < managers.size() && managers.size() >= 1)
                 return managers[index]->GetDevice();
             
             return {};
