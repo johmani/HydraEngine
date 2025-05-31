@@ -749,6 +749,10 @@ namespace HE {
 
     bool Window::IsMainWindowFocused() { return (bool)glfwGetWindowAttrib((GLFWwindow*)m_WindowHandle, GLFW_FOCUSED); }
 
+    HYDRA_API void Window::Show() { glfwShowWindow((GLFWwindow*)m_WindowHandle); }
+
+    HYDRA_API void Window::Hide() { glfwHideWindow((GLFWwindow*)m_WindowHandle); }
+
     std::pair<float, float> Window::GetWindowContentScale()
     {
         float xscale, yscale;

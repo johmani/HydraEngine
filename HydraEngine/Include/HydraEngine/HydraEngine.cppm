@@ -1408,6 +1408,8 @@ export namespace HE {
         HYDRA_API bool ToggleScreenState();
         HYDRA_API void FocusMainWindow();
         HYDRA_API bool IsMainWindowFocused();
+        HYDRA_API void Show();
+        HYDRA_API void Hide();
         HYDRA_API std::pair<float, float> GetWindowContentScale();
         
         void SetTitleBarState(bool state) { m_isTitleBarHovered = state; }
