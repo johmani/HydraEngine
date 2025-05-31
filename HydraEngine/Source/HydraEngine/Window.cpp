@@ -472,9 +472,6 @@ namespace HE {
             glfwSetWindowIcon(glfwWindow, 1, &icon);
         }
 
-
-        glfwShowWindow(glfwWindow);
-
         glfwSetWindowUserPointer(glfwWindow, this);
 
         glfwSetTitlebarHitTestCallback(glfwWindow, [](GLFWwindow* window, int x, int y, int* hit) {

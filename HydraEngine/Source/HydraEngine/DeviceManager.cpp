@@ -203,7 +203,6 @@ namespace HE {
         HE_PROFILE_FUNCTION();
 
         m_DeviceDesc = desc;
-        m_DeviceDesc.headlessDevice = true;
 
         if (!CreateInstance(m_DeviceDesc))
             return false;
@@ -224,7 +223,6 @@ namespace HE {
         HE_CORE_VERIFY(m_Window, "invalid window handle");
 
         m_DeviceDesc = desc;
-        m_DeviceDesc.headlessDevice = false;
         m_RequestedVSync = desc.vsyncEnabled;
 
         if (!CreateInstance(m_DeviceDesc))
