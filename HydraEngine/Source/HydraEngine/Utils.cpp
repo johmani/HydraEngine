@@ -455,6 +455,15 @@ namespace HE::FileSystem {
 
 namespace HE::FileDialog {
 
+    nfdwindowhandle_t GetNDFWindowHandle()
+    {
+#ifdef HE_PLATFORM_WINDOWS
+        return { NFD_WINDOW_HANDLE_TYPE_WINDOWS, HE::Application::GetWindow().GetNativeWindow() };
+#elif HE_PLATFORM_LINUX
+        return { NFD_WINDOW_HANDLE_TYPE_X11, HE::Application::GetWindow().GetNativeWindow() };
+#endif 
+    }
+
     std::filesystem::path OpenFile(std::initializer_list<std::pair<std::string_view, std::string_view>> filters)
     {
         std::array<nfdfilteritem_t, 32> nfdFilters;
@@ -467,7 +476,7 @@ namespace HE::FileDialog {
         NFD::Guard nfdGuard;
         NFD::UniquePath outPath;
 
-        nfdresult_t result = NFD::OpenDialog(outPath, nfdFilters.data(), filterCount);
+        nfdresult_t result = NFD::OpenDialog(outPath, nfdFilters.data(), filterCount, nullptr, GetNDFWindowHandle());
         if (result == NFD_OKAY)        return outPath.get();
         else if (result == NFD_CANCEL) return {};
         else HE_CORE_ERROR("Error: {}", NFD::GetError());
@@ -486,7 +495,7 @@ namespace HE::FileDialog {
         NFD::Guard nfdGuard;
         NFD::UniquePath outPath;
 
-        nfdresult_t result = NFD::SaveDialog(outPath, nfdFilters.data(), filterCount);
+        nfdresult_t result = NFD::SaveDialog(outPath, nfdFilters.data(), filterCount, nullptr, nullptr, GetNDFWindowHandle());
         if (result == NFD_OKAY)        return outPath.get();
         else if (result == NFD_CANCEL) return {};
         
@@ -500,7 +509,7 @@ namespace HE::FileDialog {
         NFD::Guard nfdGuard;
         NFD::UniquePath outPath;
 
-        nfdresult_t result = NFD::PickFolder(outPath);
+        nfdresult_t result = NFD::PickFolder(outPath, nullptr, GetNDFWindowHandle());
         if (result == NFD_OKAY)        return outPath.get();
         else if (result == NFD_CANCEL) return {};
         
