@@ -2,6 +2,7 @@ module;
 
 #include "HydraEngine/Base.h"
 #include <nfd.hpp>
+#include <simdjson.h>
 
 #define MINIZ_NO_DEFLATE_APIS
 #define MINIZ_NO_ARCHIVE_WRITING_APIS
@@ -10,7 +11,6 @@ module;
 
 module HE;
 import std;
-import simdjson;
 
 namespace HE {
 

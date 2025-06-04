@@ -1,9 +1,9 @@
 module;
 
 #include "HydraEngine/Base.h"
+#include <simdjson.h>
 
 module HE;
-import simdjson;
 
 namespace HE::Plugins {
 
