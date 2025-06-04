@@ -1254,31 +1254,39 @@ namespace HE {
             if (swapChainMutableFormatSupported)
                 desc.pNext = &imageFormatListCreateInfo;
 
-            const vk::Result res = device.createSwapchainKHR(&desc, nullptr, &swapChain);
-            if (res != vk::Result::eSuccess)
             {
-                HE_CORE_ERROR("Failed to create a Vulkan swap chain, error code = {}", nvrhi::vulkan::resultToString(VkResult(res)));
-                return false;
+                HE_PROFILE_SCOPE("device.createSwapchainKHR");
+
+                const vk::Result res = device.createSwapchainKHR(&desc, nullptr, &swapChain);
+                if (res != vk::Result::eSuccess)
+                {
+                    HE_CORE_ERROR("Failed to create a Vulkan swap chain, error code = {}", nvrhi::vulkan::resultToString(VkResult(res)));
+                    return false;
+                }
             }
 
             // retrieve swap chain images
-            auto images = device.getSwapchainImagesKHR(swapChain);
-            for (auto image : images)
             {
-                SwapChainImage sci;
-                sci.image = image;
+                HE_PROFILE_SCOPE("retrieve swap chain images");
 
-                nvrhi::TextureDesc textureDesc;
-                textureDesc.width = m_DeviceDesc.backBufferWidth;
-                textureDesc.height = m_DeviceDesc.backBufferHeight;
-                textureDesc.format = m_DeviceDesc.swapChainFormat;
-                textureDesc.debugName = "Swap chain image";
-                textureDesc.initialState = nvrhi::ResourceStates::Present;
-                textureDesc.keepInitialState = true;
-                textureDesc.isRenderTarget = true;
+                auto images = device.getSwapchainImagesKHR(swapChain);
+                for (auto image : images)
+                {
+                    SwapChainImage sci;
+                    sci.image = image;
 
-                sci.rhiHandle = nvrhiDevice->createHandleForNativeTexture(nvrhi::ObjectTypes::VK_Image, nvrhi::Object(sci.image), textureDesc);
-                swapChainImages.push_back(sci);
+                    nvrhi::TextureDesc textureDesc;
+                    textureDesc.width = m_DeviceDesc.backBufferWidth;
+                    textureDesc.height = m_DeviceDesc.backBufferHeight;
+                    textureDesc.format = m_DeviceDesc.swapChainFormat;
+                    textureDesc.debugName = "Swap chain image";
+                    textureDesc.initialState = nvrhi::ResourceStates::Present;
+                    textureDesc.keepInitialState = true;
+                    textureDesc.isRenderTarget = true;
+
+                    sci.rhiHandle = nvrhiDevice->createHandleForNativeTexture(nvrhi::ObjectTypes::VK_Image, nvrhi::Object(sci.image), textureDesc);
+                    swapChainImages.push_back(sci);
+                }
             }
 
             swapChainIndex = 0;
@@ -1292,11 +1300,14 @@ namespace HE {
 
             if (device)
             {
+                HE_PROFILE_SCOPE("device.waitIdle");
+
                 device.waitIdle();
             }
 
             if (swapChain)
             {
+                HE_PROFILE_SCOPE("device.destroySwapchainKHR");
                 device.destroySwapchainKHR(swapChain);
                 swapChain = nullptr;
             }

@@ -123,7 +123,7 @@ namespace HE {
             lastFrameTime = time;
 
             {
-                HE_PROFILE_SCOPE("ExecuteMainThreadQueue");
+                HE_PROFILE_SCOPE_NC("ExecuteMainThreadQueue", 0xAA0000);
                
                 std::scoped_lock<std::mutex> lock(mainThreadQueueMutex);
                 size_t count = std::min(mainThreadMaxJobsPerFrame, (uint32_t)mainThreadQueue.size());

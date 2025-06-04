@@ -823,7 +823,10 @@ namespace HE {
             }
         }
 
-        glfwPollEvents();
+        {
+            HE_PROFILE_SCOPE("glfwPollEvents");
+            glfwPollEvents();
+        }
     }
 
     //////////////////////////////////////////////////////////////////////////

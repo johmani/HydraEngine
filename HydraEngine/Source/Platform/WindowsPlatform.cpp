@@ -195,22 +195,26 @@ class DeviceManagerDX11 : public HE::DeviceManager
         if (m_DeviceDesc.enableDebugRuntime)
             createFlags |= D3D11_CREATE_DEVICE_DEBUG;
 
-        const HRESULT hr = D3D11CreateDevice(
-            dxgiAdapter, // pAdapter
-            D3D_DRIVER_TYPE_UNKNOWN, // DriverType
-            nullptr, // Software
-            createFlags, // Flags
-            &m_DeviceDesc.featureLevel, // pFeatureLevels
-            1, // FeatureLevels
-            D3D11_SDK_VERSION, // SDKVersion
-            &device, // ppDevice
-            nullptr, // pFeatureLevel
-            &immediateContext // ppImmediateContext
-        );
-
-        if (FAILED(hr))
         {
-            return false;
+            HE_PROFILE_SCOPE("D3D11CreateDevice");
+
+            const HRESULT hr = D3D11CreateDevice(
+                dxgiAdapter, // pAdapter
+                D3D_DRIVER_TYPE_UNKNOWN, // DriverType
+                nullptr, // Software
+                createFlags, // Flags
+                &m_DeviceDesc.featureLevel, // pFeatureLevels
+                1, // FeatureLevels
+                D3D11_SDK_VERSION, // SDKVersion
+                &device, // ppDevice
+                nullptr, // pFeatureLevel
+                &immediateContext // ppImmediateContext
+            );
+
+            if (FAILED(hr))
+            {
+                return false;
+            }
         }
 
         nvrhi::d3d11::DeviceDesc deviceDesc;
@@ -314,15 +318,19 @@ class DeviceManagerDX11 : public HE::DeviceManager
         if (!swapChain)
             return;
 
-        const HRESULT hr = swapChain->ResizeBuffers(m_DeviceDesc.swapChainBufferCount,
-            m_DeviceDesc.backBufferWidth,
-            m_DeviceDesc.backBufferHeight,
-            swapChainDesc.BufferDesc.Format,
-            swapChainDesc.Flags);
-
-        if (FAILED(hr))
         {
-            HE_CORE_CRITICAL("ResizeBuffers failed");
+            HE_PROFILE_SCOPE("swapChain->ResizeBuffers");
+
+            const HRESULT hr = swapChain->ResizeBuffers(m_DeviceDesc.swapChainBufferCount,
+                m_DeviceDesc.backBufferWidth,
+                m_DeviceDesc.backBufferHeight,
+                swapChainDesc.BufferDesc.Format,
+                swapChainDesc.Flags);
+
+            if (FAILED(hr))
+            {
+                HE_CORE_CRITICAL("ResizeBuffers failed");
+            }
         }
 
         const bool ret = CreateRenderTarget();
@@ -809,15 +817,21 @@ public:
         if (!swapChain)
             return;
 
-        const HRESULT hr = swapChain->ResizeBuffers(m_DeviceDesc.swapChainBufferCount,
-            m_DeviceDesc.backBufferWidth,
-            m_DeviceDesc.backBufferHeight,
-            swapChainDesc.Format,
-            swapChainDesc.Flags);
-
-        if (FAILED(hr))
         {
-            HE_CORE_ERROR("ResizeBuffers failed");
+            HE_PROFILE_SCOPE("swapChain->ResizeBuffers");
+
+            const HRESULT hr = swapChain->ResizeBuffers(
+                m_DeviceDesc.swapChainBufferCount,
+                m_DeviceDesc.backBufferWidth,
+                m_DeviceDesc.backBufferHeight,
+                swapChainDesc.Format,
+                swapChainDesc.Flags
+            );
+
+            if (FAILED(hr))
+            {
+                HE_CORE_ERROR("ResizeBuffers failed");
+            }
         }
 
         bool ret = CreateRenderTargets();
