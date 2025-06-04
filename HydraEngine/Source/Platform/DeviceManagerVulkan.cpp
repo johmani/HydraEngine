@@ -575,7 +575,6 @@ namespace HE {
 
             if (device)
             {
-                DestroySwapChain();
                 CreateSwapChain();
             }
         }
