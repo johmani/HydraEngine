@@ -1066,7 +1066,7 @@ namespace HE {
 
         const auto& keysData = c.keyBindings.at(hash);
 
-        for (const auto& m : keysData.modifier)
+        for (const auto& m : keysData.modifiers)
             if (m != 0 && !Input::IsKeyDown(m))
                 return false;
 

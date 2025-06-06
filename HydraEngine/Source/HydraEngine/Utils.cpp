@@ -14,94 +14,292 @@ import std;
 
 namespace HE {
 
-    std::string_view ToString(EventType type)
+    namespace MouseKey
     {
-        switch (type)
-        {
-        case EventType::None:                  return "None";
-        case EventType::WindowClose:           return "WindowClose";
-        case EventType::WindowResize:          return "WindowResize";
-        case EventType::WindowFocus:           return "WindowFocus";
-        case EventType::WindowLostFocus:       return "WindowLostFocus";
-        case EventType::WindowMoved:           return "WindowMoved";
-        case EventType::WindowDrop:            return "WindowDrop";
-        case EventType::WindowContentScale:    return "WindowContentScale";
-        case EventType::WindowMaximize:        return "WindowMaximize";
-        case EventType::WindowMinimized:       return "WindowMinimized";
-        case EventType::KeyPressed:            return "KeyPressed";
-        case EventType::KeyReleased:           return "KeyReleased";
-        case EventType::KeyTyped:              return "KeyTyped";
-        case EventType::MouseButtonPressed:    return "MouseButtonPressed";
-        case EventType::MouseButtonReleased:   return "MouseButtonReleased";
-        case EventType::MouseMoved:            return "MouseMoved";
-        case EventType::MouseScrolled:         return "MouseScrolled";
-        case EventType::MouseEnter:            return "MouseEnter";
-        case EventType::GamepadButtonPressed:  return "GamepadButtonPressed";
-        case EventType::GamepadButtonReleased: return "GamepadButtonReleased";
-        case EventType::GamepadAxisMoved:      return "GamepadAxisMoved";
-        case EventType::GamepadConnected:      return "GamepadConnected";
-        }
+        constexpr CodeStrPair c_CodeToStringMap[] = {
+            { Left,    "Left"    }, { Right,   "Right"   }, { Middle,  "Middle"  },
+            { Button3, "Button3" }, { Button4, "Button4" }, { Button5, "Button5" },
+            { Button6, "Button6" }, { Button7, "Button7" },
+        };
 
-        return "";
+        constexpr std::string_view ToString(MouseCode code) { return c_CodeToStringMap[code].codeStr; }
+
+        constexpr MouseCode FromString(std::string_view code)
+        {
+            for (auto& pair : c_CodeToStringMap)
+                if (pair.codeStr == code)
+                    return pair.code;
+
+            HE_CORE_VERIFY(false);
+            return -1;
+        }
     }
 
-    EventType FromStringToEventType(const std::string_view& str)
+    namespace Joystick
     {
-        if (str == "None")                  return EventType::None;
-        if (str == "WindowClose")           return EventType::WindowClose;
-        if (str == "WindowResize")          return EventType::WindowResize;
-        if (str == "WindowFocus")           return EventType::WindowFocus;
-        if (str == "WindowLostFocus")       return EventType::WindowLostFocus;
-        if (str == "WindowMoved")           return EventType::WindowMoved;
-        if (str == "WindowDrop")            return EventType::WindowDrop;
-        if (str == "WindowContentScale")    return EventType::WindowContentScale;
-        if (str == "WindowMaximize")        return EventType::WindowMaximize;
-        if (str == "WindowMinimized")       return EventType::WindowMinimized;
-        if (str == "KeyPressed")            return EventType::KeyPressed;
-        if (str == "KeyReleased")           return EventType::KeyReleased;
-        if (str == "KeyTyped")              return EventType::KeyTyped;
-        if (str == "MouseButtonPressed")    return EventType::MouseButtonPressed;
-        if (str == "MouseButtonReleased")   return EventType::MouseButtonReleased;
-        if (str == "MouseMoved")            return EventType::MouseMoved;
-        if (str == "MouseScrolled")         return EventType::MouseScrolled;
-        if (str == "MouseEnter")            return EventType::MouseEnter;
-        if (str == "GamepadButtonPressed")  return EventType::GamepadButtonPressed;
-        if (str == "GamepadButtonReleased") return EventType::GamepadButtonReleased;
-        if (str == "GamepadAxisMoved")      return EventType::GamepadAxisMoved;
-        if (str == "GamepadConnected")      return EventType::GamepadConnected;
+        constexpr CodeStrPair c_CodeToStringMap[] = {
+            { Joystick0,  "Joystick1"  }, { Joystick1,  "Joystick2"  }, { Joystick2,  "Joystick3"  },
+            { Joystick3,  "Joystick4"  }, { Joystick4,  "Joystick5"  }, { Joystick5,  "Joystick6"  },
+            { Joystick6,  "Joystick7"  }, { Joystick7,  "Joystick8"  }, { Joystick8,  "Joystick9"  },
+            { Joystick9,  "Joystick10" }, { Joystick10, "Joystick11" }, { Joystick11, "Joystick12" },
+            { Joystick12, "Joystick13" }, { Joystick13, "Joystick14" },
+            { Joystick14, "Joystick15" }, { Joystick15, "Joystick16" }
+        };
 
+        constexpr std::string_view ToString(JoystickCode code) { return c_CodeToStringMap[code].codeStr; }
+
+        constexpr JoystickCode FromString(std::string_view codeStr)
+        {
+            for (auto& pair : c_CodeToStringMap)
+                if (pair.codeStr == codeStr)
+                    return pair.code;
+
+            HE_CORE_VERIFY(false);
+            return -1;
+        }
+    }
+
+    namespace GamepadButton
+    {
+        constexpr CodeStrPair c_CodeToStringMap[] = {
+            { A,          "A"           }, { B,           "B"            }, { X,           "X"           }, { Y,     "Y"     },
+            { LeftBumper, "Left Bumper" }, { RightBumper, "Right Bumper" }, { Back,        "Back"        }, { Start, "Start" },
+            { Guide,      "Guide"       }, { LeftThumb,   "Left Thumb"   }, { RightThumb,  "Right Thumb" }, { Up,    "Up"    },
+            { Right,      "Right"       }, { Down,        "Down"         }, { Left,        "Left"        }
+        };
+
+        constexpr std::string_view ToString(GamepadCode code) { return c_CodeToStringMap[code].codeStr; }
+
+        constexpr GamepadCode FromString(std::string_view codeStr)
+        {
+            for (auto& pair : c_CodeToStringMap)
+                if (pair.codeStr == codeStr)
+                    return pair.code;
+
+            HE_CORE_VERIFY(false);
+            return -1;
+        }
+    }
+
+    namespace GamepadAxis
+    {
+        constexpr CodeStrPair c_CodeToStringMap[] = {
+            { Left, "Left"  }, { Right, "Right" }
+        };
+
+        constexpr std::string_view ToString(GamepadAxisCode code) { return c_CodeToStringMap[code].codeStr; }
+
+        constexpr GamepadAxisCode FromString(std::string_view codeStr)
+        {
+            for (auto& pair : c_CodeToStringMap)
+                if (pair.codeStr == codeStr)
+                    return pair.code;
+
+            HE_CORE_VERIFY(false);
+            return -1;
+        }
+    }
+
+    namespace Key
+    {
+        constexpr CodeStrPair c_CodeToStringMap[] = {
+            { Space,         "Space"           },
+            { Apostrophe,    "'"               },
+            { Comma,         ","               },
+            { Minus,         "-"               },
+            { Period,        "."               },
+            { Slash,         "/"               },
+            { D0,            "0"               },
+            { D1,            "1"               },
+            { D2,            "2"               },
+            { D3,            "3"               },
+            { D4,            "4"               },
+            { D5,            "5"               },
+            { D6,            "6"               },
+            { D7,            "7"               },
+            { D8,            "8"               },
+            { D9,            "9"               },
+            { Semicolon,     ";"               },
+            { Equal,         "="               },
+            { A,             "A"               },
+            { B,             "B"               },
+            { C,             "C"               },
+            { D,             "D"               },
+            { E,             "E"               },
+            { F,             "F"               },
+            { G,             "G"               },
+            { H,             "H"               },
+            { I,             "I"               },
+            { J,             "J"               },
+            { K,             "K"               },
+            { L,             "L"               },
+            { M,             "M"               },
+            { N,             "N"               },
+            { O,             "O"               },
+            { P,             "P"               },
+            { Q,             "Q"               },
+            { R,             "R"               },
+            { S,             "S"               },
+            { T,             "T"               },
+            { U,             "U"               },
+            { V,             "V"               },
+            { W,             "W"               },
+            { X,             "X"               },
+            { Y,             "Y"               },
+            { Z,             "Z"               },
+            { LeftBracket,   "["               },
+            { Backslash,     "\\"              },
+            { RightBracket,  "]"               },
+            { GraveAccent,   "`"               },
+            { World1,        "World1"          },
+            { World2,        "World2"          },
+            { Escape,        "Escape"          },
+            { Enter,         "Enter"           },
+            { Tab,           "Tab"             },
+            { Backspace,     "Backspace"       },
+            { Insert,        "Insert"          },
+            { Delete,        "Delete"          },
+            { Right,         "Right"           },
+            { Left,          "Left"            },
+            { Down,          "Down"            },
+            { Up,            "Up"              },
+            { PageUp,        "PageUp"          },
+            { PageDown,      "PageDown"        },
+            { Home,          "Home"            },
+            { End,           "End"             },
+            { CapsLock,      "CapsLock"        },
+            { ScrollLock,    "Scroll Lock"     },
+            { NumLock,       "Num Lock"        },
+            { PrintScreen,   "Print Screen"    },
+            { Pause,         "Pause"           },
+            { F1,            "F1"              },
+            { F2,            "F2"              },
+            { F3,            "F3"              },
+            { F4,            "F4"              },
+            { F5,            "F5"              },
+            { F6,            "F6"              },
+            { F7,            "F7"              },
+            { F8,            "F8"              },
+            { F9,            "F9"              },
+            { F10,           "F10"             },
+            { F11,           "F11"             },
+            { F12,           "F12"             },
+            { F13,           "F13"             },
+            { F14,           "F14"             },
+            { F15,           "F15"             },
+            { F16,           "F16"             },
+            { F17,           "F17"             },
+            { F18,           "F18"             },
+            { F19,           "F19"             },
+            { F20,           "F20"             },
+            { F21,           "F21"             },
+            { F22,           "F22"             },
+            { F23,           "F23"             },
+            { F24,           "F24"             },
+            { F25,           "F25"             },
+            { KP0,           "Keypad 0"        },
+            { KP1,           "Keypad 1"        },
+            { KP2,           "Keypad 2"        },
+            { KP3,           "Keypad 3"        },
+            { KP4,           "Keypad 4"        },
+            { KP5,           "Keypad 5"        },
+            { KP6,           "Keypad 6"        },
+            { KP7,           "Keypad 7"        },
+            { KP8,           "Keypad 8"        },
+            { KP9,           "Keypad 9"        },
+            { KPDecimal,	 "Keypad ."        },
+            { KPDivide,	     "Keypad /"        },
+            { KPMultiply,    "Keypad *"        },
+            { KPSubtract,    "Keypad -"        },
+            { KPAdd,         "Keypad +"        },
+            { KPEnter,       "Keypad Enter"    },
+            { KPEqual,       "Keypad ="        },
+            { LeftShift,     "Left Shift"      },
+            { LeftControl,   "Left Control"    },
+            { LeftAlt,       "Left Alt"        },
+            { LeftSuper,	 "Left Super"      },
+            { RightShift,    "Right Shift"     },
+            { RightControl,  "Right Control"   },
+            { RightAlt,      "Right Alt"       },
+            { RightSuper,    "Right Super"     },
+            { Menu,          "Menu"            },
+        };
+
+        constexpr std::string_view ToString(KeyCode code) { return c_CodeToStringMap[code].codeStr; }
+
+        constexpr KeyCode FromString(std::string_view code)
+        {
+            for (auto& pair : c_CodeToStringMap)
+                if (pair.codeStr == code)
+                    return pair.code;
+
+            HE_CORE_VERIFY(false);
+            return -1;
+        }
+    }
+
+    constexpr CodeStrPair c_EventTypeMap[] = {
+        { (int)EventType::None,                  "None"                   },
+        { (int)EventType::WindowClose,           "Window Close"           },
+        { (int)EventType::WindowResize,          "Window Resize"          },
+        { (int)EventType::WindowFocus,           "Window Focus"           },
+        { (int)EventType::WindowLostFocus,       "Window LostFocus"       },
+        { (int)EventType::WindowMoved,           "Window Moved"           },
+        { (int)EventType::WindowDrop,            "Window Drop"            },
+        { (int)EventType::WindowContentScale,    "Window ContentScale"    },
+        { (int)EventType::WindowMaximize,        "Window Maximize"        },
+        { (int)EventType::WindowMinimized,       "Window Minimized"       },
+        { (int)EventType::KeyPressed,            "Key Pressed"            },
+        { (int)EventType::KeyReleased,           "Key Released"           },
+        { (int)EventType::KeyTyped,              "Key Typed"              },
+        { (int)EventType::MouseButtonPressed,    "Mouse Button Pressed"   },
+        { (int)EventType::MouseButtonReleased,   "Mouse Button Released"  },
+        { (int)EventType::MouseMoved,            "Mouse Moved"            },
+        { (int)EventType::MouseScrolled,         "Mouse Scrolled"         },
+        { (int)EventType::MouseEnter,            "Mouse Enter"            },
+        { (int)EventType::GamepadButtonPressed,  "Gamepad Button Pressed" },
+        { (int)EventType::GamepadButtonReleased, "Gamepad ButtonReleased" },
+        { (int)EventType::GamepadAxisMoved,      "Gamepad Axis Moved"     },
+        { (int)EventType::GamepadConnected,      "Gamepad Connected"      },
+    };
+
+    constexpr std::string_view ToString(EventType code) { return c_EventTypeMap[int(code)].codeStr; }
+
+    constexpr EventType FromStringToEventType(std::string_view code)
+    {
+        for (auto& pair : c_EventTypeMap)
+            if (pair.codeStr == code)
+                return (EventType)pair.code;
+
+        HE_CORE_VERIFY(false);
         return EventType::None;
     }
 
-    std::string_view ToString(EventCategory cat)
+    constexpr CodeStrPair c_EventCategoryMap[] = {
+        { EventCategoryApplication,   "Application"    },
+        { EventCategoryInput,         "Input"          },
+        { EventCategoryKeyboard,      "Keyboard"       },
+        { EventCategoryMouse,         "Mouse"          },
+        { EventCategoryMouseButton,   "Mouse Button"   },
+        { EventCategoryJoystick,      "Joystick"       },
+        { EventCategoryGamepadButton, "Gamepad Button" },
+        { EventCategoryGamepadAxis,   "Gamepad Axis"   },
+    };
+
+    constexpr std::string_view ToString(EventCategory code) { return c_EventCategoryMap[code].codeStr; }
+
+    constexpr EventCategory FromStringToEventCategory(std::string_view code)
     {
-        switch (cat) {
-        case EventCategoryApplication:   return "Application";
-        case EventCategoryInput:         return "Input";
-        case EventCategoryKeyboard:      return "Keyboard";
-        case EventCategoryMouse:         return "Mouse";
-        case EventCategoryMouseButton:   return "MouseButton";
-        case EventCategoryJoystick:      return "Joystick";
-        case EventCategoryGamepadButton: return "GamepadButton";
-        case EventCategoryGamepadAxis:   return "GamepadAxis";
-        }
+        for (auto& pair : c_EventCategoryMap)
+            if (pair.codeStr == code)
+                return (EventCategory)pair.code;
 
-        return "";
-    }
-
-    EventCategory FromStringToEventCategory(const std::string_view& str)
-    {
-        if (str == "Application")   return EventCategoryApplication;
-        if (str == "Input")         return EventCategoryInput;
-        if (str == "Keyboard")      return EventCategoryKeyboard;
-        if (str == "Mouse")         return EventCategoryMouse;
-        if (str == "MouseButton")   return EventCategoryMouseButton;
-        if (str == "Joystick")      return EventCategoryJoystick;
-        if (str == "GamepadButton") return EventCategoryGamepadButton;
-        if (str == "GamepadAxis")   return EventCategoryGamepadAxis;
-
+        HE_CORE_VERIFY(false);
         return EventCategory::EventCategoryNone;
     }
+}
+
+namespace HE {
 
     void Input::SerializeKeyBindings(const std::filesystem::path& filePath)
     {
@@ -122,13 +320,13 @@ namespace HE {
 
             os << "\t\t{\n";
             os << "\t\t\t\"name\" : \"" << desc.name << "\",\n";
-            os << "\t\t\t\"modifier\" : [ ";
-            for (int i = 0; i < desc.modifier.size(); i++)
+            os << "\t\t\t\"modifiers\" : [ ";
+            for (int i = 0; i < desc.modifiers.size(); i++)
             {
-                if (desc.modifier[i] != 0)
+                if (desc.modifiers[i] != 0)
                 {
                     if (i > 0) os << ", ";
-                    os << "\"" << Key::ToString(desc.modifier[i]) << "\"";
+                    os << "\"" << Key::ToString(desc.modifiers[i]) << "\"";
                 }
             }
             os << " ],\n";
@@ -169,12 +367,12 @@ namespace HE {
         {
             for (auto desc : bindings)
             {
-                auto modifier = desc["modifier"].get_array();
+                auto modifiers = desc["modifiers"].get_array();
                 std::array<uint16_t, c_MaxModifierCount> arr = {};
-                if (!modifier.error())
+                if (!modifiers.error())
                 {
-                    for (int i = 0; i < modifier.size(); i++)
-                        arr[i] = Key::FromString(modifier.at(i).get_c_str().value());
+                    for (int i = 0; i < modifiers.size(); i++)
+                        arr[i] = Key::FromString(modifiers.at(i).get_c_str().value());
                 }
 
                 uint16_t code;
@@ -190,7 +388,7 @@ namespace HE {
 
                 Input::RegisterKeyBinding({
                     .name = name,
-                    .modifier = arr,
+                    .modifiers = arr,
                     .code = code,
                     .eventType = eventType,
                     .eventCategory = eventCategory,

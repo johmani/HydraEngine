@@ -309,23 +309,8 @@ export namespace HE {
             Middle = Button2
         };
 
-        inline constexpr const CodeStrPair c_CodeToStringMap[] = {
-            { Left,    "Left"    }, { Right,   "Right"   }, { Middle,  "Middle"  },
-            { Button3, "Button3" }, { Button4, "Button4" }, { Button5, "Button5" },
-            { Button6, "Button6" }, { Button7, "Button7" },
-        };
-
-        constexpr const std::string_view& ToString(MouseCode code) { return c_CodeToStringMap[code].codeStr; }
-
-        constexpr MouseCode FromString(const std::string_view& code)
-        {
-            for (auto& pair : c_CodeToStringMap)
-                if (pair.codeStr == code)
-                    return pair.code;
-
-            HE_CORE_VERIFY(false);
-            return -1;
-        }
+        HYDRA_API constexpr std::string_view ToString(MouseCode code);
+        HYDRA_API constexpr MouseCode FromString(std::string_view code);
     }
 
     using JoystickCode = uint16_t;
@@ -340,26 +325,8 @@ export namespace HE {
             Count
         };
 
-        inline constexpr CodeStrPair c_CodeToStringMap[] = {
-            { Joystick0,  "Joystick1"  }, { Joystick1,  "Joystick2"  }, { Joystick2,  "Joystick3"  },
-            { Joystick3,  "Joystick4"  }, { Joystick4,  "Joystick5"  }, { Joystick5,  "Joystick6"  },
-            { Joystick6,  "Joystick7"  }, { Joystick7,  "Joystick8"  }, { Joystick8,  "Joystick9"  },
-            { Joystick9,  "Joystick10" }, { Joystick10, "Joystick11" }, { Joystick11, "Joystick12" },
-            { Joystick12, "Joystick13" }, { Joystick13, "Joystick14" },
-            { Joystick14, "Joystick15" }, { Joystick15, "Joystick16" }
-        };
-
-        constexpr const std::string_view& ToString(JoystickCode code) { return c_CodeToStringMap[code].codeStr; }
-
-        constexpr JoystickCode FromString(const std::string_view& codeStr)
-        {
-            for (auto& pair : c_CodeToStringMap)
-                if (pair.codeStr == codeStr)
-                    return pair.code;
-
-            HE_CORE_VERIFY(false);
-            return -1;
-        }
+        HYDRA_API constexpr std::string_view ToString(JoystickCode code);
+        HYDRA_API constexpr JoystickCode FromString(std::string_view codeStr);
     }
 
     using GamepadCode = uint16_t;
@@ -377,25 +344,8 @@ export namespace HE {
             Cross = A, Circle = B, Square = X, Triangle = Y
         };
 
-        inline constexpr CodeStrPair c_CodeToStringMap[] = {
-            { A,          "A"          }, { B,           "B"           }, { X,           "X"         }, { Y,           "Y" },
-            { LeftBumper, "LeftBumper" }, { RightBumper, "RightBumper" }, { Back,        "Back"      },
-            { Start,      "Start"      }, { Guide,       "Guide"       }, { LeftThumb,   "LeftThumb" },
-            { RightThumb, "RightThumb" }, { Up,          "Up"          }, { Right,       "Right"     },
-            { Down,       "Down"       }, { Left,        "Left"        }, { Cross,       "Cross"     },
-        };
-
-        constexpr const std::string_view& ToString(GamepadCode code) { return c_CodeToStringMap[code].codeStr; }
-
-        constexpr GamepadCode FromString(const std::string_view& codeStr)
-        {
-            for (auto& pair : c_CodeToStringMap)
-                if (pair.codeStr == codeStr)
-                    return pair.code;
-
-            HE_CORE_VERIFY(false);
-            return -1;
-        }
+        HYDRA_API constexpr std::string_view ToString(GamepadCode code);
+        HYDRA_API constexpr GamepadCode FromString(std::string_view codeStr);
     }
 
     using GamepadAxisCode = uint16_t;
@@ -408,21 +358,8 @@ export namespace HE {
             Count
         };
 
-        inline constexpr CodeStrPair c_CodeToStringMap[] = {
-            { Left,"Left"  }, { Right, "Right" }
-        };
-
-        constexpr const std::string_view& ToString(GamepadAxisCode code) { return c_CodeToStringMap[code].codeStr; }
-
-        constexpr GamepadAxisCode FromString(const std::string_view& codeStr)
-        {
-            for (auto& pair : c_CodeToStringMap)
-                if (pair.codeStr == codeStr)
-                    return pair.code;
-
-            HE_CORE_VERIFY(false);
-            return -1;
-        }
+        HYDRA_API constexpr std::string_view ToString(GamepadAxisCode code);
+        HYDRA_API constexpr GamepadAxisCode FromString(std::string_view codeStr);
     }
 
     using KeyCode = uint16_t;
@@ -445,140 +382,8 @@ export namespace HE {
             Count
         };
 
-        inline constexpr CodeStrPair c_CodeToStringMap[] = {
-            { Space,         "Space"           },
-            { Apostrophe,    "'"               },
-            { Comma,         ","               },
-            { Minus,         "-"               },
-            { Period,        "."               },
-            { Slash,         "/"               },
-            { D0,            "0"               },
-            { D1,            "1"               },
-            { D2,            "2"               },
-            { D3,            "3"               },
-            { D4,            "4"               },
-            { D5,            "5"               },
-            { D6,            "6"               },
-            { D7,            "7"               },
-            { D8,            "8"               },
-            { D9,            "9"               },
-            { Semicolon,     ";"               },
-            { Equal,         "="               },
-            { A,             "A"               },
-            { B,             "B"               },
-            { C,             "C"               },
-            { D,             "D"               },
-            { E,             "E"               },
-            { F,             "F"               },
-            { G,             "G"               },
-            { H,             "H"               },
-            { I,             "I"               },
-            { J,             "J"               },
-            { K,             "K"               },
-            { L,             "L"               },
-            { M,             "M"               },
-            { N,             "N"               },
-            { O,             "O"               },
-            { P,             "P"               },
-            { Q,             "Q"               },
-            { R,             "R"               },
-            { S,             "S"               },
-            { T,             "T"               },
-            { U,             "U"               },
-            { V,             "V"               },
-            { W,             "W"               },
-            { X,             "X"               },
-            { Y,             "Y"               },
-            { Z,             "Z"               },
-            { LeftBracket,   "["               },
-            { Backslash,     "\\"              },
-            { RightBracket,  "]"               },
-            { GraveAccent,   "`"               },
-            { World1,        "World1"          },
-            { World2,        "World2"          },
-            { Escape,        "Escape"          },
-            { Enter,         "Enter"           },
-            { Tab,           "Tab"             },
-            { Backspace,     "Backspace"       },
-            { Insert,        "Insert"          },
-            { Delete,        "Delete"          },
-            { Right,         "Right"           },
-            { Left,          "Left"            },
-            { Down,          "Down"            },
-            { Up,            "Up"              },
-            { PageUp,        "PageUp"          },
-            { PageDown,      "PageDown"        },
-            { Home,          "Home"            },
-            { End,           "End"             },
-            { CapsLock,      "CapsLock"        },
-            { ScrollLock,    "Scroll Lock"     },
-            { NumLock,       "Num Lock"        },
-            { PrintScreen,   "Print Screen"    },
-            { Pause,         "Pause"           },
-            { F1,            "F1"              },
-            { F2,            "F2"              },
-            { F3,            "F3"              },
-            { F4,            "F4"              },
-            { F5,            "F5"              },
-            { F6,            "F6"              },
-            { F7,            "F7"              },
-            { F8,            "F8"              },
-            { F9,            "F9"              },
-            { F10,           "F10"             },
-            { F11,           "F11"             },
-            { F12,           "F12"             },
-            { F13,           "F13"             },
-            { F14,           "F14"             },
-            { F15,           "F15"             },
-            { F16,           "F16"             },
-            { F17,           "F17"             },
-            { F18,           "F18"             },
-            { F19,           "F19"             },
-            { F20,           "F20"             },
-            { F21,           "F21"             },
-            { F22,           "F22"             },
-            { F23,           "F23"             },
-            { F24,           "F24"             },
-            { F25,           "F25"             },
-            { KP0,           "Keypad 0"        },
-            { KP1,           "Keypad 1"        },
-            { KP2,           "Keypad 2"        },
-            { KP3,           "Keypad 3"        },
-            { KP4,           "Keypad 4"        },
-            { KP5,           "Keypad 5"        },
-            { KP6,           "Keypad 6"        },
-            { KP7,           "Keypad 7"        },
-            { KP8,           "Keypad 8"        },
-            { KP9,           "Keypad 9"        },
-            { KPDecimal,	 "Keypad ."        },
-            { KPDivide,	     "Keypad /"        },
-            { KPMultiply,    "Keypad *"        },
-            { KPSubtract,    "Keypad -"        },
-            { KPAdd,         "Keypad +"        },
-            { KPEnter,       "Keypad Enter"    },
-            { KPEqual,       "Keypad ="        },
-            { LeftShift,     "Left Shift"      },
-            { LeftControl,   "Left Control"    },
-            { LeftAlt,       "Left Alt"        },
-            { LeftSuper,	 "Left Super"      },
-            { RightShift,    "Right Shift"     },
-            { RightControl,  "Right Control"   },
-            { RightAlt,      "Right Alt"       },
-            { RightSuper,    "Right Super"     },
-            { Menu,          "Menu"            },
-        };
-
-        constexpr const std::string_view& ToString(KeyCode code) { return c_CodeToStringMap[code].codeStr; }
-
-        constexpr KeyCode FromString(const std::string_view& code)
-        {
-            for (auto& pair : c_CodeToStringMap)
-                if (pair.codeStr == code)
-                    return pair.code;
-
-            HE_CORE_VERIFY(false);
-            return -1;
-        }
+        HYDRA_API constexpr std::string_view ToString(KeyCode code);
+        HYDRA_API constexpr KeyCode FromString(std::string_view code);
     }
 
     struct Cursor
@@ -615,11 +420,10 @@ export namespace HE {
         EventCategoryGamepadAxis = BIT(7),
     };
 
-
-    HYDRA_API std::string_view ToString(EventType type);
-    HYDRA_API EventType FromStringToEventType(const std::string_view& str);
-    HYDRA_API std::string_view ToString(EventCategory cat);
-    HYDRA_API EventCategory FromStringToEventCategory(const std::string_view& str);
+    HYDRA_API constexpr std::string_view ToString(EventType code);
+    HYDRA_API constexpr EventType FromStringToEventType(std::string_view code);
+    HYDRA_API constexpr std::string_view ToString(EventCategory code);
+    HYDRA_API constexpr EventCategory FromStringToEventCategory(std::string_view code);
 
 #define EVENT_CLASS_TYPE(type)  static EventType GetStaticType() { return EventType::type; }\
                                 virtual EventType GetEventType() const override { return GetStaticType(); }\
@@ -1082,7 +886,7 @@ export namespace HE {
     struct KeyBindingDesc
     {
         std::string name;
-        std::array<uint16_t, c_MaxModifierCount> modifier;
+        std::array<uint16_t, c_MaxModifierCount> modifiers;
         uint16_t code;
         EventType eventType;
         EventCategory eventCategory;
