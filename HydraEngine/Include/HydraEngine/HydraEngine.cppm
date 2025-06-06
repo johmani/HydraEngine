@@ -646,14 +646,14 @@ export namespace HE {
     class KeyTypedEvent : public Event
     {
     public:
-        KeyTypedEvent(const KeyCode keycode) : m_KeyCode(keycode) {}
+        KeyTypedEvent(const uint32_t codePoint) : m_CodePoint(codePoint) {}
 
-        KeyCode GetKeyCode() const { return m_KeyCode; }
+        KeyCode GetCodePoint() const { return m_CodePoint; }
 
         std::string ToString() const override
         {
             std::stringstream ss;
-            ss << "KeyTypedEvent: " << Key::ToString(m_KeyCode);
+            ss << "KeyTypedEvent: " << static_cast<char>(m_CodePoint);
             return ss.str();
         }
 
@@ -661,7 +661,7 @@ export namespace HE {
         EVENT_CLASS_CATEGORY(EventCategoryKeyboard | EventCategoryInput)
 
     private:
-        KeyCode m_KeyCode;
+        uint32_t m_CodePoint;
     };
 
     //////////////////////////////////////////////////////////////////////////

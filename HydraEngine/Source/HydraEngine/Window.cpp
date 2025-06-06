@@ -570,11 +570,11 @@ namespace HE {
             }
         });
 
-        glfwSetCharCallback(glfwWindow, [](GLFWwindow* window, unsigned int key) {
+        glfwSetCharCallback(glfwWindow, [](GLFWwindow* window, unsigned int codePoint) {
 
             Window& w = *(Window*)glfwGetWindowUserPointer(window);
 
-            KeyTypedEvent event(ToHEKeyCode(key));
+            KeyTypedEvent event(codePoint);
             w.eventCallback(event);
         });
 
