@@ -83,8 +83,8 @@ export namespace HE {
     constexpr T AlignUp(T size, T alignment)
     {
         static_assert(std::is_integral<T>::value, "AlignUp() requires an integral type");
-        HE_ASSERT(size >= 0, "'size' must be non-negative");
-        HE_ASSERT(alignment != 0 && (alignment & (alignment - 1)) == 0, "Alignment must be a power of two");
+        HE_CORE_ASSERT(size >= 0, "'size' must be non-negative");
+        HE_CORE_ASSERT(alignment != 0 && (alignment & (alignment - 1)) == 0, "Alignment must be a power of two");
 
         return (size + alignment - 1) & ~(alignment - 1);
     }
