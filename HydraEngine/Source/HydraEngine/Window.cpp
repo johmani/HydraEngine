@@ -431,23 +431,23 @@ namespace HE {
         {
             HE_PROFILE_SCOPE("glfwCreateWindow");
 
-            m_WindowHandle = glfwCreateWindow((int)desc.width, (int)desc.height, desc.title.data(), nullptr, nullptr);
+            handle = glfwCreateWindow((int)desc.width, (int)desc.height, desc.title.data(), nullptr, nullptr);
             ++s_GLFWWindowCount;
 
             // applying fullscreen mode by passing the primaryMonitor to glfwCreateWindow causes some weird behavior, but this works just fine for now.
             if (windowDesc.fullScreen)
             {
-                glfwSetWindowMonitor((GLFWwindow*)m_WindowHandle, primaryMonitor, 0, 0, videoMode->width, videoMode->height, videoMode->refreshRate);
+                glfwSetWindowMonitor((GLFWwindow*)handle, primaryMonitor, 0, 0, videoMode->width, videoMode->height, videoMode->refreshRate);
             }
         }
 
-        GLFWwindow* glfwWindow = (GLFWwindow*)m_WindowHandle;
+        GLFWwindow* glfwWindow = (GLFWwindow*)handle;
 
         glfwSetWindowSizeLimits(glfwWindow, desc.minWidth, desc.minHeight, desc.maxWidth, desc.maxHeight);
 
-        m_PrevPosX = 0, m_PrevPosY = 0, m_PrevWidth = 0, m_PrevHeight = 0;
-        glfwGetWindowSize(glfwWindow, &m_PrevWidth, &m_PrevHeight);
-        glfwGetWindowPos(glfwWindow, &m_PrevPosX, &m_PrevPosY);
+        prevPosX = 0, prevPosY = 0, prevWidth = 0, prevHeight = 0;
+        glfwGetWindowSize(glfwWindow, &prevWidth, &prevHeight);
+        glfwGetWindowPos(glfwWindow, &prevPosX, &prevPosY);
 
         if (!windowDesc.maximized && !windowDesc.fullScreen && windowDesc.centered)
         {
@@ -477,7 +477,7 @@ namespace HE {
         glfwSetTitlebarHitTestCallback(glfwWindow, [](GLFWwindow* window, int x, int y, int* hit) {
 
             Window* app = (Window*)glfwGetWindowUserPointer(window);
-            *hit = app->m_isTitleBarHovered;
+            *hit = app->isTitleBarHit;
         });
 
         glfwSetWindowSizeCallback(glfwWindow, [](GLFWwindow* window, int width, int height) {
@@ -528,10 +528,10 @@ namespace HE {
                     glfwSetWindowMonitor(
                         window,
                         nullptr,
-                        int(w.m_PrevPosX + delta * 0.5f),
-                        int(w.m_PrevPosY + delta * 0.5f),
-                        int(w.m_PrevWidth - delta),
-                        int(w.m_PrevHeight - delta),
+                        int(w.prevPosX + delta * 0.5f),
+                        int(w.prevPosY + delta * 0.5f),
+                        int(w.prevWidth - delta),
+                        int(w.prevHeight - delta),
                         0
                     );
                 }
@@ -638,12 +638,12 @@ namespace HE {
             if (event == GLFW_CONNECTED)
             {
                 GamepadConnectedEvent event(jid, true);
-                w.CallEvent(event);
+                w.eventCallback(event);
             }
             else if (event == GLFW_DISCONNECTED)
             {
                 GamepadConnectedEvent event(jid, false);
-                w.CallEvent(event);
+                w.eventCallback(event);
             }
         });
 
@@ -676,9 +676,9 @@ namespace HE {
     {
         HE_PROFILE_FUNCTION();
 
-        if (m_WindowHandle)
+        if (handle)
         {
-            glfwDestroyWindow((GLFWwindow*)m_WindowHandle);
+            glfwDestroyWindow((GLFWwindow*)handle);
             --s_GLFWWindowCount;
 
             if (s_GLFWWindowCount == 0)
@@ -686,36 +686,36 @@ namespace HE {
         }
     }
 
-    void Window::SetWindowTitle(const std::string_view& title)
+    void Window::SetTitle(const std::string_view& title)
     {
         if (desc.title == title)
             return;
 
-        glfwSetWindowTitle((GLFWwindow*)m_WindowHandle, title.data());
+        glfwSetWindowTitle((GLFWwindow*)handle, title.data());
         desc.title = title;
     }
 
-    void* Window::GetNativeWindow()
+    void* Window::GetNativeHandle()
     {
 #ifdef HE_PLATFORM_WINDOWS
-        return (void*)glfwGetWin32Window((GLFWwindow*)m_WindowHandle);
+        return (void*)glfwGetWin32Window((GLFWwindow*)handle);
 #elif defined(HE_PLATFORM_LINUX)
-        return (void*)glfwGetX11Window((GLFWwindow*)m_WindowHandle); // not yet tested
+        return (void*)glfwGetX11Window((GLFWwindow*)handle); // not yet tested
 #else
         HE_CORE_VERIFY(false, "unsupported platform");
         return nullptr;
 #endif
     }
 
-    void Window::MaximizeWindow() { glfwMaximizeWindow((GLFWwindow*)m_WindowHandle); }
+    void Window::Maximize() { glfwMaximizeWindow((GLFWwindow*)handle); }
 
-    void Window::MinimizeWindow() { glfwIconifyWindow((GLFWwindow*)m_WindowHandle); }
+    void Window::Minimize() { glfwIconifyWindow((GLFWwindow*)handle); }
 
-    void Window::RestoreWindow() { glfwRestoreWindow((GLFWwindow*)m_WindowHandle); }
+    void Window::Restore() { glfwRestoreWindow((GLFWwindow*)handle); }
 
-    bool Window::IsMaximize() { return (bool)glfwGetWindowAttrib((GLFWwindow*)m_WindowHandle, GLFW_MAXIMIZED); }
+    bool Window::IsMaximize() { return (bool)glfwGetWindowAttrib((GLFWwindow*)handle, GLFW_MAXIMIZED); }
 
-    bool Window::IsMinimized() { return (bool)glfwGetWindowAttrib((GLFWwindow*)m_WindowHandle, GLFW_ICONIFIED); }
+    bool Window::IsMinimized() { return (bool)glfwGetWindowAttrib((GLFWwindow*)handle, GLFW_ICONIFIED); }
 
     bool Window::IsFullScreen() { return desc.fullScreen; }
 
@@ -728,32 +728,32 @@ namespace HE {
         {
             // Restore the window size and position
             desc.fullScreen = false;
-            glfwSetWindowMonitor((GLFWwindow*)m_WindowHandle, nullptr, m_PrevPosX, m_PrevPosY, m_PrevWidth, m_PrevHeight, 0);
+            glfwSetWindowMonitor((GLFWwindow*)handle, nullptr, prevPosX, prevPosY, prevWidth, prevHeight, 0);
         }
         else
         {
             // Save the window size and position
             desc.fullScreen = true;
-            glfwGetWindowSize((GLFWwindow*)m_WindowHandle, &m_PrevWidth, &m_PrevHeight);
-            glfwGetWindowPos((GLFWwindow*)m_WindowHandle, &m_PrevPosX, &m_PrevPosY);
-            glfwSetWindowMonitor((GLFWwindow*)m_WindowHandle, primaryMonitor, 0, 0, mode->width, mode->height, mode->refreshRate);
+            glfwGetWindowSize((GLFWwindow*)handle, &prevWidth, &prevHeight);
+            glfwGetWindowPos((GLFWwindow*)handle, &prevPosX, &prevPosY);
+            glfwSetWindowMonitor((GLFWwindow*)handle, primaryMonitor, 0, 0, mode->width, mode->height, mode->refreshRate);
         }
 
         return true;
     }
 
-    void Window::FocusMainWindow() { glfwFocusWindow((GLFWwindow*)m_WindowHandle); }
+    void Window::Focus() { glfwFocusWindow((GLFWwindow*)handle); }
 
-    bool Window::IsMainWindowFocused() { return (bool)glfwGetWindowAttrib((GLFWwindow*)m_WindowHandle, GLFW_FOCUSED); }
+    bool Window::IsFocused() { return (bool)glfwGetWindowAttrib((GLFWwindow*)handle, GLFW_FOCUSED); }
 
-    HYDRA_API void Window::Show() { glfwShowWindow((GLFWwindow*)m_WindowHandle); }
+    HYDRA_API void Window::Show() { glfwShowWindow((GLFWwindow*)handle); }
 
-    HYDRA_API void Window::Hide() { glfwHideWindow((GLFWwindow*)m_WindowHandle); }
+    HYDRA_API void Window::Hide() { glfwHideWindow((GLFWwindow*)handle); }
 
     std::pair<float, float> Window::GetWindowContentScale()
     {
         float xscale, yscale;
-        glfwGetWindowContentScale((GLFWwindow*)m_WindowHandle, &xscale, &yscale);
+        glfwGetWindowContentScale((GLFWwindow*)handle, &xscale, &yscale);
 
         return { xscale, yscale };
     }
@@ -761,8 +761,6 @@ namespace HE {
     void Window::UpdateEvent()
     {
         HE_PROFILE_FUNCTION();
-
-        GLFWwindow* windowHandle = static_cast<GLFWwindow*>(GetWindowHandle());
 
         for (int jid = 0; jid < Joystick::Count; jid++)
         {
@@ -780,7 +778,7 @@ namespace HE {
                         if (isPressed)
                         {
                             GamepadButtonPressedEvent e(jid, button);
-                            CallEvent(e);
+                            eventCallback(e);
                         }
 
                         bool isReleased = !isButtonDown && !inputData.gamepadEventButtonUpPrevFrame[jid].test(button);
@@ -788,20 +786,20 @@ namespace HE {
                         if (isReleased)
                         {
                             GamepadButtonReleasedEvent e(jid, button);
-                            CallEvent(e);
+                            eventCallback(e);
                         }
                     }
 
                     // axes
                     {
-                        auto createEvent = [](Window& window, int jid, GamepadAxisCode axisCode, Math::vec2 value)
+                        auto createEvent = [](Window& window, int jid, GamepadAxisCode axisCode, Math::vec2 value) {
+                            
+                            if (Math::length(value) > 0)
                             {
-                                if (Math::length(value) > 0)
-                                {
-                                    GamepadAxisMovedEvent event(jid, axisCode, value.x, value.y);
-                                    window.CallEvent(event);
-                                }
-                            };
+                                GamepadAxisMovedEvent event(jid, axisCode, value.x, value.y);
+                                window.eventCallback(event);
+                            }
+                        };
 
                         {
                             Math::vec2 v(state.axes[GLFW_GAMEPAD_AXIS_LEFT_X], state.axes[GLFW_GAMEPAD_AXIS_LEFT_Y]);
@@ -836,7 +834,7 @@ namespace HE {
     bool Input::IsKeyDown(const KeyCode key)
     {
         auto& w = GetAppContext().mainWindow;
-        auto window = static_cast<GLFWwindow*>(w.GetWindowHandle());
+        auto window = static_cast<GLFWwindow*>(w.handle);
         int glfwKey = ToGLFWKeyCode(key);
         auto state = glfwGetKey(window, glfwKey);
 
@@ -846,7 +844,7 @@ namespace HE {
     bool Input::IsKeyUp(const KeyCode key)
     {
         auto& w = GetAppContext().mainWindow;
-        auto window = static_cast<GLFWwindow*>(w.GetWindowHandle());
+        auto window = static_cast<GLFWwindow*>(w.handle);
         int glfwKey = ToGLFWKeyCode(key);
         auto state = glfwGetKey(window, glfwKey);
 
@@ -856,7 +854,7 @@ namespace HE {
     bool Input::IsKeyPressed(const KeyCode key)
     {
         auto& w = GetAppContext().mainWindow;
-        auto window = static_cast<GLFWwindow*>(w.GetWindowHandle());
+        auto window = static_cast<GLFWwindow*>(w.handle);
         int glfwKey = ToGLFWKeyCode(key);
         auto currentState = glfwGetKey(window, glfwKey);
 
@@ -869,7 +867,7 @@ namespace HE {
     bool Input::IsKeyReleased(const KeyCode key)
     {
         auto& w = GetAppContext().mainWindow;
-        auto window = static_cast<GLFWwindow*>(w.GetWindowHandle());
+        auto window = static_cast<GLFWwindow*>(w.handle);
         int glfwKey = ToGLFWKeyCode(key);
         auto currentState = glfwGetKey(window, glfwKey);
 
@@ -882,7 +880,7 @@ namespace HE {
     bool Input::IsMouseButtonDown(const MouseCode button)
     {
         auto& w = GetAppContext().mainWindow;
-        auto window = static_cast<GLFWwindow*>(w.GetWindowHandle());
+        auto window = static_cast<GLFWwindow*>(w.handle);
         auto state = glfwGetMouseButton(window, static_cast<int32_t>(button));
         return state == GLFW_PRESS;
     }
@@ -890,7 +888,7 @@ namespace HE {
     bool Input::IsMouseButtonUp(const MouseCode button)
     {
         auto& w = GetAppContext().mainWindow;
-        auto window = static_cast<GLFWwindow*>(w.GetWindowHandle());
+        auto window = static_cast<GLFWwindow*>(w.handle);
         auto state = glfwGetMouseButton(window, static_cast<int32_t>(button));
         return state == GLFW_RELEASE;
     }
@@ -898,7 +896,7 @@ namespace HE {
     bool Input::IsMouseButtonPressed(const MouseCode key)
     {
         auto& w = GetAppContext().mainWindow;
-        auto window = static_cast<GLFWwindow*>(w.GetWindowHandle());
+        auto window = static_cast<GLFWwindow*>(w.handle);
         auto currentState = glfwGetMouseButton(window, static_cast<int32_t>(key));
 
         bool isKeyDown = (currentState == GLFW_PRESS) && !w.inputData.mouseButtonDownPrevFrame.test(key);
@@ -910,7 +908,7 @@ namespace HE {
     bool Input::IsMouseButtonReleased(const MouseCode key)
     {
         auto& w = GetAppContext().mainWindow;
-        auto window = static_cast<GLFWwindow*>(w.GetWindowHandle());
+        auto window = static_cast<GLFWwindow*>(w.handle);
         auto currentState = glfwGetMouseButton(window, static_cast<int32_t>(key));
 
         bool isKeyUp = (currentState == GLFW_RELEASE) && !w.inputData.mouseButtonUpPrevFrame.test(key);
@@ -922,7 +920,7 @@ namespace HE {
     std::pair<float, float> Input::GetMousePosition()
     {
         auto& w = GetAppContext().mainWindow;
-        auto window = static_cast<GLFWwindow*>(w.GetWindowHandle());
+        auto window = static_cast<GLFWwindow*>(w.handle);
         double xpos, ypos;
         glfwGetCursorPos(window, &xpos, &ypos);
 
@@ -1045,7 +1043,7 @@ namespace HE {
     void Input::SetCursorMode(Cursor::Mode mode)
     {
         auto& w = GetAppContext().mainWindow;
-        auto window = static_cast<GLFWwindow*>(w.GetWindowHandle());
+        auto window = static_cast<GLFWwindow*>(w.handle);
         glfwSetInputMode(window, GLFW_CURSOR, ToGLFWCursorMode(mode));
         w.inputData.cursor.CursorMode = mode;
     }

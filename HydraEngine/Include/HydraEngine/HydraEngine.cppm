@@ -430,12 +430,11 @@ export namespace HE {
                                 virtual const char* GetName() const override { return #type; }
 #define EVENT_CLASS_CATEGORY(category) virtual int GetCategoryFlags() const override { return category; }
 
-    class Event
+    struct Event
     {
-    public:
         virtual ~Event() = default;
-
-        bool Handled = false;
+       
+        bool handled = false;
 
         virtual EventType GetEventType() const = 0;
         virtual const char* GetName() const = 0;
@@ -445,24 +444,16 @@ export namespace HE {
         bool IsInCategory(EventCategory category) { return GetCategoryFlags() & category; }
     };
 
-    class EventDispatcher
+    template<typename T, typename F>
+    bool DispatchEvent(Event& event, const F& func)
     {
-    public:
-        EventDispatcher(Event& event) : m_Event(event) {}
-
-        template<typename T, typename F>
-        bool Dispatch(const F& func)
+        if (event.GetEventType() == T::GetStaticType())
         {
-            if (m_Event.GetEventType() == T::GetStaticType())
-            {
-                m_Event.Handled |= func(static_cast<T&>(m_Event));
-                return true;
-            }
-            return false;
+            event.handled |= func(static_cast<T&>(event));
+            return true;
         }
-    private:
-        Event& m_Event;
-    };
+        return false;
+    }
 
     inline std::ostream& operator<<(std::ostream& os, const Event& e) { return os << e.ToString(); }
 
@@ -470,411 +461,324 @@ export namespace HE {
     // Application Events
     //////////////////////////////////////////////////////////////////////////
 
-    class WindowResizeEvent : public Event
+    struct WindowResizeEvent : public Event
     {
-    public:
-        WindowResizeEvent(uint32_t width, uint32_t height) : m_Width(width), m_Height(height) {}
+        uint32_t width, height;
 
-        uint32_t GetWidth() const { return m_Width; }
-        uint32_t GetHeight() const { return m_Height; }
+        WindowResizeEvent(uint32_t pWidth, uint32_t pHeight) : width(pWidth), height(pHeight) {}
 
         std::string ToString() const override
         {
             std::stringstream ss;
-            ss << "WindowResizeEvent: " << m_Width << ", " << m_Height;
+            ss << "WindowResizeEvent: " << width << ", " << height;
             return ss.str();
         }
 
         EVENT_CLASS_TYPE(WindowResize)
         EVENT_CLASS_CATEGORY(EventCategoryApplication)
-
-    private:
-        uint32_t m_Width, m_Height;
     };
 
-    class WindowCloseEvent : public Event
+    struct WindowCloseEvent : public Event
     {
-    public:
         WindowCloseEvent() = default;
 
         EVENT_CLASS_TYPE(WindowClose)
         EVENT_CLASS_CATEGORY(EventCategoryApplication)
     };
 
-    class WindowDropEvent : public Event
+    struct WindowDropEvent : public Event
     {
-    public:
-        WindowDropEvent(const char** paths, int pathCount) : m_Paths(paths), m_Count(pathCount) {}
+        const char** paths;
+        int count;
 
-        const char** GetPaths() const { return m_Paths; }
-        int GetCount() const { return m_Count; }
+        WindowDropEvent(const char** pPaths, int pPathCount) : paths(pPaths), count(pPathCount) {}
 
         std::string ToString() const override
         {
             std::stringstream ss;
 
-            ss << "WindowDropEvent: " << m_Count << "\n";
-            for (int i = 0; i < m_Count; i++)
-            {
-                ss << m_Paths[i] << "\n";
-            }
+            ss << "WindowDropEvent: " << paths << "\n";
+            for (int i = 0; i < count; i++)
+                ss << paths[i] << "\n";
+
             return ss.str();
         }
 
         EVENT_CLASS_TYPE(WindowDrop)
         EVENT_CLASS_CATEGORY(EventCategoryApplication)
-
-    private:
-        const char** m_Paths;
-        int m_Count;
     };
 
-    class WindowContentScaleEvent : public Event
+    struct WindowContentScaleEvent : public Event
     {
-    public:
-        WindowContentScaleEvent(float sx, float sy) : m_ScaleX(sx), m_ScaleY(sy) {}
+        float scaleX, scaleY;
 
-        std::pair<float, float> GetScale() const { return { m_ScaleX, m_ScaleY }; }
-
-        float GetScaleX() const { return m_ScaleX; }
-        float GetScaleY() const { return m_ScaleY; }
+        WindowContentScaleEvent(float sx, float sy) : scaleX(sx), scaleY(sy) {}
 
         std::string ToString() const override
         {
             std::stringstream ss;
-            ss << "WindowContentScaleEvent: " << m_ScaleX << ", " << m_ScaleY;
+            ss << "WindowContentScaleEvent: " << scaleX << ", " << scaleY;
             return ss.str();
         }
 
         EVENT_CLASS_TYPE(WindowContentScale)
         EVENT_CLASS_CATEGORY(EventCategoryApplication)
-
-    private:
-        float m_ScaleX, m_ScaleY;
     };
 
-    class WindowMaximizeEvent : public Event
+    struct WindowMaximizeEvent : public Event
     {
-    public:
-        WindowMaximizeEvent(int maximized) : m_Maximized(maximized) {}
+        bool maximized;
 
-        bool IsIconified() { return (bool)m_Maximized; }
+        WindowMaximizeEvent(bool pMaximized) : maximized(pMaximized) {}
 
         std::string ToString() const override
         {
             std::stringstream ss;
-            ss << "WindowMaximizeEvent: " << (m_Maximized ? "maximized" : "restored");
+            ss << "WindowMaximizeEvent: " << (maximized ? "maximized" : "restored");
             return ss.str();
         }
 
         EVENT_CLASS_TYPE(WindowMaximize)
         EVENT_CLASS_CATEGORY(EventCategoryApplication)
-
-    private:
-        int m_Maximized;
     };
 
-    class WindowMinimizeEvent : public Event
+    struct WindowMinimizeEvent : public Event
     {
-    public:
-        WindowMinimizeEvent(int minimized) : m_Minimized(minimized) {}
+        bool minimized;
 
-        bool IsMinimized() { return (bool)m_Minimized; }
+        WindowMinimizeEvent(bool minimized) : minimized(minimized) {}
 
         std::string ToString() const override
         {
             std::stringstream ss;
-            ss << "WindowMinimizeEvent: " << (m_Minimized ? "true" : "false");
+            ss << "WindowMinimizeEvent: " << (minimized ? "true" : "false");
             return ss.str();
         }
 
         EVENT_CLASS_TYPE(WindowMinimized)
         EVENT_CLASS_CATEGORY(EventCategoryApplication)
-
-    private:
-        int m_Minimized;
     };
 
     //////////////////////////////////////////////////////////////////////////
     // Keybord Events
     //////////////////////////////////////////////////////////////////////////
 
-    class KeyPressedEvent : public Event
+    struct KeyPressedEvent : public Event
     {
-    public:
-        KeyPressedEvent(const KeyCode keycode, bool isRepeat = false) : m_KeyCode(keycode), m_IsRepeat(isRepeat) {}
+        KeyCode keyCode;
+        bool isRepeat;
 
-        bool IsRepeat() const { return m_IsRepeat; }
-        KeyCode GetKeyCode() const { return m_KeyCode; }
+        KeyPressedEvent(const KeyCode pKeycode, bool pIsRepeat = false) : keyCode(pKeycode), isRepeat(pIsRepeat) {}
 
         std::string ToString() const override
         {
             std::stringstream ss;
-            ss << "KeyPressedEvent: " << Key::ToString(m_KeyCode) << " (repeat = " << m_IsRepeat << ")";
+            ss << "KeyPressedEvent: " << Key::ToString(keyCode) << " (repeat = " << (isRepeat ? "true" : "false") << ")";
             return ss.str();
         }
 
         EVENT_CLASS_TYPE(KeyPressed)
         EVENT_CLASS_CATEGORY(EventCategoryKeyboard | EventCategoryInput)
-
-    private:
-        KeyCode m_KeyCode;
-        bool m_IsRepeat;
     };
 
-    class KeyReleasedEvent : public Event
+    struct KeyReleasedEvent : public Event
     {
-    public:
-        KeyReleasedEvent(const KeyCode keycode) : m_KeyCode(keycode) {}
+        KeyCode keyCode;
 
-        KeyCode GetKeyCode() const { return m_KeyCode; }
+        KeyReleasedEvent(const KeyCode pKeyCode) : keyCode(pKeyCode) {}
 
         std::string ToString() const override
         {
             std::stringstream ss;
-            ss << "KeyReleasedEvent: " << Key::ToString(m_KeyCode);
+            ss << "KeyReleasedEvent: " << Key::ToString(keyCode);
             return ss.str();
         }
 
         EVENT_CLASS_CATEGORY(EventCategoryKeyboard | EventCategoryInput)
         EVENT_CLASS_TYPE(KeyReleased)
-
-    private:
-        KeyCode m_KeyCode;
     };
 
-    class KeyTypedEvent : public Event
+    struct KeyTypedEvent : public Event
     {
-    public:
-        KeyTypedEvent(const uint32_t codePoint) : m_CodePoint(codePoint) {}
+        uint32_t codePoint;
 
-        KeyCode GetCodePoint() const { return m_CodePoint; }
+        KeyTypedEvent(const uint32_t pCodePoint) : codePoint(pCodePoint) {}
 
         std::string ToString() const override
         {
             std::stringstream ss;
-            ss << "KeyTypedEvent: " << static_cast<char>(m_CodePoint);
+            ss << "KeyTypedEvent: " << static_cast<char>(codePoint);
             return ss.str();
         }
 
         EVENT_CLASS_TYPE(KeyTyped)
         EVENT_CLASS_CATEGORY(EventCategoryKeyboard | EventCategoryInput)
-
-    private:
-        uint32_t m_CodePoint;
     };
 
     //////////////////////////////////////////////////////////////////////////
     // Mouse Events
     //////////////////////////////////////////////////////////////////////////	
 
-    class MouseMovedEvent : public Event
+    struct MouseMovedEvent : public Event
     {
-    public:
-        MouseMovedEvent(const float x, const float y) : m_X(x), m_Y(y) {}
+        float x, y;
 
-        std::pair<float, float> GetMousePosition() const { return { m_X, m_Y }; }
-
-        float GetX() const { return m_X; }
-        float GetY() const { return m_Y; }
+        MouseMovedEvent(const float pX, const float pY) : x(pX), y(pY) {}
 
         std::string ToString() const override
         {
             std::stringstream ss;
-            ss << "MouseMovedEvent: " << m_X << ", " << m_Y;
+            ss << "MouseMovedEvent: " << x << ", " << y;
             return ss.str();
         }
 
         EVENT_CLASS_TYPE(MouseMoved)
         EVENT_CLASS_CATEGORY(EventCategoryInput | EventCategoryMouse)
-
-    private:
-        float m_X, m_Y;
     };
 
-    class MouseEnterEvent : public Event
+    struct MouseEnterEvent : public Event
     {
-    public:
-        MouseEnterEvent(const bool entered) : m_Entered(entered) {}
+        bool entered;
 
-        bool IsEnterd() { return m_Entered; }
+        MouseEnterEvent(const bool pEntered) : entered(pEntered) {}
 
         std::string ToString() const override
         {
             std::stringstream ss;
-            ss << "MouseEnterEvent: " << m_Entered;
+            ss << "MouseEnterEvent: " << entered;
             return ss.str();
         }
 
         EVENT_CLASS_TYPE(MouseEnter)
         EVENT_CLASS_CATEGORY(EventCategoryInput | EventCategoryMouse)
-
-    private:
-        bool m_Entered;
     };
 
-    class MouseScrolledEvent : public Event
+    struct MouseScrolledEvent : public Event
     {
-    public:
-        MouseScrolledEvent(const float xOffset, const float yOffset) : m_XOffset(xOffset), m_YOffset(yOffset) {}
+        float xOffset, yOffset;
 
-        float GetXOffset() const { return m_XOffset; }
-        float GetYOffset() const { return m_YOffset; }
+        MouseScrolledEvent(const float pXOffset, const float pYOffset) : xOffset(pXOffset), yOffset(pYOffset) {}
 
         std::string ToString() const override
         {
             std::stringstream ss;
-            ss << "MouseScrolledEvent: " << GetXOffset() << ", " << GetYOffset();
+            ss << "MouseScrolledEvent: " << xOffset << ", " << yOffset;
             return ss.str();
         }
 
         EVENT_CLASS_TYPE(MouseScrolled)
         EVENT_CLASS_CATEGORY(EventCategoryInput | EventCategoryMouse)
-
-    private:
-        float m_XOffset, m_YOffset;
     };
 
-    class MouseButtonPressedEvent : public Event
+    struct MouseButtonPressedEvent : public Event
     {
-    public:
-        MouseButtonPressedEvent(const MouseCode button) : m_Button(button) {}
+        MouseCode button;
 
-        MouseCode GetMouseButton() const { return m_Button; }
+        MouseButtonPressedEvent(const MouseCode pButton) : button(pButton) {}
 
         std::string ToString() const override
         {
             std::stringstream ss;
-            ss << "MouseButtonPressedEvent: " << MouseKey::ToString(m_Button);
+            ss << "MouseButtonPressedEvent: " << MouseKey::ToString(button);
             return ss.str();
         }
 
         EVENT_CLASS_CATEGORY(EventCategoryInput | EventCategoryMouse | EventCategoryMouseButton)
         EVENT_CLASS_TYPE(MouseButtonPressed)
-
-    private:
-        MouseCode m_Button;
     };
 
-    class MouseButtonReleasedEvent : public Event
+    struct MouseButtonReleasedEvent : public Event
     {
-    public:
-        MouseButtonReleasedEvent(const MouseCode button) : m_Button(button) {}
+        MouseCode button;
 
-        MouseCode GetMouseButton() const { return m_Button; }
+        MouseButtonReleasedEvent(const MouseCode pButton) : button(pButton) {}
 
         std::string ToString() const override
         {
             std::stringstream ss;
-            ss << "MouseButtonReleasedEvent: " << MouseKey::ToString(m_Button);
+            ss << "MouseButtonReleasedEvent: " << MouseKey::ToString(button);
             return ss.str();
         }
 
         EVENT_CLASS_CATEGORY(EventCategoryInput | EventCategoryMouse | EventCategoryMouseButton)
         EVENT_CLASS_TYPE(MouseButtonReleased)
-
-    private:
-        MouseCode m_Button;
     };
 
     //////////////////////////////////////////////////////////////////////////
     // Gamepad Events
     //////////////////////////////////////////////////////////////////////////
 
-    class GamepadAxisMovedEvent : public Event
+    struct GamepadAxisMovedEvent : public Event
     {
-    public:
-        GamepadAxisMovedEvent(JoystickCode joystickCode, GamepadAxisCode axisCode, const float x, const float y) : m_JoystickId(joystickCode), m_AxisCode(axisCode), m_X(x), m_Y(y) {}
+        JoystickCode joystickId = 0;
+        GamepadAxisCode axisCode;
+        float x, y;
 
-        JoystickCode GetJoystickId() const { return m_JoystickId; }
-
-        std::pair<float, float> GetValue() const { return { m_X, m_Y }; }
-        float GetX() const { return m_X; }
-        float GetY() const { return m_Y; }
+        GamepadAxisMovedEvent(JoystickCode joystickCode, GamepadAxisCode axisCode, const float pX, const float pY) : joystickId(joystickCode), axisCode(axisCode), x(pX), y(pY) {}
 
         std::string ToString() const override
         {
             std::stringstream ss;
-            ss << "GamepadAxisMovedEvent: Joystick : " << m_JoystickId << ", value : " << m_X << "," << m_Y;
+            ss << "GamepadAxisMovedEvent: Joystick : " << joystickId << ", value : " << x << "," << y;
             return ss.str();
         }
 
         EVENT_CLASS_TYPE(GamepadAxisMoved)
         EVENT_CLASS_CATEGORY(EventCategoryInput | EventCategoryJoystick | EventCategoryGamepadAxis)
-
-    private:
-        JoystickCode m_JoystickId = 0;
-        GamepadAxisCode m_AxisCode;
-        float m_X, m_Y;
     };
 
-    class GamepadButtonPressedEvent : public Event
+    struct GamepadButtonPressedEvent : public Event
     {
-    public:
-        GamepadButtonPressedEvent(JoystickCode joystickCode, const GamepadCode button) : m_JoystickCode(joystickCode), m_Button(button) {}
+        JoystickCode joystickCode;
+        GamepadCode button;
 
-        JoystickCode GetJoystickCode() const { return m_JoystickCode; }
-        GamepadCode GetButtonCode() const { return m_Button; }
+        GamepadButtonPressedEvent(JoystickCode pJoystickCode, const GamepadCode pButton) : joystickCode(pJoystickCode), button(pButton) {}
 
         virtual std::string ToString() const override
         {
             std::stringstream ss;
-            ss << "GamepadButtonPressedEvent: Joystick : " << m_JoystickCode << ", button : " << m_Button;
+            ss << "GamepadButtonPressedEvent: Joystick : " << joystickCode << ", button : " << button;
             return ss.str();
         }
 
         EVENT_CLASS_CATEGORY(EventCategoryInput | EventCategoryJoystick | EventCategoryGamepadButton)
         EVENT_CLASS_TYPE(GamepadButtonPressed)
-
-    private:
-        JoystickCode m_JoystickCode;
-        GamepadCode m_Button;
     };
 
-    class GamepadButtonReleasedEvent : public Event
+    struct GamepadButtonReleasedEvent : public Event
     {
-    public:
-        GamepadButtonReleasedEvent(JoystickCode joystickCode, const GamepadCode button) : m_JoystickCode(joystickCode), m_Button(button) {}
+        JoystickCode joystickCode;
+        GamepadCode button;
 
-        JoystickCode GetJoystickCode() const { return m_JoystickCode; }
-        GamepadCode GetButtonCode() const { return m_Button; }
+        GamepadButtonReleasedEvent(JoystickCode joystickCode, const GamepadCode button) : joystickCode(joystickCode), button(button) {}
 
         virtual std::string ToString() const override
         {
             std::stringstream ss;
-            ss << "GamepadButtonReleasedEvent: Joystick : " << m_JoystickCode << ", button : " << GamepadButton::ToString(m_Button);
+            ss << "GamepadButtonReleasedEvent: Joystick : " << joystickCode << ", button : " << GamepadButton::ToString(button);
             return ss.str();
         }
 
         EVENT_CLASS_CATEGORY(EventCategoryInput | EventCategoryJoystick | EventCategoryGamepadButton)
         EVENT_CLASS_TYPE(GamepadButtonReleased)
-
-    private:
-        JoystickCode m_JoystickCode;
-        GamepadCode m_Button;
     };
 
-    class GamepadConnectedEvent : public Event
+    struct GamepadConnectedEvent : public Event
     {
-    public:
-        GamepadConnectedEvent(JoystickCode joystickCode, bool connected) : m_JoystickCode(joystickCode), m_Connected(connected) {}
+        JoystickCode joystickCode;
+        bool connected;
 
-        bool IsConnected() const { return m_Connected; }
-        JoystickCode GetJoystickCode() const { return m_JoystickCode; }
+        GamepadConnectedEvent(JoystickCode joystickCode, bool connected) : joystickCode(joystickCode), connected(connected) {}
 
         virtual std::string ToString() const override
         {
             std::stringstream ss;
-            ss << "GamepadConnectedEvent: Joystick : " << m_JoystickCode << ", state : " << (m_Connected ? "Connected" : "Disconnected");
+            ss << "GamepadConnectedEvent: Joystick : " << joystickCode << ", state : " << (connected ? "Connected" : "Disconnected");
             return ss.str();
         }
 
         EVENT_CLASS_TYPE(GamepadConnected)
         EVENT_CLASS_CATEGORY(EventCategoryInput | EventCategoryJoystick)
-
-    private:
-        JoystickCode m_JoystickCode;
-        bool m_Connected;
     };
 
     //////////////////////////////////////////////////////////////////////////
@@ -1191,55 +1095,37 @@ export namespace HE {
         float deadZoon = 0.1f;
     };
     
-    struct ApplicationContext;
-    class Window
-    {
-    public:
-        using EventCallback = std::function<void(Event&)>;
+    using WindowEventCallback = std::function<void(Event&)>;
 
-        void Init(const WindowDesc& windowDesc, const DeviceDesc& deviceDesc);
+    struct Window
+    {
+        void* handle = nullptr;
+        WindowDesc desc;
+        WindowEventCallback eventCallback = 0;
+        InputState inputData;
+        bool isTitleBarHit = false;
+        int prevPosX = 0, prevPosY = 0, prevWidth = 0, prevHeight = 0;
+
         HYDRA_API ~Window();
 
-        HYDRA_API void* GetNativeWindow();
-
-        HYDRA_API void SetWindowTitle(const std::string_view& title);
-        HYDRA_API void MaximizeWindow();
-        HYDRA_API void MinimizeWindow();
-        HYDRA_API void RestoreWindow();
+        HYDRA_API void Init(const WindowDesc& windowDesc, const DeviceDesc& deviceDesc);
+        HYDRA_API void* GetNativeHandle();
+        HYDRA_API void SetTitle(const std::string_view& title);
+        HYDRA_API void Maximize();
+        HYDRA_API void Minimize();
+        HYDRA_API void Restore();
         HYDRA_API bool IsMaximize();
         HYDRA_API bool IsMinimized();
         HYDRA_API bool IsFullScreen();
         HYDRA_API bool ToggleScreenState();
-        HYDRA_API void FocusMainWindow();
-        HYDRA_API bool IsMainWindowFocused();
+        HYDRA_API void Focus();
+        HYDRA_API bool IsFocused();
         HYDRA_API void Show();
         HYDRA_API void Hide();
         HYDRA_API std::pair<float, float> GetWindowContentScale();
-        
-        void SetTitleBarState(bool state) { m_isTitleBarHovered = state; }
-        bool GetTitleBarState() const { return m_isTitleBarHovered; }
+        HYDRA_API void UpdateEvent();
         uint32_t GetWidth() const { return desc.width; }
         uint32_t GetHeight() const { return desc.height; }
-        void* GetWindowHandle() const { return m_WindowHandle; }
-        
-        // internal
-        InputState inputData;
-
-    private:
-        void SetEventCallback(const EventCallback& callback) { eventCallback = callback; }
-        void CallEvent(Event& e) { eventCallback(e); }
-        void UpdateEvent();
-
-        void* m_WindowHandle = nullptr;
-
-        bool m_isTitleBarHovered = false;
-        int m_PrevPosX = 0, m_PrevPosY = 0, m_PrevWidth = 0, m_PrevHeight = 0;
-
-        WindowDesc desc;
-
-        EventCallback eventCallback = 0;
-
-        friend ApplicationContext;
     };
 
     //////////////////////////////////////////////////////////////////////////

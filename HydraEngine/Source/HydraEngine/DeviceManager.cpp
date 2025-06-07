@@ -73,7 +73,7 @@ namespace HE {
                     if (deviceDesc.headlessDevice)
                         deviceCreated = dm->CreateHeadlessDevice(deviceDesc);
                     else
-                        deviceCreated = dm->CreateWindowDeviceAndSwapChain(deviceDesc, { windowDesc.fullScreen, windowDesc.maximized }, c.mainWindow.GetWindowHandle());
+                        deviceCreated = dm->CreateWindowDeviceAndSwapChain(deviceDesc, { windowDesc.fullScreen, windowDesc.maximized }, c.mainWindow.handle);
 
                     if (deviceCreated)
                         break;

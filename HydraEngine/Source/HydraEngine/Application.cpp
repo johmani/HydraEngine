@@ -94,16 +94,15 @@ namespace HE {
 
         auto& c = GetAppContext();
 
-        EventDispatcher dispatcher(e);
-        dispatcher.Dispatch<WindowCloseEvent>([](WindowCloseEvent& e)
-        {
+        DispatchEvent<WindowCloseEvent>(e, [](WindowCloseEvent& e) {
+
             Application::Shutdown();
             return true;
         });
 
         for (auto it = c.layerStack.rbegin(); it != c.layerStack.rend(); ++it)
         {
-            if (e.Handled)
+            if (e.handled)
                 break;
             (*it)->OnEvent(e);
         }
@@ -241,7 +240,7 @@ namespace HE {
         if (!applicatoinDesc.deviceDesc.headlessDevice)
         {
             mainWindow.Init(applicatoinDesc.windowDesc, applicatoinDesc.deviceDesc);
-            mainWindow.SetEventCallback(OnEvent);
+            mainWindow.eventCallback = OnEvent;
         }
 
         if (applicatoinDesc.createDefaultDevice)

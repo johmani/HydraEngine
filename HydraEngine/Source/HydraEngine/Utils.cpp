@@ -656,9 +656,9 @@ namespace HE::FileDialog {
     nfdwindowhandle_t GetNDFWindowHandle()
     {
 #ifdef HE_PLATFORM_WINDOWS
-        return { NFD_WINDOW_HANDLE_TYPE_WINDOWS, HE::Application::GetWindow().GetNativeWindow() };
+        return { NFD_WINDOW_HANDLE_TYPE_WINDOWS, HE::Application::GetWindow().GetNativeHandle() };
 #elif HE_PLATFORM_LINUX
-        return { NFD_WINDOW_HANDLE_TYPE_X11, HE::Application::GetWindow().GetNativeWindow() };
+        return { NFD_WINDOW_HANDLE_TYPE_X11, HE::Application::GetWindow().GetNativeHandle() };
 #endif 
     }
 
