@@ -207,7 +207,7 @@ namespace HE {
             { KP7,           "Keypad 7"        },
             { KP8,           "Keypad 8"        },
             { KP9,           "Keypad 9"        },
-            { KPDecimal,	 "Keypad ."        },
+            { KPDecimal,     "Keypad ."        },
             { KPDivide,	     "Keypad /"        },
             { KPMultiply,    "Keypad *"        },
             { KPSubtract,    "Keypad -"        },
@@ -696,7 +696,7 @@ namespace HE::FileDialog {
         nfdresult_t result = NFD::SaveDialog(outPath, nfdFilters.data(), filterCount, nullptr, nullptr, GetNDFWindowHandle());
         if (result == NFD_OKAY)        return outPath.get();
         else if (result == NFD_CANCEL) return {};
-        
+
         HE_CORE_ERROR("Error: {}", NFD::GetError());
 
         return {};
@@ -710,7 +710,7 @@ namespace HE::FileDialog {
         nfdresult_t result = NFD::PickFolder(outPath, nullptr, GetNDFWindowHandle());
         if (result == NFD_OKAY)        return outPath.get();
         else if (result == NFD_CANCEL) return {};
-        
+
         HE_CORE_ERROR("Error: {}", NFD::GetError());
 
         return {};

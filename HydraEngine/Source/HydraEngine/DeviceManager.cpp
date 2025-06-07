@@ -108,7 +108,7 @@ namespace HE {
 
             if(index < managers.size() && managers.size() >= 1)
                 return managers[index]->GetDevice();
-            
+
             return {};
         }
 
@@ -243,7 +243,7 @@ namespace HE {
 
         if (!CreateSwapChain(windowState))
             return false;
-        
+
         m_DeviceDesc.backBufferWidth = 0;
         m_DeviceDesc.backBufferHeight = 0;
         UpdateWindowSize();

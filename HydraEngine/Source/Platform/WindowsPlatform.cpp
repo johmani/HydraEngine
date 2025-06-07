@@ -415,18 +415,18 @@ public:
     nvrhi::RefCountPtr<ID3D12CommandQueue>          computeQueue;
     nvrhi::RefCountPtr<ID3D12CommandQueue>          copyQueue;
     nvrhi::RefCountPtr<IDXGISwapChain3>             swapChain;
-    DXGI_SWAP_CHAIN_DESC1							swapChainDesc{};
-    DXGI_SWAP_CHAIN_FULLSCREEN_DESC					fullScreenDesc{};
+    DXGI_SWAP_CHAIN_DESC1                           swapChainDesc{};
+    DXGI_SWAP_CHAIN_FULLSCREEN_DESC                 fullScreenDesc{};
     nvrhi::RefCountPtr<IDXGIAdapter>                dxgiAdapter;
-    HWND											hWnd = nullptr;
-    bool											tearingSupported = false;
+    HWND                                            hWnd = nullptr;
+    bool                                            tearingSupported = false;
     std::vector<nvrhi::RefCountPtr<ID3D12Resource>> swapChainBuffers;
-    std::vector<nvrhi::TextureHandle>				rhiSwapChainBuffers;
-    nvrhi::RefCountPtr<ID3D12Fence>					frameFence;
-    std::vector<HANDLE>								frameFenceEvents;
-    UINT64											frameCount = 1;
-    nvrhi::DeviceHandle								nvrhiDevice;
-    std::string										rendererString;
+    std::vector<nvrhi::TextureHandle>               rhiSwapChainBuffers;
+    nvrhi::RefCountPtr<ID3D12Fence>	                frameFence;
+    std::vector<HANDLE>                             frameFenceEvents;
+    UINT64                                          frameCount = 1;
+    nvrhi::DeviceHandle                             nvrhiDevice;
+    std::string                                     rendererString;
 
     static std::string GetAdapterName(DXGI_ADAPTER_DESC const& aDesc)
     {

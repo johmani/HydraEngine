@@ -301,9 +301,9 @@ export namespace HE {
         enum : MouseCode
         {
             Button0, Button1, Button2, Button3, Button4, Button5, Button6, Button7,
-            
+
             Count,
-            
+
             Left = Button0,
             Right = Button1,
             Middle = Button2
@@ -338,7 +338,7 @@ export namespace HE {
             LeftBumper, RightBumper, Back, 
             Start, Guide, LeftThumb, RightThumb,
             Up, Right, Down, Left,
-          
+
             Count,
 
             Cross = A, Circle = B, Square = X, Triangle = Y
@@ -1051,8 +1051,8 @@ export namespace HE {
         std::string title = "Hydra Engine";
         std::string iconFilePath;
         uint32_t width = 0, height = 0;
-        uint32_t minWidth = -1, minHeight = -1;
-        uint32_t maxWidth = -1, maxHeight = -1;
+        int minWidth = -1, minHeight = -1;
+        int maxWidth = -1, maxHeight = -1;
         float sizeRatio = 0.7f;				    // Percentage of screen size to use when width/height is 0
         bool resizeable = true;
         bool customTitlebar = false;
@@ -1181,14 +1181,14 @@ export namespace HE {
             template<typename T> 
             T* GetFunction(const std::string_view& symbolName) const 
             {
-#			if (defined(__GNUC__) && __GNUC__ >= 8)
-#				pragma GCC diagnostic push
-#				pragma GCC diagnostic ignored "-Wcast-function-type"
-#			endif
+#           if (defined(__GNUC__) && __GNUC__ >= 8)
+#               pragma GCC diagnostic push
+#               pragma GCC diagnostic ignored "-Wcast-function-type"
+#           endif
                 return reinterpret_cast<T*>(GetSymbol(symbolName.data()));
-#			if (defined(__GNUC__) && __GNUC__ >= 8)
-#				pragma GCC diagnostic pop
-#			endif
+#           if (defined(__GNUC__) && __GNUC__ >= 8)
+#               pragma GCC diagnostic pop
+#           endif
             }
             
         private:

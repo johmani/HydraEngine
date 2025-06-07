@@ -1086,7 +1086,7 @@ namespace HE {
     bool Input::RegisterKeyBinding(const KeyBindingDesc& action)
     {
         auto& c = GetAppContext();
-        
+
         auto hash = Hash(action.name);
 
         if (!c.keyBindings.contains(hash))

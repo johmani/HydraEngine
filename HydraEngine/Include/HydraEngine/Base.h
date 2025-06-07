@@ -69,7 +69,7 @@
 #elif HE_PROFILE
     constexpr const char* c_BuildConfig = "Profile";
 #   define HE_ENABLE_VERIFY
-#	define HE_ENABLE_LOGGING
+#   define HE_ENABLE_LOGGING
 #else
     constexpr const char* c_BuildConfig = "Dist";
 #endif
@@ -108,19 +108,19 @@
     #define HE_INFO(...)          HE::Log::ClientInfo(std::format(__VA_ARGS__).c_str())
     #define HE_WARN(...)          HE::Log::ClientWarn(std::format(__VA_ARGS__).c_str())
     #define HE_ERROR(...)         HE::Log::ClientError(std::format(__VA_ARGS__).c_str())
-    #define HE_CRITICAL(...) 	  HE::Log::ClientCritical(std::format(__VA_ARGS__).c_str())
+    #define HE_CRITICAL(...)      HE::Log::ClientCritical(std::format(__VA_ARGS__).c_str())
 #else
-    #define HE_CORE_TRACE(...)    
-    #define HE_CORE_INFO(...)     
-    #define HE_CORE_WARN(...)     
-    #define HE_CORE_ERROR(...)    
-    #define HE_CORE_CRITICAL(...) 
+    #define HE_CORE_TRACE(...)
+    #define HE_CORE_INFO(...)
+    #define HE_CORE_WARN(...)
+    #define HE_CORE_ERROR(...)
+    #define HE_CORE_CRITICAL(...)
     
-    #define HE_TRACE(...)         
-    #define HE_INFO(...)          
-    #define HE_WARN(...)          
-    #define HE_ERROR(...)         
-    #define HE_CRITICAL(...)   
+    #define HE_TRACE(...)
+    #define HE_INFO(...)
+    #define HE_WARN(...)
+    #define HE_ERROR(...)
+    #define HE_CRITICAL(...)
 #endif
 
 
@@ -129,12 +129,12 @@
 //////////////////////////////////////////////////////////////////////////
 
 #if defined(HE_PLATFORM_WINDOWS)
-#	define HE_DEBUGBREAK() __debugbreak()
+#   define HE_DEBUGBREAK() __debugbreak()
 #elif defined(HE_PLATFORM_LINUX)
-#	include <signal.h>
-#	define HE_DEBUGBREAK() raise(SIGTRAP)
+#   include <signal.h>
+#   define HE_DEBUGBREAK() raise(SIGTRAP)
 #else
-#	error "Platform doesn't support debugbreak yet!"
+#   error "Platform doesn't support debugbreak yet!"
 #endif
 
 #define HE_INTERNAL_ASSERT_IMPL(type, check, msg, ...) { if(!(check)) { HE##type##ERROR(msg, __VA_ARGS__); HE_DEBUGBREAK(); } }
@@ -144,19 +144,19 @@
 #define HE_INTERNAL_ASSERT_GET_MACRO(...) HE_EXPAND_MACRO( HE_INTERNAL_ASSERT_GET_MACRO_NAME(__VA_ARGS__, HE_INTERNAL_ASSERT_WITH_MSG, HE_INTERNAL_ASSERT_NO_MSG) )
 
 #ifdef HE_ENABLE_ASSERTS
-#	define HE_ASSERT(...) HE_EXPAND_MACRO( HE_INTERNAL_ASSERT_GET_MACRO(__VA_ARGS__)(_, __VA_ARGS__) )
-#	define HE_CORE_ASSERT(...) HE_EXPAND_MACRO( HE_INTERNAL_ASSERT_GET_MACRO(__VA_ARGS__)(_CORE_, __VA_ARGS__) )
+#   define HE_ASSERT(...) HE_EXPAND_MACRO( HE_INTERNAL_ASSERT_GET_MACRO(__VA_ARGS__)(_, __VA_ARGS__) )
+#   define HE_CORE_ASSERT(...) HE_EXPAND_MACRO( HE_INTERNAL_ASSERT_GET_MACRO(__VA_ARGS__)(_CORE_, __VA_ARGS__) )
 #else
-#	define HE_ASSERT(...)
-#	define HE_CORE_ASSERT(...)
+#   define HE_ASSERT(...)
+#   define HE_CORE_ASSERT(...)
 #endif
 
 #ifdef HE_ENABLE_VERIFY
-#	define HE_VERIFY(...) HE_EXPAND_MACRO( HE_INTERNAL_ASSERT_GET_MACRO(__VA_ARGS__)(_, __VA_ARGS__) )
-#	define HE_CORE_VERIFY(...) HE_EXPAND_MACRO( HE_INTERNAL_ASSERT_GET_MACRO(__VA_ARGS__)(_CORE_, __VA_ARGS__) )
+#   define HE_VERIFY(...) HE_EXPAND_MACRO( HE_INTERNAL_ASSERT_GET_MACRO(__VA_ARGS__)(_, __VA_ARGS__) )
+#   define HE_CORE_VERIFY(...) HE_EXPAND_MACRO( HE_INTERNAL_ASSERT_GET_MACRO(__VA_ARGS__)(_CORE_, __VA_ARGS__) )
 #else
-#	define HE_VERIFY(...)
-#	define HE_CORE_VERIFY(...)
+#   define HE_VERIFY(...)
+#   define HE_CORE_VERIFY(...)
 #endif
 
 //////////////////////////////////////////////////////////////////////////
@@ -164,31 +164,31 @@
 //////////////////////////////////////////////////////////////////////////
 
 #if HE_PROFILE 
-#	ifndef TRACY_ENABLE
-#		define TRACY_ENABLE
-#	endif
-#	include "tracy/Tracy.hpp"
-#	define HE_PROFILE_SCOPE(name) ZoneScopedN(name)
-#	define HE_PROFILE_SCOPE_COLOR(color) ZoneScopedC(color)
-#	define HE_PROFILE_SCOPE_NC(name,color) ZoneScopedNC(name,color)
-#	define HE_PROFILE_FUNCTION() ZoneScoped
-#	define HE_PROFILE_FRAME() FrameMark 
-#	define HE_PROFILE_TAG(y, x) ZoneText(x, strlen(x))
-#	define HE_PROFILE_LOG(text, size) TracyMessage(text, size)
-#	define HE_PROFILE_VALUE(text, value) TracyPlot(text, value)
-#	define HE_PROFILE_ALLOC(p, size) TracyAlloc(ptr,size)
-#	define HE_PROFILE_FREE(p) TracyFree(ptr);
+#   ifndef TRACY_ENABLE
+#       define TRACY_ENABLE
+#   endif
+#   include "tracy/Tracy.hpp"
+#   define HE_PROFILE_SCOPE(name) ZoneScopedN(name)
+#   define HE_PROFILE_SCOPE_COLOR(color) ZoneScopedC(color)
+#   define HE_PROFILE_SCOPE_NC(name,color) ZoneScopedNC(name, color)
+#   define HE_PROFILE_FUNCTION() ZoneScoped
+#   define HE_PROFILE_FRAME() FrameMark 
+#   define HE_PROFILE_TAG(y, x) ZoneText(x, strlen(x))
+#   define HE_PROFILE_LOG(text, size) TracyMessage(text, size)
+#   define HE_PROFILE_VALUE(text, value) TracyPlot(text, value)
+#   define HE_PROFILE_ALLOC(p, size) TracyAlloc(ptr, size)
+#   define HE_PROFILE_FREE(p) TracyFree(ptr);
 #else
-#	define HE_PROFILE_SCOPE(name)
-#	define HE_PROFILE_SCOPE_COLOR(color)
-#	define HE_PROFILE_SCOPE_NC(name,color)
-#	define HE_PROFILE_FUNCTION()
-#	define HE_PROFILE_FRAME()
-#	define HE_PROFILE_TAG(y, x) 
-#	define HE_PROFILE_LOG(text, size)
-#	define HE_PROFILE_VALUE(text, value) 
-#	define HE_PROFILE_ALLOC(ptr, size)
-#	define HE_PROFILE_FREE(ptr)     
+#   define HE_PROFILE_SCOPE(name)
+#   define HE_PROFILE_SCOPE_COLOR(color)
+#   define HE_PROFILE_SCOPE_NC(name, color)
+#   define HE_PROFILE_FUNCTION()
+#   define HE_PROFILE_FRAME()
+#   define HE_PROFILE_TAG(y, x)
+#   define HE_PROFILE_LOG(text, size)
+#   define HE_PROFILE_VALUE(text, value)
+#   define HE_PROFILE_ALLOC(ptr, size)
+#   define HE_PROFILE_FREE(ptr)
 #endif
 
 //////////////////////////////////////////////////////////////////////////
@@ -196,18 +196,18 @@
 //////////////////////////////////////////////////////////////////////////
 
 #ifdef NVRHI_HAS_D3D11
-#	define STATIC_SHADER_D3D11(NAME) HE::Buffer{g_##NAME##_dxbc, std::size(g_##NAME##_dxbc)}
+#   define STATIC_SHADER_D3D11(NAME) HE::Buffer{g_##NAME##_dxbc, std::size(g_##NAME##_dxbc)}
 #else
-#	define STATIC_SHADER_D3D11(NAME) HE::Buffer()
+#   define STATIC_SHADER_D3D11(NAME) HE::Buffer()
 #endif
 #ifdef NVRHI_HAS_D3D12
-#	define STATIC_SHADER_D3D12(NAME) HE::Buffer{ g_##NAME##_dxil, std::size(g_##NAME##_dxil) }
+#   define STATIC_SHADER_D3D12(NAME) HE::Buffer{ g_##NAME##_dxil, std::size(g_##NAME##_dxil) }
 #else
-#	define STATIC_SHADER_D3D12(NAME) HE::Buffer()
+#   define STATIC_SHADER_D3D12(NAME) HE::Buffer()
 #endif
 #ifdef NVRHI_HAS_VULKAN
-#	define STATIC_SHADER_SPIRV(NAME) HE::Buffer{ g_##NAME##_spirv, std::size(g_##NAME##_spirv) }
+#   define STATIC_SHADER_SPIRV(NAME) HE::Buffer{ g_##NAME##_spirv, std::size(g_##NAME##_spirv) }
 #else
-#	define STATIC_SHADER_SPIRV(NAME) HE::Buffer()
+#   define STATIC_SHADER_SPIRV(NAME) HE::Buffer()
 #endif
-#define STATIC_SHADER(NAME) HE::RHI::StaticShader{ STATIC_SHADER_D3D11(NAME) ,STATIC_SHADER_D3D12(NAME) ,STATIC_SHADER_SPIRV(NAME) }
+#define STATIC_SHADER(NAME) HE::RHI::StaticShader{ STATIC_SHADER_D3D11(NAME), STATIC_SHADER_D3D12(NAME), STATIC_SHADER_SPIRV(NAME) }
