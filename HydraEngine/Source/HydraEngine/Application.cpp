@@ -83,8 +83,6 @@ namespace HE {
         float GetAverageFrameTimeSeconds() { return GetAppContext().averageFrameTime; }
         float GetLastFrameTimestamp() { return GetAppContext().lastFrameTime; }
         void  SetFrameTimeUpdateInterval(float seconds) { GetAppContext().averageTimeUpdateInterval = seconds; }
-        void SetVSync(bool enabled) { RHI::GetDeviceManager()->SetVsyncEnabled(enabled); }
-        bool IsVSync() { return RHI::GetDeviceManager()->IsVsyncEnabled(); }
         Window& GetWindow() { return  GetAppContext().mainWindow; }
     }
 
@@ -140,18 +138,18 @@ namespace HE {
                 nvrhi::IFramebuffer* framebuffer = nullptr;
                 if(!headlessDevice)
                 {
-                    DeviceManager* dm = RHI::GetDeviceManager();
+                    auto sc = GetAppContext().mainWindow.swapChain;
 
-                    if (dm)
+                    if (sc)
                     {
-                        dm->UpdateWindowSize();
-                        if (dm->BeginFrame())
+                        sc->UpdateSize();
+                        if (sc->BeginFrame())
                         {
-                            framebuffer = dm->GetCurrentFramebuffer();
+                            framebuffer = sc->GetCurrentFramebuffer();
                         }
                     }
                 }
-
+ 
                 FrameInfo info = { timestep, framebuffer };
 
                 {
@@ -174,11 +172,10 @@ namespace HE {
 
                 if(!headlessDevice)
                 {
-                    DeviceManager* dm = RHI::GetDeviceManager();
-
-                    if (dm)
+                    auto sc = GetAppContext().mainWindow.swapChain;
+                    if (sc)
                     {
-                        dm->PresentResult();
+                        sc->Present();
                     }
                 }
             }
@@ -239,11 +236,17 @@ namespace HE {
 
         if (!applicatoinDesc.deviceDesc.headlessDevice)
         {
-            mainWindow.Init(applicatoinDesc.windowDesc, applicatoinDesc.deviceDesc);
+            mainWindow.Init(applicatoinDesc.windowDesc);
             mainWindow.eventCallback = OnEvent;
         }
 
         if (applicatoinDesc.createDefaultDevice)
-            deviceContext.TryCreateDefaultDevice();
+            RHI::TryCreateDefaultDevice();
+
+        if (!applicatoinDesc.deviceDesc.headlessDevice)
+        {
+            mainWindow.swapChain = RHI::GetDeviceManager()->CreateSwapChain(mainWindow.desc.swapChainDesc, mainWindow.handle);
+            mainWindow.swapChain->BackBufferResized();
+        }
     }
 }

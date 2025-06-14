@@ -86,7 +86,7 @@ project "HydraEngine"
 
         if RHI.enableVulkan then
             defines { "NVRHI_HAS_VULKAN" }
-            files { "Source/Platform/DeviceManagerVulkan.cpp" }
+            files { "Source/Platform/VulkanDeviceManager.cpp" }
         end
 
     filter "system:linux"
@@ -95,7 +95,7 @@ project "HydraEngine"
 
         if RHI.enableVulkan then
             defines { "NVRHI_HAS_VULKAN" }
-            files { "Source/Platform/DeviceManagerVulkan.cpp" }
+            files { "Source/Platform/VulkanDeviceManager.cpp" }
         end
 
     filter "configurations:Debug"

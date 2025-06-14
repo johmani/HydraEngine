@@ -355,7 +355,7 @@ namespace HE {
         HE_CORE_ERROR("[GLFW] : ({}): {}", error, description);
     }
 
-    void Window::Init(const WindowDesc& windowDesc, const DeviceDesc& deviceDesc)
+    void Window::Init(const WindowDesc& windowDesc)
     {
         HE_PROFILE_FUNCTION();
 
@@ -383,7 +383,7 @@ namespace HE {
             bool foundFormat = false;
             for (const auto& info : formatInfo)
             {
-                if (info.format == deviceDesc.swapChainFormat)
+                if (info.format == windowDesc.swapChainDesc.swapChainFormat)
                 {
                     glfwWindowHint(GLFW_RED_BITS, info.redBits);
                     glfwWindowHint(GLFW_GREEN_BITS, info.greenBits);
@@ -398,13 +398,14 @@ namespace HE {
 
             HE_CORE_VERIFY(foundFormat);
 
-            glfwWindowHint(GLFW_SAMPLES, deviceDesc.swapChainSampleCount);
-            glfwWindowHint(GLFW_REFRESH_RATE, deviceDesc.refreshRate);
+            glfwWindowHint(GLFW_SAMPLES, windowDesc.swapChainDesc.swapChainSampleCount);
+            glfwWindowHint(GLFW_REFRESH_RATE, windowDesc.swapChainDesc.refreshRate);
             glfwWindowHint(GLFW_SCALE_TO_MONITOR, desc.scaleToMonitor);
             glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
             glfwWindowHint(GLFW_MAXIMIZED, windowDesc.maximized && !windowDesc.fullScreen);
             glfwWindowHint(GLFW_TITLEBAR, !windowDesc.customTitlebar);
             glfwWindowHint(GLFW_DECORATED, windowDesc.decorated);
+            glfwWindowHint(GLFW_VISIBLE, desc.startVisible);
         }
 
         GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor();
@@ -464,6 +465,8 @@ namespace HE {
 
         if (std::filesystem::exists(windowDesc.iconFilePath))
         {
+            HE_PROFILE_SCOPE("Set Window Icon");
+
             Image image(windowDesc.iconFilePath);
             GLFWimage icon;
             icon.pixels = image.GetData();
@@ -472,15 +475,31 @@ namespace HE {
             glfwSetWindowIcon(glfwWindow, 1, &icon);
         }
 
+        {
+            int w, h;
+            glfwGetWindowSize(glfwWindow, &w, &h);
+            desc.width = w;
+            desc.height = h;
+            desc.swapChainDesc.backBufferWidth = w;
+            desc.swapChainDesc.backBufferHeight = h;
+        }
+
+        if (!desc.setCallbacks)
+            return;
+
         glfwSetWindowUserPointer(glfwWindow, this);
 
         glfwSetTitlebarHitTestCallback(glfwWindow, [](GLFWwindow* window, int x, int y, int* hit) {
+
+            HE_PROFILE_SCOPE("glfwSetTitlebarHitTestCallback");
 
             Window* app = (Window*)glfwGetWindowUserPointer(window);
             *hit = app->isTitleBarHit;
         });
 
         glfwSetWindowSizeCallback(glfwWindow, [](GLFWwindow* window, int width, int height) {
+
+            HE_PROFILE_SCOPE("glfwSetWindowSizeCallback");
 
             Window& w = *(Window*)glfwGetWindowUserPointer(window);
             w.desc.width = width;
@@ -492,12 +511,16 @@ namespace HE {
 
         glfwSetWindowCloseCallback(glfwWindow, [](GLFWwindow* window) {
 
+            HE_PROFILE_SCOPE("glfwSetWindowCloseCallback");
+
             Window& w = *(Window*)glfwGetWindowUserPointer(window);
             WindowCloseEvent event;
             w.eventCallback(event);
         });
 
         glfwSetWindowContentScaleCallback(glfwWindow, [](GLFWwindow* window, float xscale, float yscale) {
+
+            HE_PROFILE_SCOPE("glfwSetWindowContentScaleCallback");
 
             Window& w = *(Window*)glfwGetWindowUserPointer(window);
 
@@ -506,6 +529,8 @@ namespace HE {
         });
 
         glfwSetWindowMaximizeCallback(glfwWindow, [](GLFWwindow* window, int maximized) {
+
+            HE_PROFILE_SCOPE("glfwSetWindowMaximizeCallback");
 
             Window& w = *(Window*)glfwGetWindowUserPointer(window);
             static bool isfirstTime = true;
@@ -545,6 +570,8 @@ namespace HE {
 
         glfwSetKeyCallback(glfwWindow, [](GLFWwindow* window, int key, int scancode, int action, int mods) {
 
+            HE_PROFILE_SCOPE("glfwSetKeyCallback");
+
             Window& w = *(Window*)glfwGetWindowUserPointer(window);
 
             switch (action)
@@ -572,6 +599,8 @@ namespace HE {
 
         glfwSetCharCallback(glfwWindow, [](GLFWwindow* window, unsigned int codePoint) {
 
+            HE_PROFILE_SCOPE("glfwSetCharCallback");
+
             Window& w = *(Window*)glfwGetWindowUserPointer(window);
 
             KeyTypedEvent event(codePoint);
@@ -579,6 +608,8 @@ namespace HE {
         });
 
         glfwSetMouseButtonCallback(glfwWindow, [](GLFWwindow* window, int button, int action, int mods) {
+
+            HE_PROFILE_SCOPE("glfwSetMouseButtonCallback");
 
             Window& w = *(Window*)glfwGetWindowUserPointer(window);
 
@@ -601,6 +632,8 @@ namespace HE {
 
         glfwSetScrollCallback(glfwWindow, [](GLFWwindow* window, double xOffset, double yOffset) {
             
+            HE_PROFILE_SCOPE("glfwSetScrollCallback");
+
             Window& w = *(Window*)glfwGetWindowUserPointer(window);
 
             MouseScrolledEvent event((float)xOffset, (float)yOffset);
@@ -609,6 +642,8 @@ namespace HE {
 
         glfwSetCursorPosCallback(glfwWindow, [](GLFWwindow* window, double xPos, double yPos) {
         
+            HE_PROFILE_SCOPE("glfwSetCursorPosCallback");
+
             Window& w = *(Window*)glfwGetWindowUserPointer(window);
 
             MouseMovedEvent event((float)xPos, (float)yPos);
@@ -617,6 +652,8 @@ namespace HE {
 
         glfwSetCursorEnterCallback(glfwWindow, [](GLFWwindow* window, int entered) {
         
+            HE_PROFILE_SCOPE("glfwSetCursorEnterCallback");
+
             Window& w = *(Window*)glfwGetWindowUserPointer(window);
 
             MouseEnterEvent event((bool)entered);
@@ -625,6 +662,8 @@ namespace HE {
 
         glfwSetDropCallback(glfwWindow, [](GLFWwindow* window, int pathCount, const char* paths[]) {
         
+            HE_PROFILE_SCOPE("glfwSetDropCallback");
+
             Window& w = *(Window*)glfwGetWindowUserPointer(window);
 
             WindowDropEvent event(paths, pathCount);
@@ -633,6 +672,8 @@ namespace HE {
 
         glfwSetJoystickCallback([](int jid, int event) {
         
+            HE_PROFILE_SCOPE("glfwSetJoystickCallback");
+
             auto& w = GetAppContext().mainWindow;
 
             if (event == GLFW_CONNECTED)
@@ -649,11 +690,15 @@ namespace HE {
 
         glfwSetCharModsCallback(glfwWindow, [](GLFWwindow* window, unsigned int codepoint, int mods) {
         
+            HE_PROFILE_SCOPE("glfwSetCharModsCallback");
+
 
         });
 
         glfwSetWindowIconifyCallback(glfwWindow, [](GLFWwindow* window, int iconified) {
         
+            HE_PROFILE_SCOPE("glfwSetWindowIconifyCallback");
+
             Window& w = *(Window*)glfwGetWindowUserPointer(window);
             WindowMinimizeEvent event(iconified);
             w.eventCallback(event);
@@ -661,20 +706,29 @@ namespace HE {
 
         glfwSetWindowPosCallback(glfwWindow, [](GLFWwindow* window, int xpos, int ypos) {
         
+            HE_PROFILE_SCOPE("glfwSetWindowPosCallback");
+
         });
 
         glfwSetWindowRefreshCallback(glfwWindow, [](GLFWwindow* window) {
         
+            HE_PROFILE_SCOPE("glfwSetWindowRefreshCallback");
+
         });
 
         glfwSetWindowFocusCallback(glfwWindow, [](GLFWwindow* window, int focused) {
         
+            HE_PROFILE_SCOPE("glfwSetWindowFocusCallback");
+
         });
     }
 
     Window::~Window()
     {
         HE_PROFILE_FUNCTION();
+
+        if (swapChain)
+            delete swapChain;
 
         if (handle)
         {

@@ -830,221 +830,26 @@ export namespace HE {
     }
 
     //////////////////////////////////////////////////////////////////////////
-    // Device
+    // Window
     //////////////////////////////////////////////////////////////////////////
 
-    struct DefaultMessageCallback : public nvrhi::IMessageCallback
+    struct SwapChainDesc
     {
-        static DefaultMessageCallback& GetInstance();
-
-        void message(nvrhi::MessageSeverity severity, const char* messageText) override;
-    };
-
-    struct DeviceInstanceDesc
-    {
-        bool enableDebugRuntime = false;
-        bool enableWarningsAsErrors = false;
-        bool enableGPUValidation = false; // DX12 only 
-        bool headlessDevice = false;
-
-#if NVRHI_HAS_VULKAN
-        std::string vulkanLibraryName;
-        std::vector<std::string> requiredVulkanInstanceExtensions;
-        std::vector<std::string> requiredVulkanLayers;
-        std::vector<std::string> optionalVulkanInstanceExtensions;
-        std::vector<std::string> optionalVulkanLayers;
-#endif
-    };
-
-    struct WindowState
-    {
-        bool fullscreen = false;
-        bool maximized = false;
-    };
-
-    consteval uint8_t BackendCount()
-    {
-        uint8_t backendCount = 0;
-#if NVRHI_HAS_D3D11
-        backendCount++;
-#endif
-#if NVRHI_HAS_D3D12
-        backendCount++;
-#endif
-#if NVRHI_HAS_VULKAN
-        backendCount++;
-#endif
-        return backendCount;
-    }
-
-    struct DeviceDesc : public DeviceInstanceDesc
-    {
-        std::array<nvrhi::GraphicsAPI, BackendCount()> api;
-        bool allowModeSwitch = true;
-        uint32_t backBufferWidth = 1280;
-        uint32_t backBufferHeight = 720;
+        nvrhi::Format swapChainFormat = nvrhi::Format::RGBA8_UNORM;
         uint32_t refreshRate = 0;
         uint32_t swapChainBufferCount = 3;
-        nvrhi::Format swapChainFormat = nvrhi::Format::RGBA8_UNORM;
         uint32_t swapChainSampleCount = 1;
         uint32_t swapChainSampleQuality = 0;
         uint32_t maxFramesInFlight = 2;
-        bool enableNvrhiValidationLayer = false;
-        bool vsyncEnabled = true;
-        bool enableRayTracingExtensions = false;
-        bool enableComputeQueue = false;
-        bool enableCopyQueue = false;
-        int adapterIndex = -1;
+        uint32_t backBufferWidth = 0;
+        uint32_t backBufferHeight = 0;
+        bool allowModeSwitch = true;
+        bool vsync = true;
 
 #if NVRHI_HAS_D3D11 || NVRHI_HAS_D3D12
         DXGI_USAGE swapChainUsage = DXGI_USAGE_SHADER_INPUT | DXGI_USAGE_RENDER_TARGET_OUTPUT;
-        D3D_FEATURE_LEVEL featureLevel = D3D_FEATURE_LEVEL_11_1;
-#endif
-
-#if NVRHI_HAS_VULKAN
-        std::vector<std::string> requiredVulkanDeviceExtensions;
-        std::vector<std::string> optionalVulkanDeviceExtensions;
-        std::vector<size_t> ignoredVulkanValidationMessageLocations;
-        std::function<void(VkDeviceCreateInfo&)> deviceCreateInfoCallback;
-        void* physicalDeviceFeatures2Extensions = nullptr;
-#endif
-
-        DeviceDesc() { api.fill(nvrhi::GraphicsAPI(-1)); }
-    };
-    
-    struct AdapterInfo
-    {
-        using UUID = std::array<uint8_t, 16>;
-        using LUID = std::array<uint8_t, 8>;
-
-        std::string name;
-        uint32_t vendorID = 0;
-        uint32_t deviceID = 0;
-        uint64_t dedicatedVideoMemory = 0;
-
-        std::optional<UUID> uuid;
-        std::optional<LUID> luid;
-
-#if NVRHI_HAS_D3D11 || NVRHI_HAS_D3D12
-        nvrhi::RefCountPtr<IDXGIAdapter> dxgiAdapter;
-#endif
-
-#if NVRHI_HAS_VULKAN
-        VkPhysicalDevice vkPhysicalDevice = nullptr;
 #endif
     };
-
-    class DeviceManager
-    {
-    public:
-        HYDRA_API virtual ~DeviceManager() = default;
-
-        HYDRA_API static DeviceManager* Create(nvrhi::GraphicsAPI api);
-
-        HYDRA_API bool CreateHeadlessDevice(const DeviceDesc& desc);
-        HYDRA_API bool CreateWindowDeviceAndSwapChain(const DeviceDesc& desc, WindowState windowState, void* windowHandle);
-        bool CreateInstance(const DeviceInstanceDesc& desc);
-
-        // Enumerates adapters or physical devices present in the system.
-        // Note: a call to CreateInstance() or Create*Device*() is required before EnumerateAdapters().
-        virtual bool EnumerateAdapters(std::vector<AdapterInfo>& outAdapters) = 0;
-
-        void UpdateWindowSize();
-        void PresentResult();
-
-        nvrhi::IFramebuffer* GetCurrentFramebuffer();
-        nvrhi::IFramebuffer* GetFramebuffer(uint32_t index);
-        const DeviceDesc& GetDeviceDesc() { return m_DeviceDesc; }
-        bool IsVsyncEnabled() const { return m_DeviceDesc.vsyncEnabled; }
-
-        virtual void Shutdown();
-        virtual bool BeginFrame() = 0;
-        virtual nvrhi::IDevice* GetDevice() const = 0;
-        virtual const char* GetRendererString() const = 0;
-        virtual nvrhi::GraphicsAPI GetGraphicsAPI() const = 0;
-        virtual void ReportLiveObjects() {}
-        virtual nvrhi::ITexture* GetCurrentBackBuffer() = 0;
-        virtual nvrhi::ITexture* GetBackBuffer(uint32_t index) = 0;
-        virtual uint32_t GetCurrentBackBufferIndex() = 0;
-        virtual uint32_t GetBackBufferCount() = 0;
-        virtual void SetVsyncEnabled(bool enabled) { m_RequestedVSync = enabled; /* will be processed later */ }
-
-        virtual bool IsVulkanInstanceExtensionEnabled(const char* extensionName) const { return false; }
-        virtual bool IsVulkanDeviceExtensionEnabled(const char* extensionName) const { return false; }
-        virtual bool IsVulkanLayerEnabled(const char* layerName) const { return false; }
-        virtual void GetEnabledVulkanInstanceExtensions(std::vector<std::string>& extensions) const {}
-        virtual void GetEnabledVulkanDeviceExtensions(std::vector<std::string>& extensions) const {}
-        virtual void GetEnabledVulkanLayers(std::vector<std::string>& layers) const {}
-
-    protected:
-        DeviceDesc m_DeviceDesc;
-        void* m_Window = nullptr;
-        bool m_IsNvidia = false;
-        bool m_RequestedVSync = false;
-        bool m_InstanceCreated = false;
-        std::vector<nvrhi::FramebufferHandle> m_SwapChainFramebuffers;
-
-        DeviceManager() = default;
-
-        void BackBufferResizing();
-        void BackBufferResized();
-
-        virtual bool CreateInstanceInternal() = 0;
-        virtual bool CreateDevice() = 0;
-        virtual bool CreateSwapChain(WindowState windowState) = 0;
-        virtual void DestroyDeviceAndSwapChain() = 0;
-        virtual void ResizeSwapChain() = 0;
-        virtual void Present() = 0;
-
-    private:
-#if NVRHI_HAS_D3D11
-        static DeviceManager* CreateD3D11();
-#endif
-#if NVRHI_HAS_D3D12
-        static DeviceManager* CreateD3D12();
-#endif
-#if NVRHI_HAS_VULKAN
-        static DeviceManager* CreateVULKAN();
-#endif
-    };
-
-    //////////////////////////////////////////////////////////////////////////
-    // RHI
-    //////////////////////////////////////////////////////////////////////////
-
-    namespace RHI {
-
-        struct DeviceContext
-        {
-            std::vector<DeviceManager*> managers;
-
-            HYDRA_API ~DeviceContext();
-            HYDRA_API void TryCreateDefaultDevice();
-        };
-
-        HYDRA_API DeviceManager* GetDeviceManager(uint32_t index = 0);
-        HYDRA_API nvrhi::DeviceHandle GetDevice(uint32_t index = 0);
-
-        struct StaticShader
-        {
-            Buffer dxbc;
-            Buffer dxil;
-            Buffer spirv;
-        };
-
-        struct ShaderMacro
-        {
-            std::string_view name;
-            std::string_view definition;
-        };
-
-        HYDRA_API nvrhi::ShaderHandle CreateStaticShader(nvrhi::IDevice* device, StaticShader staticShader, const std::vector<ShaderMacro>* pDefines, const nvrhi::ShaderDesc& desc);
-        HYDRA_API nvrhi::ShaderLibraryHandle CreateShaderLibrary(nvrhi::IDevice* device, StaticShader staticShader, const std::vector<ShaderMacro>* pDefines);
-    }
-
-    //////////////////////////////////////////////////////////////////////////
-    // Window
-    //////////////////////////////////////////////////////////////////////////
 
     struct WindowDesc
     {
@@ -1062,6 +867,10 @@ export namespace HE {
         bool maximized = false;
         bool perMonitorDPIAware = true;
         bool scaleToMonitor = true;
+        bool startVisible = true;
+        bool setCallbacks = true;
+
+        SwapChainDesc swapChainDesc;
     };
 
     // internal
@@ -1094,6 +903,31 @@ export namespace HE {
 
         float deadZoon = 0.1f;
     };
+
+    struct SwapChain
+    {
+        SwapChainDesc desc;
+        void* windowHandle = nullptr;
+        std::vector<nvrhi::FramebufferHandle> swapChainFramebuffers;
+        nvrhi::DeviceHandle nvrhiDevice;
+        bool isVSync = false;
+
+        virtual ~SwapChain() = default;
+
+        HYDRA_API nvrhi::IFramebuffer* GetCurrentFramebuffer();
+        HYDRA_API nvrhi::IFramebuffer* GetFramebuffer(uint32_t index);
+        HYDRA_API void UpdateSize();
+        HYDRA_API void BackBufferResizing();
+        HYDRA_API void BackBufferResized();
+
+        virtual nvrhi::ITexture* GetCurrentBackBuffer() = 0;
+        virtual nvrhi::ITexture* GetBackBuffer(uint32_t index) = 0;
+        virtual uint32_t GetCurrentBackBufferIndex() = 0;
+        virtual uint32_t GetBackBufferCount() = 0;
+        virtual void ResizeSwapChain(uint32_t width, uint32_t height) = 0;
+        virtual void Present() = 0;
+        virtual bool BeginFrame() = 0;
+    };
     
     using WindowEventCallback = std::function<void(Event&)>;
 
@@ -1105,10 +939,10 @@ export namespace HE {
         InputState inputData;
         bool isTitleBarHit = false;
         int prevPosX = 0, prevPosY = 0, prevWidth = 0, prevHeight = 0;
+        SwapChain* swapChain = nullptr;
 
         HYDRA_API ~Window();
-
-        HYDRA_API void Init(const WindowDesc& windowDesc, const DeviceDesc& deviceDesc);
+        HYDRA_API void Init(const WindowDesc& windowDesc);
         HYDRA_API void* GetNativeHandle();
         HYDRA_API void SetTitle(const std::string_view& title);
         HYDRA_API void Maximize();
@@ -1127,6 +961,166 @@ export namespace HE {
         uint32_t GetWidth() const { return desc.width; }
         uint32_t GetHeight() const { return desc.height; }
     };
+
+    //////////////////////////////////////////////////////////////////////////
+    // RHI
+    //////////////////////////////////////////////////////////////////////////
+
+    namespace RHI {
+
+        consteval uint8_t BackendCount()
+        {
+            uint8_t backendCount = 0;
+#if NVRHI_HAS_D3D11
+            backendCount++;
+#endif
+#if NVRHI_HAS_D3D12
+            backendCount++;
+#endif
+#if NVRHI_HAS_VULKAN
+            backendCount++;
+#endif
+            return backendCount;
+        }
+
+        struct DeviceInstanceDesc
+        {
+            bool enableDebugRuntime = false;
+            bool enableWarningsAsErrors = false;
+            bool enableGPUValidation = false; // DX12 only 
+            bool headlessDevice = false;
+
+#if NVRHI_HAS_VULKAN
+            std::string vulkanLibraryName;
+            std::vector<std::string> requiredVulkanInstanceExtensions;
+            std::vector<std::string> requiredVulkanLayers;
+            std::vector<std::string> optionalVulkanInstanceExtensions;
+            std::vector<std::string> optionalVulkanLayers;
+#endif
+        };
+
+        struct DeviceDesc : public DeviceInstanceDesc
+        {
+            std::array<nvrhi::GraphicsAPI, BackendCount()> api;
+
+            bool enableNvrhiValidationLayer = false;
+            bool enableRayTracingExtensions = false;
+            bool enableComputeQueue = false;
+            bool enableCopyQueue = false;
+            int adapterIndex = -1;
+
+#if NVRHI_HAS_D3D11 || NVRHI_HAS_D3D12
+            D3D_FEATURE_LEVEL featureLevel = D3D_FEATURE_LEVEL_11_1;
+#endif
+
+#if NVRHI_HAS_VULKAN
+            std::vector<std::string> requiredVulkanDeviceExtensions;
+            std::vector<std::string> optionalVulkanDeviceExtensions;
+            std::vector<size_t> ignoredVulkanValidationMessageLocations;
+            std::function<void(VkDeviceCreateInfo&)> deviceCreateInfoCallback;
+            void* physicalDeviceFeatures2Extensions = nullptr;
+#endif
+
+            DeviceDesc() { api.fill(nvrhi::GraphicsAPI(-1)); }
+        };
+
+        struct AdapterInfo
+        {
+            using UUID = std::array<uint8_t, 16>;
+            using LUID = std::array<uint8_t, 8>;
+
+            std::string name;
+            uint32_t vendorID = 0;
+            uint32_t deviceID = 0;
+            uint64_t dedicatedVideoMemory = 0;
+
+            std::optional<UUID> uuid;
+            std::optional<LUID> luid;
+
+#if NVRHI_HAS_D3D11 || NVRHI_HAS_D3D12
+            nvrhi::RefCountPtr<IDXGIAdapter> dxgiAdapter;
+#endif
+
+#if NVRHI_HAS_VULKAN
+            VkPhysicalDevice vkPhysicalDevice = nullptr;
+#endif
+        };
+
+        struct DefaultMessageCallback : public nvrhi::IMessageCallback
+        {
+            static DefaultMessageCallback& GetInstance();
+
+            void message(nvrhi::MessageSeverity severity, const char* messageText) override;
+        };
+
+        struct DeviceManager
+        {
+            DeviceDesc desc;
+            bool isNvidia = false;
+            bool instanceCreated = false;
+
+            HYDRA_API virtual ~DeviceManager() = default;
+            HYDRA_API bool CreateDevice(const DeviceDesc& desc);
+            HYDRA_API bool CreateInstance(const DeviceInstanceDesc& desc);
+            virtual SwapChain* CreateSwapChain(const SwapChainDesc& swapChainDesc, void* windowHandle) = 0;
+            virtual bool EnumerateAdapters(std::vector<AdapterInfo>& outAdapters) = 0;
+            virtual nvrhi::IDevice* GetDevice() const = 0;
+            virtual const char* GetRendererString() const = 0;
+            virtual bool CreateInstanceInternal() = 0;
+            virtual bool CreateDevice() = 0;
+            virtual void ReportLiveObjects() {}
+
+#if NVRHI_HAS_VULKAN
+
+            virtual bool IsVulkanInstanceExtensionEnabled(const char* extensionName) const { return false; }
+            virtual bool IsVulkanDeviceExtensionEnabled(const char* extensionName) const { return false; }
+            virtual bool IsVulkanLayerEnabled(const char* layerName) const { return false; }
+            virtual void GetEnabledVulkanInstanceExtensions(std::vector<std::string>& extensions) const {}
+            virtual void GetEnabledVulkanDeviceExtensions(std::vector<std::string>& extensions) const {}
+            virtual void GetEnabledVulkanLayers(std::vector<std::string>& layers) const {}
+#endif
+        };
+
+        struct DeviceContext
+        {
+            std::vector<DeviceManager*> managers;
+
+            HYDRA_API ~DeviceContext();
+        };
+
+        HYDRA_API DeviceManager* CreateDeviceManager(const DeviceDesc& desc);
+        HYDRA_API DeviceManager* GetDeviceManager(uint32_t index = 0);
+        HYDRA_API nvrhi::DeviceHandle GetDevice(uint32_t index = 0);
+        HYDRA_API void TryCreateDefaultDevice();
+
+#if NVRHI_HAS_D3D11
+        HYDRA_API DeviceManager* CreateD3D11();
+#endif
+#if NVRHI_HAS_D3D12
+        HYDRA_API DeviceManager* CreateD3D12();
+#endif
+#if NVRHI_HAS_VULKAN
+
+        HYDRA_API DeviceManager* CreateVULKAN();
+#endif
+
+        struct StaticShader
+        {
+            Buffer dxbc;
+            Buffer dxil;
+            Buffer spirv;
+        };
+
+        struct ShaderMacro
+        {
+            std::string_view name;
+            std::string_view definition;
+        };
+
+        HYDRA_API nvrhi::ShaderHandle CreateStaticShader(nvrhi::IDevice* device, StaticShader staticShader, const std::vector<ShaderMacro>* pDefines, const nvrhi::ShaderDesc& desc);
+        HYDRA_API nvrhi::ShaderLibraryHandle CreateShaderLibrary(nvrhi::IDevice* device, StaticShader staticShader, const std::vector<ShaderMacro>* pDefines);
+    }
+
 
     //////////////////////////////////////////////////////////////////////////
     // Modules
@@ -1345,7 +1339,7 @@ export namespace HE {
     struct ApplicationDesc
     {
         WindowDesc windowDesc;
-        DeviceDesc deviceDesc;
+        RHI::DeviceDesc deviceDesc;
         ApplicationCommandLineArgs commandLineArgs;
         std::filesystem::path workingDirectory;
         bool createDefaultDevice = true;
@@ -1405,9 +1399,7 @@ export namespace HE {
         HYDRA_API const ApplicationDesc& GetApplicationDesc();
         HYDRA_API float GetAverageFrameTimeSeconds();
         HYDRA_API float GetLastFrameTimestamp();
-        HYDRA_API void  SetFrameTimeUpdateInterval(float seconds);
-        HYDRA_API void SetVSync(bool enabled);
-        HYDRA_API bool IsVSync();
+        HYDRA_API void SetFrameTimeUpdateInterval(float seconds);
         HYDRA_API Window& GetWindow();
     }
 

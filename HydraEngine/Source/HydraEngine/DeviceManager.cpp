@@ -8,7 +8,66 @@ module HE;
 import nvrhi;
 import std;
 
+
 namespace HE {
+
+    //////////////////////////////////////////////////////////////////
+    //// SwapChain
+    //////////////////////////////////////////////////////////////////
+    
+    void SwapChain::BackBufferResizing()
+    {
+        HE_PROFILE_FUNCTION();
+
+        swapChainFramebuffers.clear();
+    }
+
+    void SwapChain::BackBufferResized()
+    {
+        HE_PROFILE_FUNCTION();
+
+        uint32_t backBufferCount = GetBackBufferCount();
+        swapChainFramebuffers.resize(backBufferCount);
+        for (uint32_t index = 0; index < backBufferCount; index++)
+        {
+            nvrhi::ITexture* texture = GetBackBuffer(index);
+            nvrhi::FramebufferDesc& desc = nvrhi::FramebufferDesc().addColorAttachment(texture);
+            swapChainFramebuffers[index] = nvrhiDevice->createFramebuffer(desc);
+        }
+    }
+
+    void SwapChain::UpdateSize()
+    {
+        HE_PROFILE_FUNCTION();
+
+        int height, width;
+        glfwGetWindowSize((GLFWwindow*)windowHandle, &width, &height);
+        if (width == 0 || height == 0)
+            return;
+
+        if (int(desc.backBufferWidth) != width || int(desc.backBufferHeight) != height || (desc.vsync != isVSync && nvrhiDevice->getGraphicsAPI() == nvrhi::GraphicsAPI::VULKAN))
+        {
+            BackBufferResizing();
+
+            isVSync = desc.vsync;
+
+            ResizeSwapChain(width, height);
+            BackBufferResized();
+        }
+    }
+
+    nvrhi::IFramebuffer* SwapChain::GetCurrentFramebuffer()
+    {
+        return GetFramebuffer(GetCurrentBackBufferIndex());
+    }
+
+    nvrhi::IFramebuffer* SwapChain::GetFramebuffer(uint32_t index)
+    {
+        if (index < swapChainFramebuffers.size())
+            return swapChainFramebuffers[index];
+
+        return nullptr;
+    }
 
     namespace RHI {
 
@@ -21,34 +80,100 @@ namespace HE {
                 if (dm)
                 {
                     dm->GetDevice()->waitForIdle();
-                    dm->Shutdown();
                     delete dm;
                 }
             }
         }
 
-        void DeviceContext::TryCreateDefaultDevice()
+        DeviceManager* CreateDeviceManager(const DeviceDesc& desc)
         {
             HE_PROFILE_FUNCTION();
 
             auto& c = GetAppContext();
-            auto& dm = c.deviceContext.managers.emplace_back();
+            auto& managers = c.deviceContext.managers;
+
+            DeviceManager* dm = nullptr;
+
+            for (size_t i = 0; i < desc.api.size(); i++)
+            {
+                auto api = desc.api[i];
+
+                if (api == nvrhi::GraphicsAPI(-1))
+                    continue;
+
+                HE_CORE_INFO("Trying to create backend API: {}", nvrhi::utils::GraphicsAPIToString(api));
+
+                switch (api)
+                {
+#if NVRHI_HAS_D3D11
+                case nvrhi::GraphicsAPI::D3D11:  dm = CreateD3D11(); break;
+#endif
+#if NVRHI_HAS_D3D12
+                case nvrhi::GraphicsAPI::D3D12:  dm = CreateD3D12(); break;
+#endif
+#if NVRHI_HAS_VULKAN
+                case nvrhi::GraphicsAPI::VULKAN: dm = CreateVULKAN(); break;
+#endif
+                }
+
+                if (dm)
+                {
+                    if (dm->CreateDevice(desc))
+                    {
+                        managers.push_back(dm);
+                        break;
+                    }
+
+                    delete dm;
+                }
+
+                HE_CORE_ERROR("Failed to create backend API: {}", nvrhi::utils::GraphicsAPIToString(api));
+            }
+
+            return dm;
+        }
+
+        DeviceManager* GetDeviceManager(uint32_t index)
+        {
+            auto& managers = GetAppContext().deviceContext.managers;
+
+            if (index < managers.size() && managers.size() >= 1)
+                return managers[index];
+
+            return nullptr;
+        }
+
+        nvrhi::DeviceHandle GetDevice(uint32_t index)
+        {
+            auto& managers = GetAppContext().deviceContext.managers;
+
+            if (index < managers.size() && managers.size() >= 1)
+                return managers[index]->GetDevice();
+
+            return {};
+        }
+
+        void TryCreateDefaultDevice()
+        {
+            HE_PROFILE_FUNCTION();
+
+            auto& c = GetAppContext();
 
             auto deviceDesc = c.applicatoinDesc.deviceDesc;
-            auto windowDesc = c.applicatoinDesc.windowDesc;
             size_t apiCount = deviceDesc.api.size();
+
             if (deviceDesc.api[0] == nvrhi::GraphicsAPI(-1))
             {
 #ifdef HE_PLATFORM_WINDOWS
                 deviceDesc.api = {
+            #if NVRHI_HAS_D3D11
+                    nvrhi::GraphicsAPI::D3D11,
+            #endif
             #if NVRHI_HAS_D3D12
                     nvrhi::GraphicsAPI::D3D12,
             #endif
             #if NVRHI_HAS_VULKAN
-                    nvrhi::GraphicsAPI::VULKAN,
-            #endif
-            #if NVRHI_HAS_D3D11
-                    nvrhi::GraphicsAPI::D3D11
+                    nvrhi::GraphicsAPI::VULKAN
             #endif
                 };
 #else
@@ -57,59 +182,13 @@ namespace HE {
                 apiCount = deviceDesc.api.size();
             }
 
-            for (size_t i = 0; i < apiCount; i++)
-            {
-                auto api = deviceDesc.api[i];
-
-                if (api == nvrhi::GraphicsAPI(-1))
-                    continue;
-
-                HE_CORE_INFO("Trying to create backend API: {}", nvrhi::utils::GraphicsAPIToString(api));
-
-                dm = DeviceManager::Create(api);
-                if (dm)
-                {
-                    bool deviceCreated = false;
-                    if (deviceDesc.headlessDevice)
-                        deviceCreated = dm->CreateHeadlessDevice(deviceDesc);
-                    else
-                        deviceCreated = dm->CreateWindowDeviceAndSwapChain(deviceDesc, { windowDesc.fullScreen, windowDesc.maximized }, c.mainWindow.handle);
-
-                    if (deviceCreated)
-                        break;
-
-                    dm->Shutdown();
-                    delete dm;
-                }
-
-                HE_CORE_ERROR("Failed to create backend API: {}", nvrhi::utils::GraphicsAPIToString(api));
-            }
+            DeviceManager* dm = CreateDeviceManager(deviceDesc);
 
             if (!dm)
             {
                 HE_CORE_CRITICAL("No graphics backend could be initialized!");
                 std::exit(1);
             }
-        }
-
-        DeviceManager* GetDeviceManager(uint32_t index) 
-        { 
-            auto& managers = GetAppContext().deviceContext.managers;
-            
-            if(index < managers.size() && managers.size() >= 1)
-                return managers[index];
-
-            return nullptr;
-        }
-
-        nvrhi::DeviceHandle GetDevice(uint32_t index) 
-        {
-            auto& managers = GetAppContext().deviceContext.managers;
-
-            if(index < managers.size() && managers.size() >= 1)
-                return managers[index]->GetDevice();
-
-            return {};
         }
 
         nvrhi::ShaderHandle CreateStaticShader(nvrhi::IDevice* device, StaticShader staticShader, const std::vector<ShaderMacro>* pDefines, const nvrhi::ShaderDesc& desc)
@@ -128,7 +207,7 @@ namespace HE {
 
             const void* permutationBytecode = buffer.data;
             size_t permutationSize = buffer.size;
-            
+
             if (pDefines)
             {
                 std::vector<ShaderMake::ShaderConstant> constants;
@@ -183,189 +262,52 @@ namespace HE {
 
             return shader;
         }
-    }
 
-    bool DeviceManager::CreateInstance(const DeviceInstanceDesc& desc)
-    {
-        HE_PROFILE_FUNCTION();
+        bool DeviceManager::CreateInstance(const DeviceInstanceDesc& pDesc)
+        {
+            HE_PROFILE_FUNCTION();
 
-        if (m_InstanceCreated)
+            if (instanceCreated)
+                return true;
+
+            static_cast<DeviceInstanceDesc&>(desc) = pDesc;
+
+            instanceCreated = CreateInstanceInternal();
+            return instanceCreated;
+        }
+
+        bool DeviceManager::CreateDevice(const DeviceDesc& pDesc)
+        {
+            HE_PROFILE_FUNCTION();
+
+            desc = pDesc;
+
+            if (!CreateInstance(desc))
+                return false;
+
+            if (!CreateDevice())
+                return false;
+
+            HE_CORE_INFO("[Backend API] : {}", nvrhi::utils::GraphicsAPIToString(GetDevice()->getGraphicsAPI()));
+
             return true;
-
-        static_cast<DeviceInstanceDesc&>(m_DeviceDesc) = desc;
-
-        m_InstanceCreated = CreateInstanceInternal();
-        return m_InstanceCreated;
-    }
-
-    bool DeviceManager::CreateHeadlessDevice(const DeviceDesc& desc)
-    {
-        HE_PROFILE_FUNCTION();
-
-        m_DeviceDesc = desc;
-
-        if (!CreateInstance(m_DeviceDesc))
-            return false;
-
-        if (!CreateDevice())
-            return false;
-
-        HE_CORE_INFO("[Backend API] : {}", nvrhi::utils::GraphicsAPIToString(GetDevice()->getGraphicsAPI()));
-
-        return true;
-    }
-
-    bool DeviceManager::CreateWindowDeviceAndSwapChain(const DeviceDesc& desc, WindowState windowState, void* windowHandle)
-    {
-        HE_PROFILE_FUNCTION();
-
-        m_Window = windowHandle;
-        HE_CORE_VERIFY(m_Window, "invalid window handle");
-
-        m_DeviceDesc = desc;
-        m_RequestedVSync = desc.vsyncEnabled;
-
-        if (!CreateInstance(m_DeviceDesc))
-            return false;
-
-        {
-            int fbWidth = 0, fbHeight = 0;
-            glfwGetFramebufferSize((GLFWwindow*)m_Window, &fbWidth, &fbHeight);
-            m_DeviceDesc.backBufferWidth = fbWidth;
-            m_DeviceDesc.backBufferHeight = fbHeight;
         }
 
-        if (!CreateDevice())
-            return false;
-
-        HE_CORE_INFO("[Backend API] : {}", nvrhi::utils::GraphicsAPIToString(GetDevice()->getGraphicsAPI()));
-
-
-        if (!CreateSwapChain(windowState))
-            return false;
-
-        m_DeviceDesc.backBufferWidth = 0;
-        m_DeviceDesc.backBufferHeight = 0;
-        UpdateWindowSize();
-
-        return true;
-    }
-
-    void DeviceManager::BackBufferResizing()
-    {
-        HE_PROFILE_FUNCTION();
-
-        m_SwapChainFramebuffers.clear();
-    }
-
-    void DeviceManager::BackBufferResized()
-    {
-        HE_PROFILE_FUNCTION();
-
-        uint32_t backBufferCount = GetBackBufferCount();
-        m_SwapChainFramebuffers.resize(backBufferCount);
-        for (uint32_t index = 0; index < backBufferCount; index++)
+        DefaultMessageCallback& DefaultMessageCallback::GetInstance()
         {
-            nvrhi::ITexture* texture = GetBackBuffer(index);
-            nvrhi::FramebufferDesc& desc = nvrhi::FramebufferDesc().addColorAttachment(texture);
-            m_SwapChainFramebuffers[index] = GetDevice()->createFramebuffer(desc);
-        }
-    }
-
-    void DeviceManager::PresentResult()
-    {
-        HE_PROFILE_FUNCTION();
-
-        Present();
-        GetDevice()->runGarbageCollection();
-    }
-
-    void DeviceManager::UpdateWindowSize()
-    {
-        HE_PROFILE_FUNCTION();
-
-        int width;
-        int height;
-        glfwGetWindowSize((GLFWwindow*)m_Window, &width, &height);
-        if (width == 0 || height == 0)
-            return;
-
-        if (
-            int(m_DeviceDesc.backBufferWidth) != width ||
-            int(m_DeviceDesc.backBufferHeight) != height ||
-            (m_DeviceDesc.vsyncEnabled != m_RequestedVSync && GetGraphicsAPI() == nvrhi::GraphicsAPI::VULKAN)
-        )
-        {
-            BackBufferResizing();
-
-            m_DeviceDesc.backBufferWidth = width;
-            m_DeviceDesc.backBufferHeight = height;
-            m_DeviceDesc.vsyncEnabled = m_RequestedVSync;
-
-            ResizeSwapChain();
-            BackBufferResized();
+            static DefaultMessageCallback Instance;
+            return Instance;
         }
 
-        m_DeviceDesc.vsyncEnabled = m_RequestedVSync;
-    }
-
-    void DeviceManager::Shutdown()
-    {
-        HE_PROFILE_FUNCTION();
-
-        m_SwapChainFramebuffers.clear();
-        DestroyDeviceAndSwapChain();
-        m_InstanceCreated = false;
-    }
-
-    nvrhi::IFramebuffer* DeviceManager::GetCurrentFramebuffer()
-    {
-        return GetFramebuffer(GetCurrentBackBufferIndex());
-    }
-
-    nvrhi::IFramebuffer* DeviceManager::GetFramebuffer(uint32_t index)
-    {
-        if (index < m_SwapChainFramebuffers.size())
-            return m_SwapChainFramebuffers[index];
-
-        return nullptr;
-    }
-
-    DeviceManager* DeviceManager::Create(nvrhi::GraphicsAPI api)
-    {
-        HE_PROFILE_FUNCTION();
-
-        switch (api)
+        void DefaultMessageCallback::message(nvrhi::MessageSeverity severity, const char* messageText)
         {
-#if NVRHI_HAS_D3D11
-        case nvrhi::GraphicsAPI::D3D11:  return CreateD3D11();
-#endif
-#if NVRHI_HAS_D3D12
-        case nvrhi::GraphicsAPI::D3D12:  return CreateD3D12();
-#endif
-#if NVRHI_HAS_VULKAN
-        case nvrhi::GraphicsAPI::VULKAN: return CreateVULKAN();
-#endif
-        }
-
-        HE_CORE_ERROR("[DeviceManager::Create] : Failed to create backend API: {}", nvrhi::utils::GraphicsAPIToString(api));
-        return nullptr;
-    }
-
-    DefaultMessageCallback& DefaultMessageCallback::GetInstance()
-    {
-        static DefaultMessageCallback Instance;
-        return Instance;
-    }
-
-    void DefaultMessageCallback::message(nvrhi::MessageSeverity severity, const char* messageText)
-    {
-        switch (severity)
-        {
-        case nvrhi::MessageSeverity::Info:    HE_CORE_INFO("[DeviceManager] : {}", messageText); break;
-        case nvrhi::MessageSeverity::Warning: HE_CORE_WARN("[DeviceManager] : {}", messageText); break;
-        case nvrhi::MessageSeverity::Error:   HE_CORE_ERROR("[DeviceManager] : {}", messageText); break;
-        case nvrhi::MessageSeverity::Fatal:   HE_CORE_CRITICAL("[DeviceManager] : {}", messageText); break;
+            switch (severity)
+            {
+            case nvrhi::MessageSeverity::Info:    HE_CORE_INFO("[DeviceManager] : {}", messageText); break;
+            case nvrhi::MessageSeverity::Warning: HE_CORE_WARN("[DeviceManager] : {}", messageText); break;
+            case nvrhi::MessageSeverity::Error:   HE_CORE_ERROR("[DeviceManager] : {}", messageText); break;
+            case nvrhi::MessageSeverity::Fatal:   HE_CORE_CRITICAL("[DeviceManager] : {}", messageText); break;
+            }
         }
     }
 }
