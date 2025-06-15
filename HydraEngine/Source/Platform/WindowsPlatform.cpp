@@ -176,6 +176,8 @@ HE::SwapChain* DX11DeviceManager::CreateSwapChain(const HE::SwapChainDesc& swapC
         return nullptr;
     }
 
+    dx11SwapChain->ResizeBackBuffers();
+
     return dx11SwapChain;
 }
 
@@ -341,6 +343,7 @@ void DX11SwapChain::ResizeSwapChain(uint32_t width, uint32_t height)
 {
     HE_PROFILE_FUNCTION();
 
+    ResetBackBuffers();
     ReleaseRenderTarget();
 
     if (!swapChain)
@@ -371,6 +374,8 @@ void DX11SwapChain::ResizeSwapChain(uint32_t width, uint32_t height)
     {
         HE_CORE_CRITICAL("CreateRenderTarget failed");
     }
+
+    ResizeBackBuffers();
 }
 
 bool DX11SwapChain::BeginFrame()
@@ -382,12 +387,8 @@ bool DX11SwapChain::BeginFrame()
     {
         if (swapChainDesc.Windowed != newSwapChainDesc.Windowed)
         {
-            BackBufferResizing();
-
             swapChainDesc = newSwapChainDesc;
-
             ResizeSwapChain(desc.backBufferWidth, desc.backBufferHeight);
-            BackBufferResized();
         }
     }
 
@@ -601,6 +602,8 @@ HE::SwapChain* DX12DeviceManager::CreateSwapChain(const HE::SwapChainDesc& swapC
     {
         dx12SwapChain->frameFenceEvents.push_back(CreateEvent(nullptr, false, true, nullptr));
     }
+
+    dx12SwapChain->ResizeBackBuffers();
 
     return dx12SwapChain;
 }
@@ -880,6 +883,7 @@ void DX12SwapChain::ResizeSwapChain(uint32_t width, uint32_t height)
 {
     HE_PROFILE_FUNCTION();
 
+    ResetBackBuffers();
     ReleaseRenderTargets();
 
     if (!nvrhiDevice)
@@ -913,6 +917,8 @@ void DX12SwapChain::ResizeSwapChain(uint32_t width, uint32_t height)
     {
         HE_CORE_ERROR("CreateRenderTarget failed");
     }
+
+    ResizeBackBuffers();
 }
 
 nvrhi::ITexture* DX12SwapChain::GetBackBuffer(uint32_t index)
@@ -932,13 +938,10 @@ bool DX12SwapChain::BeginFrame()
     {
         if (fullScreenDesc.Windowed != newFullScreenDesc.Windowed)
         {
-            BackBufferResizing();
-
             fullScreenDesc = newFullScreenDesc;
             swapChainDesc = newSwapChainDesc;
 
             ResizeSwapChain(newSwapChainDesc.Width, newSwapChainDesc.Height);
-            BackBufferResized();
         }
     }
 

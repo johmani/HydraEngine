@@ -246,7 +246,6 @@ namespace HE {
         if (!applicatoinDesc.deviceDesc.headlessDevice)
         {
             mainWindow.swapChain = RHI::GetDeviceManager()->CreateSwapChain(mainWindow.desc.swapChainDesc, mainWindow.handle);
-            mainWindow.swapChain->BackBufferResized();
         }
     }
 }

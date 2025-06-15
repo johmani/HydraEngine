@@ -917,8 +917,9 @@ export namespace HE {
         HYDRA_API nvrhi::IFramebuffer* GetCurrentFramebuffer();
         HYDRA_API nvrhi::IFramebuffer* GetFramebuffer(uint32_t index);
         HYDRA_API void UpdateSize();
-        HYDRA_API void BackBufferResizing();
-        HYDRA_API void BackBufferResized();
+
+        HYDRA_API void ResetBackBuffers();
+        HYDRA_API void ResizeBackBuffers();
 
         virtual nvrhi::ITexture* GetCurrentBackBuffer() = 0;
         virtual nvrhi::ITexture* GetBackBuffer(uint32_t index) = 0;

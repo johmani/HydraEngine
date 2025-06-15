@@ -15,14 +15,14 @@ namespace HE {
     //// SwapChain
     //////////////////////////////////////////////////////////////////
     
-    void SwapChain::BackBufferResizing()
+    void SwapChain::ResetBackBuffers()
     {
         HE_PROFILE_FUNCTION();
 
         swapChainFramebuffers.clear();
     }
 
-    void SwapChain::BackBufferResized()
+    void SwapChain::ResizeBackBuffers()
     {
         HE_PROFILE_FUNCTION();
 
@@ -47,12 +47,9 @@ namespace HE {
 
         if (int(desc.backBufferWidth) != width || int(desc.backBufferHeight) != height || (desc.vsync != isVSync && nvrhiDevice->getGraphicsAPI() == nvrhi::GraphicsAPI::VULKAN))
         {
-            BackBufferResizing();
-
             isVSync = desc.vsync;
 
             ResizeSwapChain(width, height);
-            BackBufferResized();
         }
     }
 

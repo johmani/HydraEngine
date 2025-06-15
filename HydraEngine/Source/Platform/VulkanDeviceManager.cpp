@@ -233,6 +233,8 @@ HE::SwapChain* VKDeviceManager::CreateSwapChain(const HE::SwapChainDesc& swapCha
         }
     }
 
+    vkSwapChain->ResizeBackBuffers();
+
     return vkSwapChain;
 }
 
@@ -1261,6 +1263,8 @@ bool VKSwapChain::CreateSwapChain(const HE::SwapChainDesc& swapChainDesc, uint32
     }
 
     swapChainIndex = 0;
+    
+    ResizeBackBuffers();
 
     return true;
 }
@@ -1290,11 +1294,13 @@ void VKSwapChain::ResizeSwapChain(uint32_t width, uint32_t height)
 {
     HE_PROFILE_FUNCTION();
 
-    Reset();
-    CreateSwapChain(desc, width, height);
-
     desc.backBufferWidth = width;
     desc.backBufferHeight = height;
+
+    ResetBackBuffers();
+    Reset();
+    CreateSwapChain(desc, width, height);
+    ResizeBackBuffers();
 }
 
 bool VKSwapChain::BeginFrame()
@@ -1312,11 +1318,8 @@ bool VKSwapChain::BeginFrame()
 
         if (res == vk::Result::eErrorOutOfDateKHR && attempt < maxAttempts)
         {
-            BackBufferResizing();
             auto surfaceCaps = vkDeviceManager->vulkanPhysicalDevice.getSurfaceCapabilitiesKHR(windowSurface);
-
             ResizeSwapChain(surfaceCaps.currentExtent.width, surfaceCaps.currentExtent.height);
-            BackBufferResized();
         }
         else
         {
