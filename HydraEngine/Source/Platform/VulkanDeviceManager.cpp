@@ -589,6 +589,7 @@ bool VKDeviceManager::CreateDevice()
     deviceDesc.deviceExtensions = vecDeviceExt.data();
     deviceDesc.numDeviceExtensions = vecDeviceExt.size();
     deviceDesc.bufferDeviceAddressSupported = m_BufferDeviceAddressSupported;
+    deviceDesc.logBufferLifetime = desc.logBufferLifetime;
 
     nvrhiDevice = nvrhi::vulkan::createDevice(deviceDesc);
 

@@ -990,6 +990,8 @@ export namespace HE {
             bool enableWarningsAsErrors = false;
             bool enableGPUValidation = false; // DX12 only 
             bool headlessDevice = false;
+            bool logBufferLifetime = false;
+            bool enableHeapDirectlyIndexed = false; // Allows ResourceDescriptorHeap on DX12
 
 #if NVRHI_HAS_VULKAN
             std::string vulkanLibraryName;
