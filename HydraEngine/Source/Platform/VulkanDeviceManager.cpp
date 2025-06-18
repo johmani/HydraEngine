@@ -95,7 +95,6 @@ struct VKDeviceManager : public HE::RHI::DeviceManager
     vk::PhysicalDevice vulkanPhysicalDevice;
     nvrhi::vulkan::DeviceHandle nvrhiDevice;
     nvrhi::DeviceHandle validationLayer;
-    bool m_BufferDeviceAddressSupported = false;
     vk::Device device;
     vk::Queue graphicsQueue;
     vk::Queue computeQueue;
@@ -105,7 +104,7 @@ struct VKDeviceManager : public HE::RHI::DeviceManager
     int computeQueueFamily = -1;
     int transferQueueFamily = -1;
     int presentQueueFamily = -1;
-
+    bool bufferDeviceAddressSupported = false;
     bool swapChainMutableFormatSupported = false;
     HE::Window* tempWindow = nullptr;
 
@@ -588,7 +587,8 @@ bool VKDeviceManager::CreateDevice()
     deviceDesc.numInstanceExtensions = vecInstanceExt.size();
     deviceDesc.deviceExtensions = vecDeviceExt.data();
     deviceDesc.numDeviceExtensions = vecDeviceExt.size();
-    deviceDesc.bufferDeviceAddressSupported = m_BufferDeviceAddressSupported;
+    deviceDesc.bufferDeviceAddressSupported = bufferDeviceAddressSupported;
+    deviceDesc.vulkanLibraryName = desc.vulkanLibraryName;
     deviceDesc.logBufferLifetime = desc.logBufferLifetime;
 
     nvrhiDevice = nvrhi::vulkan::createDevice(deviceDesc);
@@ -1100,7 +1100,7 @@ bool VKDeviceManager::CreateDeviceImp()
     VULKAN_HPP_DEFAULT_DISPATCHER.init(device);
 
     // remember the bufferDeviceAddress feature enablement
-    m_BufferDeviceAddressSupported = vulkan12features.bufferDeviceAddress;
+    bufferDeviceAddressSupported = vulkan12features.bufferDeviceAddress;
 
     HE_CORE_INFO("Created device: {}", rendererString.c_str());
 
