@@ -836,8 +836,8 @@ bool DX12DeviceManager::CreateDevice()
     deviceDesc.pGraphicsCommandQueue = graphicsQueue;
     deviceDesc.pComputeCommandQueue = computeQueue;
     deviceDesc.pCopyCommandQueue = copyQueue;
-    deviceDesc.logBufferLifetime = m_DeviceParams.logBufferLifetime;
-    deviceDesc.enableHeapDirectlyIndexed = m_DeviceParams.enableHeapDirectlyIndexed;
+    deviceDesc.logBufferLifetime = desc.logBufferLifetime;
+    deviceDesc.enableHeapDirectlyIndexed = desc.enableHeapDirectlyIndexed;
 
     nvrhiDevice = nvrhi::d3d12::createDevice(deviceDesc);
 
