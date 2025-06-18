@@ -149,7 +149,6 @@ struct VKSwapChain : public HE::SwapChain
     std::vector<vk::Semaphore> acquireSemaphores;
     std::vector<vk::Semaphore> presentSemaphores;
     uint32_t acquireSemaphoreIndex = 0;
-    uint32_t presentSemaphoreIndex = 0;
     std::queue<nvrhi::EventQueryHandle> framesInFlight;
     std::vector<nvrhi::EventQueryHandle> queryPool;
     VKDeviceManager* vkDeviceManager = nullptr;
@@ -222,14 +221,20 @@ HE::SwapChain* VKDeviceManager::CreateSwapChain(const HE::SwapChainDesc& swapCha
     if (!vkSwapChain->CreateSwapChain(swapChainDesc, w, h))
         return nullptr;
 
+
+    size_t const numPresentSemaphores = vkSwapChain->swapChainImages.size();
+    vkSwapChain->presentSemaphores.reserve(numPresentSemaphores);
+    for (uint32_t i = 0; i < numPresentSemaphores; ++i)
     {
-        vkSwapChain->presentSemaphores.reserve(swapChainDesc.maxFramesInFlight + 1);
-        vkSwapChain->acquireSemaphores.reserve(swapChainDesc.maxFramesInFlight + 1);
-        for (uint32_t i = 0; i < swapChainDesc.maxFramesInFlight + 1; ++i)
-        {
-            vkSwapChain->presentSemaphores.push_back(device.createSemaphore(vk::SemaphoreCreateInfo()));
-            vkSwapChain->acquireSemaphores.push_back(device.createSemaphore(vk::SemaphoreCreateInfo()));
-        }
+        vkSwapChain->presentSemaphores.push_back(device.createSemaphore(vk::SemaphoreCreateInfo()));
+    }
+
+    size_t const numAcquireSemaphores = std::max(size_t(vkSwapChain->desc.maxFramesInFlight), vkSwapChain->swapChainImages.size());
+
+    vkSwapChain->acquireSemaphores.reserve(numAcquireSemaphores);
+    for (uint32_t i = 0; i < numAcquireSemaphores; ++i)
+    {
+        vkSwapChain->acquireSemaphores.push_back(device.createSemaphore(vk::SemaphoreCreateInfo()));
     }
 
     vkSwapChain->ResizeBackBuffers();
@@ -1317,7 +1322,7 @@ bool VKSwapChain::BeginFrame()
     {
         res = vkDeviceManager->device.acquireNextImageKHR(swapChain, std::numeric_limits<uint64_t>::max()/*timeout*/, semaphore, vk::Fence(), &swapChainIndex);
 
-        if (res == vk::Result::eErrorOutOfDateKHR && attempt < maxAttempts)
+        if ((res == vk::Result::eErrorOutOfDateKHR || res == vk::Result::eSuboptimalKHR) && attempt < maxAttempts)
         {
             auto surfaceCaps = vkDeviceManager->vulkanPhysicalDevice.getSurfaceCapabilitiesKHR(windowSurface);
             ResizeSwapChain(surfaceCaps.currentExtent.width, surfaceCaps.currentExtent.height);
@@ -1330,7 +1335,7 @@ bool VKSwapChain::BeginFrame()
 
     acquireSemaphoreIndex = (acquireSemaphoreIndex + 1) % acquireSemaphores.size();
 
-    if (res == vk::Result::eSuccess)
+    if (res == vk::Result::eSuccess || res == vk::Result::eSuboptimalKHR) // Suboptimal is considered a success
     {
         // Schedule the wait. The actual wait operation will be submitted when the app executes any command list.
 
@@ -1345,7 +1350,7 @@ bool VKSwapChain::Present()
 {
     HE_PROFILE_FUNCTION();
 
-    const auto& semaphore = presentSemaphores[presentSemaphoreIndex];
+    const auto& semaphore = presentSemaphores[swapChainIndex];
 
     vkDeviceManager->nvrhiDevice->queueSignalSemaphore(nvrhi::CommandQueue::Graphics, semaphore, 0);
 
@@ -1361,9 +1366,9 @@ bool VKSwapChain::Present()
         .setPImageIndices(&swapChainIndex);
 
     const vk::Result res = vkDeviceManager->presentQueue.presentKHR(&info);
-    HE_CORE_ASSERT(res == vk::Result::eSuccess || res == vk::Result::eErrorOutOfDateKHR);
-
-    presentSemaphoreIndex = (presentSemaphoreIndex + 1) % presentSemaphores.size();
+    
+    if (!(res == vk::Result::eSuccess || res == vk::Result::eErrorOutOfDateKHR || res == vk::Result::eSuboptimalKHR))
+        return false;
 
 #ifndef HE_PLATFORM_WINDOWS
     if (desc.vsync || vkDeviceManager->desc.enableDebugRuntime)
