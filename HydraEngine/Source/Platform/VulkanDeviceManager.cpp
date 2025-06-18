@@ -78,6 +78,7 @@ struct VKDeviceManager : public HE::RHI::DeviceManager
             VK_KHR_SWAPCHAIN_MUTABLE_FORMAT_EXTENSION_NAME,
             VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME,
             VK_NV_MESH_SHADER_EXTENSION_NAME,
+            VK_EXT_MUTABLE_DESCRIPTOR_TYPE_EXTENSION_NAME,
         },
     };
 
@@ -86,7 +87,8 @@ struct VKDeviceManager : public HE::RHI::DeviceManager
         VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME,
         VK_KHR_PIPELINE_LIBRARY_EXTENSION_NAME,
         VK_KHR_RAY_QUERY_EXTENSION_NAME,
-        VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME
+        VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME,
+        VK_NV_CLUSTER_ACCELERATION_STRUCTURE_EXTENSION_NAME
     };
 
     std::string rendererString;
@@ -940,6 +942,8 @@ bool VKDeviceManager::CreateDeviceImp()
     bool storage16BitSupported = false;
     bool synchronization2Supported = false;
     bool maintenance4Supported = false;
+    bool clusterAccelerationStructureSupported = false;
+    bool mutableDescriptorTypeSupported = false;
 
     HE_CORE_INFO("Enabled Vulkan device extensions:");
     for (const auto& ext : enabledExtensions.device)
@@ -968,6 +972,10 @@ bool VKDeviceManager::CreateDeviceImp()
             maintenance4Supported = true;
         else if (ext == VK_KHR_SWAPCHAIN_MUTABLE_FORMAT_EXTENSION_NAME)
             swapChainMutableFormatSupported = true;
+        else if (ext == VK_NV_CLUSTER_ACCELERATION_STRUCTURE_EXTENSION_NAME)
+            clusterAccelerationStructureSupported = true;
+        else if (ext == VK_EXT_MUTABLE_DESCRIPTOR_TYPE_EXTENSION_NAME)
+            mutableDescriptorTypeSupported = true;
     }
 
     void* pNext = nullptr;
@@ -1023,8 +1031,6 @@ bool VKDeviceManager::CreateDeviceImp()
         .setFragmentShaderPixelInterlock(true);
     auto barycentricFeatures = vk::PhysicalDeviceFragmentShaderBarycentricFeaturesKHR()
         .setFragmentShaderBarycentric(true);
-    auto storage16BitFeatures = vk::PhysicalDevice16BitStorageFeatures()
-        .setStorageBuffer16BitAccess(true);
     auto vrsFeatures = vk::PhysicalDeviceFragmentShadingRateFeaturesKHR()
         .setPipelineFragmentShadingRate(true)
         .setPrimitiveFragmentShadingRate(true)
@@ -1032,18 +1038,23 @@ bool VKDeviceManager::CreateDeviceImp()
     auto vulkan13features = vk::PhysicalDeviceVulkan13Features()
         .setSynchronization2(synchronization2Supported)
         .setMaintenance4(maintenance4Features.maintenance4);
+    auto clusterAccelerationStructureFeatures = vk::PhysicalDeviceClusterAccelerationStructureFeaturesNV()
+        .setClusterAccelerationStructure(true);
+    auto mutableDescriptorTypeFeatures = vk::PhysicalDeviceMutableDescriptorTypeFeaturesEXT()
+        .setMutableDescriptorType(true);
 
     pNext = nullptr;
     APPEND_EXTENSION(accelStructSupported, accelStructFeatures)
-        APPEND_EXTENSION(rayPipelineSupported, rayPipelineFeatures)
-        APPEND_EXTENSION(rayQuerySupported, rayQueryFeatures)
-        APPEND_EXTENSION(meshletsSupported, meshletFeatures)
-        APPEND_EXTENSION(vrsSupported, vrsFeatures)
-        APPEND_EXTENSION(interlockSupported, interlockFeatures)
-        APPEND_EXTENSION(barycentricSupported, barycentricFeatures)
-        APPEND_EXTENSION(storage16BitSupported, storage16BitFeatures)
-        APPEND_EXTENSION(physicalDeviceProperties.apiVersion >= VK_API_VERSION_1_3, vulkan13features)
-        APPEND_EXTENSION(physicalDeviceProperties.apiVersion < VK_API_VERSION_1_3 && maintenance4Supported, maintenance4Features);
+    APPEND_EXTENSION(rayPipelineSupported, rayPipelineFeatures)
+    APPEND_EXTENSION(rayQuerySupported, rayQueryFeatures)
+    APPEND_EXTENSION(meshletsSupported, meshletFeatures)
+    APPEND_EXTENSION(vrsSupported, vrsFeatures)
+    APPEND_EXTENSION(interlockSupported, interlockFeatures)
+    APPEND_EXTENSION(barycentricSupported, barycentricFeatures)
+    APPEND_EXTENSION(clusterAccelerationStructureSupported, clusterAccelerationStructureFeatures)
+    APPEND_EXTENSION(mutableDescriptorTypeSupported, mutableDescriptorTypeFeatures)
+    APPEND_EXTENSION(physicalDeviceProperties.apiVersion >= VK_API_VERSION_1_3, vulkan13features)
+    APPEND_EXTENSION(physicalDeviceProperties.apiVersion < VK_API_VERSION_1_3 && maintenance4Supported, maintenance4Features);
 
     auto deviceFeatures = vk::PhysicalDeviceFeatures()
         .setShaderImageGatherExtended(true)
@@ -1055,10 +1066,15 @@ bool VKDeviceManager::CreateDeviceImp()
         .setShaderInt16(true)
         .setFillModeNonSolid(true)
         .setFragmentStoresAndAtomics(true)
-        .setDualSrcBlend(true);
+        .setDualSrcBlend(true)
+        .setVertexPipelineStoresAndAtomics(true)
+        .setShaderInt64(true)
+        .setShaderStorageImageWriteWithoutFormat(true)
+        .setShaderStorageImageReadWithoutFormat(true);
 
     // Add a Vulkan 1.1 structure with default settings to make it easier for apps to modify them
     auto vulkan11features = vk::PhysicalDeviceVulkan11Features()
+        .setStorageBuffer16BitAccess(true)
         .setPNext(pNext);
 
     auto vulkan12features = vk::PhysicalDeviceVulkan12Features()
@@ -1069,6 +1085,8 @@ bool VKDeviceManager::CreateDeviceImp()
         .setTimelineSemaphore(true)
         .setShaderSampledImageArrayNonUniformIndexing(true)
         .setBufferDeviceAddress(bufferDeviceAddressFeatures.bufferDeviceAddress)
+        .setShaderSubgroupExtendedTypes(true)
+        .setScalarBlockLayout(true)
         .setPNext(&vulkan11features);
 
     auto layerVec = stringSetToVector(enabledExtensions.layers);
