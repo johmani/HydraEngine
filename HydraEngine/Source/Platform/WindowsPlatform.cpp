@@ -60,7 +60,7 @@ struct DX11SwapChain : public HE::SwapChain
     uint32_t GetCurrentBackBufferIndex() override           { return 0;                                      }
     uint32_t GetBackBufferCount() override                  { return 1;                                      }
 
-    void Present() override;
+    bool Present() override;
 
     void ResizeSwapChain(uint32_t width, uint32_t height) override;
 
@@ -331,12 +331,14 @@ HE::RHI::DeviceManager* HE::RHI::CreateD3D11() { return new DX11DeviceManager();
 // DX11SwapChain
 //////////////////////////////////////////////////////////////////////////
 
-void DX11SwapChain::Present()
+bool DX11SwapChain::Present()
 {
     HE_PROFILE_FUNCTION();
 
-    swapChain->Present(desc.vsync ? 1 : 0, 0);
+    HRESULT result = swapChain->Present(desc.vsync ? 1 : 0, 0);
     nvrhiDevice->runGarbageCollection();
+
+    return SUCCEEDED(result);
 }
 
 void DX11SwapChain::ResizeSwapChain(uint32_t width, uint32_t height)
@@ -485,7 +487,7 @@ struct DX12SwapChain : public HE::SwapChain
     void ResizeSwapChain(uint32_t width, uint32_t height) override;
     nvrhi::ITexture* GetBackBuffer(uint32_t index) override;
     bool BeginFrame() override;
-    void Present() override;
+    bool Present() override;
     bool CreateRenderTargets(uint32_t width, uint32_t height);
     void ReleaseRenderTargets();
 };
@@ -583,20 +585,32 @@ HE::SwapChain* DX12DeviceManager::CreateSwapChain(const HE::SwapChainDesc& swapC
     }
 
     nvrhi::RefCountPtr<IDXGISwapChain1> pSwapChain1;
-    hr = dxgiFactory2->CreateSwapChainForHwnd(graphicsQueue, hWnd, &dx12SwapChain->swapChainDesc, &dx12SwapChain->fullScreenDesc, nullptr, &pSwapChain1);
-    if ((HRESULT)hr < 0)
-        return nullptr;
+    {
+        HE_PROFILE_SCOPE("dxgiFactory2->CreateSwapChainForHwnd");
 
-    hr = pSwapChain1->QueryInterface(IID_PPV_ARGS(&dx12SwapChain->swapChain));
-    if ((HRESULT)hr < 0)
-        return nullptr;
+        hr = dxgiFactory2->CreateSwapChainForHwnd(graphicsQueue, hWnd, &dx12SwapChain->swapChainDesc, &dx12SwapChain->fullScreenDesc, nullptr, &pSwapChain1);
+        if ((HRESULT)hr < 0)
+            return nullptr;
+    }
+
+    {
+        HE_PROFILE_SCOPE("pSwapChain1->QueryInterface");
+
+        hr = pSwapChain1->QueryInterface(IID_PPV_ARGS(&dx12SwapChain->swapChain));
+        if ((HRESULT)hr < 0)
+            return nullptr;
+    }
 
     if (!dx12SwapChain->CreateRenderTargets(width, height))
         return nullptr;
 
-    hr = device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&dx12SwapChain->frameFence));
-    if ((HRESULT)hr < 0)
-        return nullptr;
+    {
+        HE_PROFILE_SCOPE("device->CreateFence");
+
+        hr = device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&dx12SwapChain->frameFence));
+        if ((HRESULT)hr < 0)
+            return nullptr;
+    }
 
     for (UINT bufferIndex = 0; bufferIndex < dx12SwapChain->swapChainDesc.BufferCount; bufferIndex++)
     {
@@ -952,7 +966,7 @@ bool DX12SwapChain::BeginFrame()
     return true;
 }
 
-void DX12SwapChain::Present()
+bool DX12SwapChain::Present()
 {
     HE_PROFILE_FUNCTION();
 
@@ -962,13 +976,15 @@ void DX12SwapChain::Present()
     if (!desc.vsync && fullScreenDesc.Windowed && tearingSupported)
         presentFlags |= DXGI_PRESENT_ALLOW_TEARING;
 
-    swapChain->Present(desc.vsync ? 1 : 0, presentFlags);
+    HRESULT result = swapChain->Present(desc.vsync ? 1 : 0, presentFlags);
 
     frameFence->SetEventOnCompletion(frameCount, frameFenceEvents[bufferIndex]);
     dx12deviceManager->graphicsQueue->Signal(frameFence, frameCount);
     frameCount++;
 
     nvrhiDevice->runGarbageCollection();
+
+    return SUCCEEDED(result);
 }
 
 bool DX12SwapChain::CreateRenderTargets(uint32_t width, uint32_t height)

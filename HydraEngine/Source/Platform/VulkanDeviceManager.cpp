@@ -161,7 +161,7 @@ struct VKSwapChain : public HE::SwapChain
     void Reset();
     void ResizeSwapChain(uint32_t width, uint32_t height) override;
     bool BeginFrame() override;
-    void Present() override;
+    bool Present() override;
     nvrhi::ITexture* GetCurrentBackBuffer() override { return swapChainImages[swapChainIndex].rhiHandle; }
     nvrhi::ITexture* GetBackBuffer(uint32_t index) override { return (index < swapChainImages.size()) ? swapChainImages[index].rhiHandle : nullptr; }
     uint32_t GetCurrentBackBufferIndex() override { return swapChainIndex; }
@@ -1340,7 +1340,7 @@ bool VKSwapChain::BeginFrame()
     return false;
 }
 
-void VKSwapChain::Present()
+bool VKSwapChain::Present()
 {
     HE_PROFILE_FUNCTION();
 
@@ -1399,4 +1399,6 @@ void VKSwapChain::Present()
     framesInFlight.push(query);
 
     nvrhiDevice->runGarbageCollection();
+
+    return true;
 }

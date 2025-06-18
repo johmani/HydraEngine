@@ -926,7 +926,7 @@ export namespace HE {
         virtual uint32_t GetCurrentBackBufferIndex() = 0;
         virtual uint32_t GetBackBufferCount() = 0;
         virtual void ResizeSwapChain(uint32_t width, uint32_t height) = 0;
-        virtual void Present() = 0;
+        virtual bool Present() = 0;
         virtual bool BeginFrame() = 0;
     };
     
