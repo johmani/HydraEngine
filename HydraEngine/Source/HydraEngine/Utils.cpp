@@ -306,7 +306,7 @@ namespace HE {
         std::ofstream file(filePath);
         if (!file.is_open())
         {
-            HE_ERROR("Unable to open file for writing, {}", filePath.string());
+            HE_ERROR("Input::SerializeKeyBindings : Unable to open file for writing, {}", filePath.string());
         }
 
         std::ostringstream os;
