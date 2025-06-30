@@ -65,6 +65,11 @@ bool HE::FileSystem::Open(const std::filesystem::path& path)
     }
 }
 
+std::filesystem::path HE::FileSystem::GetAppDataPath(const std::string& appName, AppDataType type)
+{
+    NOT_YET_IMPLEMENTED();
+    return {};
+}
 
 void HE::OS::SetEnvVar(const char* var, const char* value)
 {

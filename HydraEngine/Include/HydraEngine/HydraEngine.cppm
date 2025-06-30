@@ -1438,6 +1438,12 @@ export namespace HE {
 
     namespace FileSystem {
 
+        enum class AppDataType
+        {
+            Roaming,
+            Local
+        };
+
         HYDRA_API bool Delete(const std::filesystem::path& path);
         HYDRA_API bool Rename(const std::filesystem::path& oldPath, const std::filesystem::path& newPath);
         HYDRA_API bool Copy(const std::filesystem::path& from, const std::filesystem::path& to, std::filesystem::copy_options options = std::filesystem::copy_options::recursive);
@@ -1448,6 +1454,7 @@ export namespace HE {
         HYDRA_API bool ConvertBinaryToHeader(const std::filesystem::path& inputFileName, const std::filesystem::path& outputFileName, const std::string& arrayName);
         HYDRA_API bool GenerateFileWithReplacements(const std::filesystem::path& input, const std::filesystem::path& output, const std::initializer_list<std::pair<std::string_view, std::string_view>>& replacements);
         HYDRA_API bool ExtractZip(const std::filesystem::path& zipPath, const std::filesystem::path& outputDir);
+        HYDRA_API std::filesystem::path GetAppDataPath(const std::string& appName, AppDataType type = AppDataType::Roaming);
     }
 
     namespace FileDialog {

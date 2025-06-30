@@ -1091,6 +1091,34 @@ bool HE::FileSystem::Open(const std::filesystem::path& path)
     return (INT_PTR)::ShellExecuteW(NULL, L"open", path.c_str(), NULL, NULL, SW_SHOWDEFAULT) > 32;
 }
 
+std::filesystem::path HE::FileSystem::GetAppDataPath(const std::string& appName, AppDataType type)
+{
+    const char* userProfile = std::getenv("USERPROFILE");
+    if (!userProfile) return {};
+    std::filesystem::path base(userProfile);
+
+    std::filesystem::path appDataPath;
+    switch (type)
+    {
+    case AppDataType::Roaming: 
+    {
+        const char* appdata = std::getenv("APPDATA");
+        appDataPath = appdata ? std::filesystem::path(appdata) : (base / "AppData" / "Roaming");
+        break;
+    }
+    case AppDataType::Local: 
+    {
+        const char* localAppData = std::getenv("LOCALAPPDATA");
+        appDataPath = localAppData ? std::filesystem::path(localAppData) : (base / "AppData" / "Local");
+        break;
+    }
+    }
+    appDataPath /= appName;
+
+    std::filesystem::create_directories(appDataPath);
+
+    return appDataPath;
+}
 
 void HE::OS::SetEnvVar(const char* var, const char* value)
 {
