@@ -17,8 +17,24 @@ namespace HE {
 
     Image::Image(const std::filesystem::path& filename, int desiredChannels, bool flipVertically)
     {
+        bool isHDR = filename.extension() == ".hdr";
+
         stbi_set_flip_vertically_on_load(flipVertically);
-        data = stbi_load(filename.string().c_str(), &width, &height, &channels, desiredChannels);
+        
+        if(isHDR)
+        {
+            if (width != height * 2)
+            {
+                HE_CORE_ERROR("{} is not an equirectangular image!", filename.string());
+                return;
+            }
+
+            data = (uint8_t*)stbi_loadf(filename.string().c_str(), &width, &height, &channels, 0);
+        }
+        else
+        {
+            data = stbi_load(filename.string().c_str(), &width, &height, &channels, desiredChannels);
+        }
 
         if (!data)
         {
