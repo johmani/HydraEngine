@@ -41,7 +41,6 @@ struct DX11SwapChain : public HE::SwapChain
     ~DX11SwapChain()
     {
         HE_PROFILE_FUNCTION();
-        HE_TRACE("DestroySwapChain");
 
         rhiBackBuffer = nullptr;
 
