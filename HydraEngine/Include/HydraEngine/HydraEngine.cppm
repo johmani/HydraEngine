@@ -1253,6 +1253,8 @@ export namespace HE {
             std::filesystem::path descFilePath;
             bool enabled = false;		  
 
+            Plugin(PluginDesc pDesc) : desc(pDesc) {}
+
             std::filesystem::path BaseDirectory() const { return descFilePath.parent_path(); }
             std::filesystem::path BinariesDirectory() const { return BaseDirectory() / "Binaries"; }
             std::filesystem::path AssetsDirectory() const { return BaseDirectory() / "Assets"; }
