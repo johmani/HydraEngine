@@ -60,18 +60,18 @@ namespace HE::Plugins {
     {
         HE_PROFILE_FUNCTION();
 
-        auto& c = GetAppContext().pluginContext;
+        auto& ctx = GetAppContext().pluginContext;
 
         PluginDesc desc;
         DeserializePluginDesc(descFilePath, desc);
         PluginHandle handle = Hash(desc.name);
 
-        if (c.plugins.contains(handle))
-            return c.plugins.at(handle);
+        if (ctx.plugins.contains(handle))
+            return ctx.plugins.at(handle);
 
         Ref<Plugin> plugin = CreateRef<Plugin>(desc);
         plugin->descFilePath = descFilePath;
-        c.plugins[handle] = plugin;
+        ctx.plugins[handle] = plugin;
 
         return plugin;
     }
@@ -96,10 +96,10 @@ namespace HE::Plugins {
     {
         HE_PROFILE_FUNCTION();
 
-        auto& c = GetAppContext().pluginContext;
+        auto& ctx = GetAppContext().pluginContext;
 
-        auto it = c.plugins.find(handle);
-        if (it == c.plugins.end()) return;
+        auto it = ctx.plugins.find(handle);
+        if (it == ctx.plugins.end()) return;
 
         Ref<Plugin> plugin = it->second;
         const auto& dependences = plugin->desc.plugins;
@@ -120,9 +120,9 @@ namespace HE::Plugins {
         {
             PluginHandle dependencyPluginHandle = Hash(dependencyPluginName);
 
-            if (c.plugins.contains(dependencyPluginHandle))
+            if (ctx.plugins.contains(dependencyPluginHandle))
             {
-                auto dependencyPlugin = c.plugins.at(dependencyPluginHandle);
+                auto dependencyPlugin = ctx.plugins.at(dependencyPluginHandle);
                 if (!dependencyPlugin->enabled)
                 {
                     LoadPlugin(dependencyPluginHandle);
@@ -146,11 +146,11 @@ namespace HE::Plugins {
     {
         HE_PROFILE_FUNCTION();
 
-        auto& c = GetAppContext().pluginContext;
+        auto& ctx = GetAppContext().pluginContext;
 
-        if (c.plugins.contains(handle))
+        if (ctx.plugins.contains(handle))
         {
-            const Ref<Plugin>& plugin = c.plugins.at(handle);
+            const Ref<Plugin>& plugin = ctx.plugins.at(handle);
             if (plugin->enabled)
             {
                 const auto& modulesNames = plugin->desc.modules;
@@ -185,15 +185,15 @@ namespace HE::Plugins {
     {
         HE_PROFILE_FUNCTION();
 
-        auto& c = GetAppContext().pluginContext;
+        auto& ctx = GetAppContext().pluginContext;
 
         std::filesystem::path pluginDescFilePath;
 
-        if (c.plugins.contains(handle))
-            pluginDescFilePath = c.plugins.at(handle)->descFilePath;
+        if (ctx.plugins.contains(handle))
+            pluginDescFilePath = ctx.plugins.at(handle)->descFilePath;
 
         UnloadPlugin(handle);
-        c.plugins.erase(handle);
+        ctx.plugins.erase(handle);
         LoadPlugin(pluginDescFilePath);
     }
 
@@ -210,7 +210,7 @@ namespace HE::Plugins {
     {
         HE_PROFILE_FUNCTION();
 
-        auto& c = GetAppContext().pluginContext;
+        auto& ctx = GetAppContext().pluginContext;
 
         if (!std::filesystem::exists(directory))
         {
@@ -243,7 +243,7 @@ namespace HE::Plugins {
             for (uint32_t i = 0; i < count; i++)
             {
                 auto handle = discoveredPLugins[i];
-                if (c.plugins.at(handle)->desc.enabledByDefault)
+                if (ctx.plugins.at(handle)->desc.enabledByDefault)
                     LoadPlugin(handle);
             }
         }
