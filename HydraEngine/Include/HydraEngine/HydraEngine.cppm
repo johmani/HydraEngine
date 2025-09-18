@@ -105,31 +105,26 @@ export namespace HE {
         return std::make_shared<T>(std::forward<Args>(args)...);
     }
 
-    class Timestep
+    struct Timestep
     {
-    public:
-        Timestep(float time = 0.0f) : m_Time(time) {}
+        float time;
 
-        operator float() const { return m_Time; }
-
-        float Seconds() const { return m_Time; }
-        float Milliseconds() const { return m_Time * 1000.0f; }
-    private:
-        float m_Time;
+        inline Timestep(float time = 0.0f) : time(time) {}
+        inline operator float() const { return time; }
+        inline float Seconds() const { return time; }
+        inline float Milliseconds() const { return time * 1000.0f; }
     };
     
-    class Timer
+    struct Timer
     {
-    public:
-        Timer() { Reset(); }
-        void Reset() { m_Start = std::chrono::high_resolution_clock::now(); }
-        float ElapsedSeconds() const { return std::chrono::duration_cast<std::chrono::duration<float>>(std::chrono::high_resolution_clock::now() - m_Start).count(); }
-        float ElapsedMilliseconds() const { return (float)std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - m_Start).count(); }
-        float ElapsedMicroseconds() const { return (float)std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - m_Start).count(); }
-        float ElapsedNanoseconds() const { return (float)std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - m_Start).count();  }
+        std::chrono::time_point<std::chrono::high_resolution_clock> start;
 
-    private:
-        std::chrono::time_point<std::chrono::high_resolution_clock> m_Start;
+        inline Timer() { Reset(); }
+        inline void Reset() { start = std::chrono::high_resolution_clock::now(); }
+        inline float ElapsedSeconds() const { return std::chrono::duration_cast<std::chrono::duration<float>>(std::chrono::high_resolution_clock::now() - start).count(); }
+        inline float ElapsedMilliseconds() const { return (float)std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start).count(); }
+        inline float ElapsedMicroseconds() const { return (float)std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - start).count(); }
+        inline float ElapsedNanoseconds() const { return (float)std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - start).count();  }
     };
 
     struct Random
@@ -206,8 +201,8 @@ export namespace HE {
 
         Buffer() = default;
 
-        Buffer(uint64_t size) { Allocate(size); }
-        Buffer(const void* data, uint64_t pSize) : data((uint8_t*)data), size(pSize) {}
+        inline Buffer(uint64_t size) { Allocate(size); }
+        inline Buffer(const void* data, uint64_t pSize) : data((uint8_t*)data), size(pSize) {}
         Buffer(const Buffer&) = default;
 
         static Buffer Copy(Buffer other)
@@ -217,14 +212,14 @@ export namespace HE {
             return result;
         }
 
-        void Allocate(uint64_t pSize)
+        inline void Allocate(uint64_t pSize)
         {
             Release();
             data = (uint8_t*)malloc(pSize);
             size = pSize;
         }
 
-        void Release()
+        inline void Release()
         {
             free(data);
             data = nullptr;
@@ -425,10 +420,10 @@ export namespace HE {
     HYDRA_API constexpr std::string_view ToString(EventCategory code);
     HYDRA_API constexpr EventCategory FromStringToEventCategory(std::string_view code);
 
-#define EVENT_CLASS_TYPE(type)  static EventType GetStaticType() { return EventType::type; }\
-                                virtual EventType GetEventType() const override { return GetStaticType(); }\
-                                virtual const char* GetName() const override { return #type; }
-#define EVENT_CLASS_CATEGORY(category) virtual int GetCategoryFlags() const override { return category; }
+#define EVENT_CLASS_TYPE(type)  inline static EventType GetStaticType() { return EventType::type; }\
+                                inline virtual EventType GetEventType() const override { return GetStaticType(); }\
+                                inline virtual const char* GetName() const override { return #type; }
+#define EVENT_CLASS_CATEGORY(category) inline virtual int GetCategoryFlags() const override { return category; }
 
     struct Event
     {
@@ -441,7 +436,7 @@ export namespace HE {
         virtual int GetCategoryFlags() const = 0;
         virtual std::string ToString() const { return GetName(); }
 
-        bool IsInCategory(EventCategory category) { return GetCategoryFlags() & category; }
+        inline bool IsInCategory(EventCategory category) { return GetCategoryFlags() & category; }
     };
 
     template<typename T, typename F>
@@ -959,8 +954,8 @@ export namespace HE {
         HYDRA_API void Hide();
         HYDRA_API std::pair<float, float> GetWindowContentScale();
         HYDRA_API void UpdateEvent();
-        uint32_t GetWidth() const { return desc.width; }
-        uint32_t GetHeight() const { return desc.height; }
+        inline uint32_t GetWidth() const { return desc.width; }
+        inline uint32_t GetHeight() const { return desc.height; }
     };
 
     //////////////////////////////////////////////////////////////////////////
@@ -1024,7 +1019,7 @@ export namespace HE {
             void* physicalDeviceFeatures2Extensions = nullptr;
 #endif
 
-            DeviceDesc() { api.fill(nvrhi::GraphicsAPI(-1)); }
+            inline DeviceDesc() { api.fill(nvrhi::GraphicsAPI(-1)); }
         };
 
         struct AdapterInfo
@@ -1295,12 +1290,12 @@ export namespace HE {
     public:
         virtual ~Layer() = default;
 
-        virtual void OnAttach() {}
-        virtual void OnDetach() {}
-        virtual void OnEvent(Event& event) {}
-        virtual void OnBegin(const FrameInfo& info) {}
-        virtual void OnUpdate(const FrameInfo& info) {}
-        virtual void OnEnd(const FrameInfo& info) {}
+        inline virtual void OnAttach() {}
+        inline virtual void OnDetach() {}
+        inline virtual void OnEvent(Event& event) {}
+        inline virtual void OnBegin(const FrameInfo& info) {}
+        inline virtual void OnUpdate(const FrameInfo& info) {}
+        inline virtual void OnEnd(const FrameInfo& info) {}
     };
 
     class LayerStack
@@ -1338,7 +1333,7 @@ export namespace HE {
         char** args = nullptr;
         int count = 0;
 
-        const char* operator[](int index) const { HE_CORE_ASSERT(index < count); return args[index]; }
+        inline const char* operator[](int index) const { HE_CORE_ASSERT(index < count); return args[index]; }
     };
 
     struct ApplicationDesc
