@@ -45,7 +45,7 @@ export namespace HE {
 
     namespace Log {
 
-        HYDRA_API void Init(const char* client);
+        HYDRA_API void Init(const std::filesystem::path& client);
         HYDRA_API void Shutdown();
 
         HYDRA_API void CoreTrace(const char* s);
@@ -1344,7 +1344,7 @@ export namespace HE {
         std::filesystem::path workingDirectory;
         bool createDefaultDevice = true;
         uint32_t workersNumber = std::thread::hardware_concurrency() - 1;
-        const char* logFile = "HE";
+        std::filesystem::path logFile = "HE";
     };
 
     struct Stats
