@@ -200,6 +200,11 @@ function LinkHydra(inc, extra)
     includedirs {
 
         "%{IncludeDir.HydraEngine}",
+        "%{IncludeDir.nvrhi}",
+        "%{IncludeDir.glm}",
+        "%{IncludeDir.taskflow}",
+        "%{IncludeDir.tracy}",
+        "%{IncludeDir.magic_enum}",
     }
 
     links {
