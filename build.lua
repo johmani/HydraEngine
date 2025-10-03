@@ -205,6 +205,7 @@ function LinkHydra(inc, extra)
         "%{IncludeDir.taskflow}",
         "%{IncludeDir.tracy}",
         "%{IncludeDir.magic_enum}",
+        "%{IncludeDir.Vulkan_Headers}",
     }
 
     links {

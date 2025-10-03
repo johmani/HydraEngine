@@ -5,22 +5,6 @@ module;
 #include "HydraEngine/Base.h"
 #include <taskflow/taskflow.hpp>
 
-#if defined(NVRHI_HAS_D3D11) | defined(NVRHI_HAS_D3D12)
-    #include <dxgi.h>
-#endif
-
-#if NVRHI_HAS_D3D11
-    #include <d3d11.h>
-#endif
-
-#if NVRHI_HAS_D3D12
-    #include <d3d12.h>
-#endif
-
-#if NVRHI_HAS_VULKAN
-    #include <vulkan/vulkan.h>
-#endif
-
 export module HE;
 
 import std;
@@ -842,7 +826,7 @@ export namespace HE {
         bool vsync = true;
 
 #if NVRHI_HAS_D3D11 || NVRHI_HAS_D3D12
-        DXGI_USAGE swapChainUsage = DXGI_USAGE_SHADER_INPUT | DXGI_USAGE_RENDER_TARGET_OUTPUT;
+        uint32_t swapChainUsage = 0x00000010UL/* DXGI_USAGE_SHADER_INPUT */ | 0x00000020UL /* DXGI_USAGE_RENDER_TARGET_OUTPUT */;
 #endif
     };
 
@@ -1008,14 +992,13 @@ export namespace HE {
             int adapterIndex = -1;
 
 #if NVRHI_HAS_D3D11 || NVRHI_HAS_D3D12
-            D3D_FEATURE_LEVEL featureLevel = D3D_FEATURE_LEVEL_11_1;
+            uint32_t featureLevel = 0xb100 /* D3D_FEATURE_LEVEL_11_1 */;
 #endif
 
 #if NVRHI_HAS_VULKAN
             std::vector<std::string> requiredVulkanDeviceExtensions;
             std::vector<std::string> optionalVulkanDeviceExtensions;
             std::vector<size_t> ignoredVulkanValidationMessageLocations;
-            std::function<void(VkDeviceCreateInfo&)> deviceCreateInfoCallback;
             void* physicalDeviceFeatures2Extensions = nullptr;
 #endif
 
@@ -1035,13 +1018,7 @@ export namespace HE {
             std::optional<UUID> uuid;
             std::optional<LUID> luid;
 
-#if NVRHI_HAS_D3D11 || NVRHI_HAS_D3D12
-            nvrhi::RefCountPtr<IDXGIAdapter> dxgiAdapter;
-#endif
-
-#if NVRHI_HAS_VULKAN
-            VkPhysicalDevice vkPhysicalDevice = nullptr;
-#endif
+            //void* adapter = nullptr;
         };
 
         struct DefaultMessageCallback : public nvrhi::IMessageCallback
@@ -1063,13 +1040,12 @@ export namespace HE {
             virtual SwapChain* CreateSwapChain(const SwapChainDesc& swapChainDesc, void* windowHandle) = 0;
             virtual bool EnumerateAdapters(std::vector<AdapterInfo>& outAdapters) = 0;
             virtual nvrhi::IDevice* GetDevice() const = 0;
-            virtual const char* GetRendererString() const = 0;
+            virtual std::string_view GetRendererString() const = 0;
             virtual bool CreateInstanceInternal() = 0;
             virtual bool CreateDevice() = 0;
             virtual void ReportLiveObjects() {}
 
 #if NVRHI_HAS_VULKAN
-
             virtual bool IsVulkanInstanceExtensionEnabled(const char* extensionName) const { return false; }
             virtual bool IsVulkanDeviceExtensionEnabled(const char* extensionName) const { return false; }
             virtual bool IsVulkanLayerEnabled(const char* layerName) const { return false; }
@@ -1215,10 +1191,6 @@ export namespace HE {
         HYDRA_API bool IsModuleLoaded(ModuleHandle handle);
         HYDRA_API bool UnloadModule(ModuleHandle handle);
         HYDRA_API Ref<ModuleData> GetModuleData(ModuleHandle handle);
-
-        // TODO:
-        // - Optimizing memory usage with compact data structures.
-        // - Is using a hash of the relative file path a good approach for generating ModuleHandle?  
     }
 
     //////////////////////////////////////////////////////////////////////////
@@ -1267,12 +1239,6 @@ export namespace HE {
         HYDRA_API bool UnloadPlugin(PluginHandle handle);
         HYDRA_API void ReloadPlugin(PluginHandle handle);
         HYDRA_API const Ref<Plugin> GetPlugin(PluginHandle handle);
-
-        // TODO:
-        // - Handling circular dependencies to avoid infinite recursion.
-        // - Optimizing memory usage with compact data structures.
-        // - Find a better way to generate PluginHandle. The current approach hashes the plugin name,  
-        //   which does not scale well and may lead to collisions.
     }
 
     //////////////////////////////////////////////////////////////////////////

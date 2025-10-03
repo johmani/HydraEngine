@@ -58,15 +58,11 @@ struct DX11SwapChain : public HE::SwapChain
     nvrhi::ITexture* GetBackBuffer(uint32_t index) override { return (index == 0) ? rhiBackBuffer : nullptr; }
     uint32_t GetCurrentBackBufferIndex() override           { return 0;                                      }
     uint32_t GetBackBufferCount() override                  { return 1;                                      }
-
     bool Present() override;
-
     void ResizeSwapChain(uint32_t width, uint32_t height) override;
-
     bool BeginFrame() override;
 
     bool CreateRenderTarget(uint32_t width, uint32_t height);
-
     void ReleaseRenderTarget();
 };
 
@@ -80,7 +76,7 @@ struct DX11DeviceManager : public HE::RHI::DeviceManager
     std::string                             rendererString;
 
     ~DX11DeviceManager();
-    const char* GetRendererString() const override { return rendererString.c_str(); }
+    std::string_view GetRendererString() const override { return rendererString; }
     nvrhi::IDevice* GetDevice() const override { return nvrhiDevice; }
     HE::SwapChain* CreateSwapChain(const HE::SwapChainDesc& swapChainDesc, void* windowHandle) override;
     void ReportLiveObjects() override;
@@ -202,7 +198,7 @@ bool DX11DeviceManager::EnumerateAdapters(std::vector<HE::RHI::AdapterInfo>& out
 
     while (true)
     {
-        nvrhi::RefCountPtr<IDXGIAdapter> adapter;
+        IDXGIAdapter* adapter;
         HRESULT hr = dxgiFactory->EnumAdapters(uint32_t(outAdapters.size()), &adapter);
         if (FAILED(hr))
             return true;
@@ -213,10 +209,8 @@ bool DX11DeviceManager::EnumerateAdapters(std::vector<HE::RHI::AdapterInfo>& out
             return false;
 
         HE::RHI::AdapterInfo adapterInfo;
-
         adapterInfo.name = GetAdapterName(desc);
-        HE_TRACE("adapterInfo {}", adapterInfo.name);
-        adapterInfo.dxgiAdapter = adapter;
+        //adapterInfo.adapter = adapter;
         adapterInfo.vendorID = desc.VendorId;
         adapterInfo.deviceID = desc.DeviceId;
         adapterInfo.dedicatedVideoMemory = desc.DedicatedVideoMemory;
@@ -258,9 +252,13 @@ bool DX11DeviceManager::CreateDevice()
     if (FAILED(dxgiFactory->EnumAdapters(adapterIndex, &dxgiAdapter)))
     {
         if (adapterIndex == 0)
+        {
             HE_CORE_ERROR("Cannot find any DXGI adapters in the system.");
+        }
         else
+        {
             HE_CORE_ERROR("The specified DXGI adapter {} does not exist.", adapterIndex);
+        }
         return false;
     }
 
@@ -280,12 +278,13 @@ bool DX11DeviceManager::CreateDevice()
     {
         HE_PROFILE_SCOPE("D3D11CreateDevice");
 
+        D3D_FEATURE_LEVEL fl = (D3D_FEATURE_LEVEL)desc.featureLevel;
         const HRESULT hr = D3D11CreateDevice(
             dxgiAdapter,             // pAdapter
             D3D_DRIVER_TYPE_UNKNOWN, // DriverType
             nullptr,                 // Software
             createFlags,             // Flags
-            &desc.featureLevel,      // pFeatureLevels
+            &fl,                     // pFeatureLevels
             1,                       // FeatureLevels
             D3D11_SDK_VERSION,       // SDKVersion
             &device,                 // ppDevice
@@ -297,6 +296,8 @@ bool DX11DeviceManager::CreateDevice()
         {
             return false;
         }
+
+        desc.featureLevel  = (uint32_t)fl;
     }
 
     nvrhi::d3d11::DeviceDesc deviceDesc;
@@ -454,7 +455,7 @@ struct DX12DeviceManager : public HE::RHI::DeviceManager
 
     ~DX12DeviceManager();
     HE::SwapChain* CreateSwapChain(const HE::SwapChainDesc& swapChainDesc, void* windowHandle) override;
-    const char* GetRendererString() const override;
+    std::string_view GetRendererString() const override;
     nvrhi::IDevice* GetDevice() const override;
     void ReportLiveObjects() override;
     bool EnumerateAdapters(std::vector<HE::RHI::AdapterInfo>& outAdapters) override;
@@ -621,7 +622,7 @@ HE::SwapChain* DX12DeviceManager::CreateSwapChain(const HE::SwapChainDesc& swapC
     return dx12SwapChain;
 }
 
-const char* DX12DeviceManager::GetRendererString() const { return rendererString.c_str(); }
+std::string_view DX12DeviceManager::GetRendererString() const { return rendererString; }
 
 nvrhi::IDevice* DX12DeviceManager::GetDevice() const { return nvrhiDevice; }
 
@@ -654,7 +655,7 @@ bool DX12DeviceManager::EnumerateAdapters(std::vector<HE::RHI::AdapterInfo>& out
 
     while (true)
     {
-        nvrhi::RefCountPtr<IDXGIAdapter> adapter;
+        IDXGIAdapter* adapter;
         HRESULT hr = dxgiFactory2->EnumAdapters(uint32_t(outAdapters.size()), &adapter);
         if (FAILED(hr))
             return true;
@@ -665,9 +666,8 @@ bool DX12DeviceManager::EnumerateAdapters(std::vector<HE::RHI::AdapterInfo>& out
             return false;
 
         HE::RHI::AdapterInfo adapterInfo;
-
         adapterInfo.name = GetAdapterName(desc);
-        adapterInfo.dxgiAdapter = adapter;
+        //adapterInfo.adapter = adapter;
         adapterInfo.vendorID = desc.VendorId;
         adapterInfo.deviceID = desc.DeviceId;
         adapterInfo.dedicatedVideoMemory = desc.DedicatedVideoMemory;
@@ -754,7 +754,7 @@ bool DX12DeviceManager::CreateDevice()
 
         HRESULT hr = D3D12CreateDevice(
             dxgiAdapter,
-            desc.featureLevel,
+            (D3D_FEATURE_LEVEL)desc.featureLevel,
             IID_PPV_ARGS(&device)
         );
 

@@ -125,7 +125,7 @@ struct VKDeviceManager : public HE::RHI::DeviceManager
     bool CreateInstance();
     bool CreateInstanceInternal();
     bool CreateDevice() override;
-    const char* GetRendererString() const override;
+    std::string_view GetRendererString() const override;
     bool IsVulkanInstanceExtensionEnabled(const char* extensionName) const override;
     bool IsVulkanDeviceExtensionEnabled(const char* extensionName) const override;
     bool IsVulkanLayerEnabled(const char* layerName) const override;
@@ -302,7 +302,7 @@ bool VKDeviceManager::EnumerateAdapters(std::vector<HE::RHI::AdapterInfo>& outAd
         adapterInfo.name = properties.deviceName.data();
         adapterInfo.vendorID = properties.vendorID;
         adapterInfo.deviceID = properties.deviceID;
-        adapterInfo.vkPhysicalDevice = physicalDevice;
+        //adapterInfo.adapter = physicalDevice;
         adapterInfo.dedicatedVideoMemory = 0;
 
         HE::RHI::AdapterInfo::UUID uuid;
@@ -608,10 +608,7 @@ bool VKDeviceManager::CreateDevice()
     return true;
 }
 
-const char* VKDeviceManager::GetRendererString() const
-{
-    return rendererString.c_str();
-}
+std::string_view VKDeviceManager::GetRendererString() const { return rendererString; }
 
 bool VKDeviceManager::IsVulkanInstanceExtensionEnabled(const char* extensionName) const
 {
@@ -1101,9 +1098,6 @@ bool VKDeviceManager::CreateDeviceImp()
         .setEnabledLayerCount(uint32_t(layerVec.size()))
         .setPpEnabledLayerNames(layerVec.data())
         .setPNext(&vulkan12features);
-
-    if (desc.deviceCreateInfoCallback)
-        desc.deviceCreateInfoCallback(deviceDesc);
 
     const vk::Result res = vulkanPhysicalDevice.createDevice(&deviceDesc, nullptr, &device);
     if (res != vk::Result::eSuccess)
