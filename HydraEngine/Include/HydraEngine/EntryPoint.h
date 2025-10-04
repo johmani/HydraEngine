@@ -22,7 +22,7 @@ int HE::Main(int argc, char** argv)
     return 0;
 }
 
-#if defined(HE_PLATFORM_WINDOWS) && defined(HE_DIST)
+#if defined(_WIN64) && defined(HE_DIST)
 #include <Windows.h>
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine, int nCmdShow)

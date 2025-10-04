@@ -23,8 +23,9 @@ module;
 #include <GLFW/glfw3native.h>
 
 module HE;
-import std;
+
 import nvrhi;
+import std;
 
 //////////////////////////////////////////////////////////////////////////
 // D3D11

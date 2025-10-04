@@ -17,14 +17,13 @@ project "HydraEngine"
         "%{IncludeDir.glm}/**.cppm",
         "%{IncludeDir.simdjson}/**.cppm",
         "%{IncludeDir.simdjson}/**.cpp",
-
-        "%{IncludeDir.magic_enum}/**.hpp",
         "%{IncludeDir.magic_enum}/**.cppm",
     }
 
     buildoptions {
 
         AddCppm("nvrhi"),
+        AddCppm("std"),
     }
 
     defines {

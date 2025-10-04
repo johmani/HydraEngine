@@ -8,6 +8,7 @@ module;
 
 module HE;
 import nvrhi;
+import std;
 
 // TODO
 // - Investigate device.createSwapchainKHR and device.destroySwapchainKHR take so much time
