@@ -14,6 +14,7 @@
 #include <bitset>
 #include <filesystem>
 #include <string>
+#include <span>
 
 namespace Math = glm;
 
@@ -283,7 +284,7 @@ namespace HE {
     using MouseCode = uint16_t;
     namespace MouseKey
     {
-        enum : MouseCode
+        enum Code : MouseCode
         {
             Button0, Button1, Button2, Button3, Button4, Button5, Button6, Button7,
 
@@ -296,12 +297,13 @@ namespace HE {
 
         HYDRA_API constexpr std::string_view ToString(MouseCode code);
         HYDRA_API constexpr MouseCode FromString(std::string_view code);
+        HYDRA_API constexpr std::span<const CodeStrPair> Map();
     }
 
     using JoystickCode = uint16_t;
     namespace Joystick
     {
-        enum : JoystickCode
+        enum Code : JoystickCode
         {
             Joystick0, Joystick1, Joystick2, Joystick3, Joystick4, Joystick5,
             Joystick6, Joystick7, Joystick8, Joystick9, Joystick10, Joystick11,
@@ -312,12 +314,13 @@ namespace HE {
 
         HYDRA_API constexpr std::string_view ToString(JoystickCode code);
         HYDRA_API constexpr JoystickCode FromString(std::string_view codeStr);
+        HYDRA_API constexpr std::span<const CodeStrPair> Map();
     }
 
     using GamepadCode = uint16_t;
     namespace GamepadButton
     {
-        enum : GamepadCode
+        enum Code : GamepadCode
         {
             A, B, X, Y,
             LeftBumper, RightBumper, Back,
@@ -331,12 +334,13 @@ namespace HE {
 
         HYDRA_API constexpr std::string_view ToString(GamepadCode code);
         HYDRA_API constexpr GamepadCode FromString(std::string_view codeStr);
+        HYDRA_API constexpr std::span<const CodeStrPair> Map();
     }
 
     using GamepadAxisCode = uint16_t;
     namespace GamepadAxis
     {
-        enum : GamepadAxisCode
+        enum Code : GamepadAxisCode
         {
             Left, Right,
 
@@ -345,12 +349,13 @@ namespace HE {
 
         HYDRA_API constexpr std::string_view ToString(GamepadAxisCode code);
         HYDRA_API constexpr GamepadAxisCode FromString(std::string_view codeStr);
+        HYDRA_API constexpr std::span<const CodeStrPair> Map();
     }
 
     using KeyCode = uint16_t;
     namespace Key
     {
-        enum : KeyCode
+        enum Code : KeyCode
         {
             Space, Apostrophe, Comma, Minus, Period, Slash,
             D0, D1, D2, D3, D4, D5, D6, D7, D8, D9,
@@ -369,6 +374,7 @@ namespace HE {
 
         HYDRA_API constexpr std::string_view ToString(KeyCode code);
         HYDRA_API constexpr KeyCode FromString(std::string_view code);
+        HYDRA_API constexpr std::span<const CodeStrPair> Map();
     }
 
     struct Cursor
@@ -383,50 +389,46 @@ namespace HE {
         Mode CursorMode;
     };
 
-    enum class EventType : uint8_t
+    enum class EventType
     {
-        None = 0,
-        WindowClose, WindowResize, WindowFocus, WindowLostFocus, WindowMoved, WindowDrop, WindowContentScale, WindowMaximize, WindowMinimized,
         KeyPressed, KeyReleased, KeyTyped,
         MouseButtonPressed, MouseButtonReleased, MouseMoved, MouseScrolled, MouseEnter,
-        GamepadButtonPressed, GamepadButtonReleased, GamepadAxisMoved, GamepadConnected
+        GamepadButtonPressed, GamepadButtonReleased, GamepadAxisMoved, GamepadConnected,
+        WindowClose, WindowResize, WindowFocus, WindowLostFocus, WindowMoved, WindowDrop, WindowContentScale, WindowMaximize, WindowMinimized,
+        None,
     };
 
-    enum EventCategory : uint8_t
+    enum class EventCategory
     {
-        EventCategoryNone = 0,
-        EventCategoryApplication = BIT(0),
-        EventCategoryInput = BIT(1),
-        EventCategoryKeyboard = BIT(2),
-        EventCategoryMouse = BIT(3),
-        EventCategoryMouseButton = BIT(4),
-        EventCategoryJoystick = BIT(5),
-        EventCategoryGamepadButton = BIT(6),
-        EventCategoryGamepadAxis = BIT(7),
+        Keyboard,
+        Mouse,
+        Gamepad,
+        Window,
+        None,
     };
 
     HYDRA_API constexpr std::string_view ToString(EventType code);
     HYDRA_API constexpr EventType FromStringToEventType(std::string_view code);
+    HYDRA_API constexpr std::span<const CodeStrPair> EventTypeMap();
     HYDRA_API constexpr std::string_view ToString(EventCategory code);
     HYDRA_API constexpr EventCategory FromStringToEventCategory(std::string_view code);
+    HYDRA_API constexpr std::span<const CodeStrPair> EventCategoryMap();
 
 #define EVENT_CLASS_TYPE(type)  inline static EventType GetStaticType() { return EventType::type; }\
                                 inline virtual EventType GetEventType() const override { return GetStaticType(); }\
                                 inline virtual const char* GetName() const override { return #type; }
-#define EVENT_CLASS_CATEGORY(category) inline virtual int GetCategoryFlags() const override { return category; }
+
+#define EVENT_CLASS_CATEGORY(category) inline virtual EventCategory GetCategory() const override { return EventCategory::category; }
 
     struct Event
     {
-        virtual ~Event() = default;
-
         bool handled = false;
 
+        virtual ~Event() = default;
         virtual EventType GetEventType() const = 0;
+        virtual EventCategory GetCategory() const = 0;
         virtual const char* GetName() const = 0;
-        virtual int GetCategoryFlags() const = 0;
         virtual std::string ToString() const { return GetName(); }
-
-        inline bool IsInCategory(EventCategory category) { return GetCategoryFlags() & category; }
     };
 
     template<typename T, typename F>
@@ -460,7 +462,7 @@ namespace HE {
         }
 
         EVENT_CLASS_TYPE(WindowResize)
-            EVENT_CLASS_CATEGORY(EventCategoryApplication)
+        EVENT_CLASS_CATEGORY(Window)
     };
 
     struct WindowCloseEvent : public Event
@@ -468,7 +470,7 @@ namespace HE {
         WindowCloseEvent() = default;
 
         EVENT_CLASS_TYPE(WindowClose)
-            EVENT_CLASS_CATEGORY(EventCategoryApplication)
+        EVENT_CLASS_CATEGORY(Window)
     };
 
     struct WindowDropEvent : public Event
@@ -490,7 +492,7 @@ namespace HE {
         }
 
         EVENT_CLASS_TYPE(WindowDrop)
-            EVENT_CLASS_CATEGORY(EventCategoryApplication)
+        EVENT_CLASS_CATEGORY(Window)
     };
 
     struct WindowContentScaleEvent : public Event
@@ -507,7 +509,7 @@ namespace HE {
         }
 
         EVENT_CLASS_TYPE(WindowContentScale)
-            EVENT_CLASS_CATEGORY(EventCategoryApplication)
+        EVENT_CLASS_CATEGORY(Window)
     };
 
     struct WindowMaximizeEvent : public Event
@@ -524,7 +526,7 @@ namespace HE {
         }
 
         EVENT_CLASS_TYPE(WindowMaximize)
-            EVENT_CLASS_CATEGORY(EventCategoryApplication)
+        EVENT_CLASS_CATEGORY(Window)
     };
 
     struct WindowMinimizeEvent : public Event
@@ -541,7 +543,7 @@ namespace HE {
         }
 
         EVENT_CLASS_TYPE(WindowMinimized)
-            EVENT_CLASS_CATEGORY(EventCategoryApplication)
+        EVENT_CLASS_CATEGORY(Window)
     };
 
     //////////////////////////////////////////////////////////////////////////
@@ -563,7 +565,7 @@ namespace HE {
         }
 
         EVENT_CLASS_TYPE(KeyPressed)
-            EVENT_CLASS_CATEGORY(EventCategoryKeyboard | EventCategoryInput)
+        EVENT_CLASS_CATEGORY(Keyboard)
     };
 
     struct KeyReleasedEvent : public Event
@@ -579,8 +581,8 @@ namespace HE {
             return ss.str();
         }
 
-        EVENT_CLASS_CATEGORY(EventCategoryKeyboard | EventCategoryInput)
-            EVENT_CLASS_TYPE(KeyReleased)
+        EVENT_CLASS_CATEGORY(Keyboard)
+        EVENT_CLASS_TYPE(KeyReleased)
     };
 
     struct KeyTypedEvent : public Event
@@ -597,7 +599,7 @@ namespace HE {
         }
 
         EVENT_CLASS_TYPE(KeyTyped)
-            EVENT_CLASS_CATEGORY(EventCategoryKeyboard | EventCategoryInput)
+        EVENT_CLASS_CATEGORY(Keyboard)
     };
 
     //////////////////////////////////////////////////////////////////////////
@@ -618,7 +620,7 @@ namespace HE {
         }
 
         EVENT_CLASS_TYPE(MouseMoved)
-            EVENT_CLASS_CATEGORY(EventCategoryInput | EventCategoryMouse)
+        EVENT_CLASS_CATEGORY(Mouse)
     };
 
     struct MouseEnterEvent : public Event
@@ -635,7 +637,7 @@ namespace HE {
         }
 
         EVENT_CLASS_TYPE(MouseEnter)
-            EVENT_CLASS_CATEGORY(EventCategoryInput | EventCategoryMouse)
+        EVENT_CLASS_CATEGORY(Mouse)
     };
 
     struct MouseScrolledEvent : public Event
@@ -652,7 +654,7 @@ namespace HE {
         }
 
         EVENT_CLASS_TYPE(MouseScrolled)
-            EVENT_CLASS_CATEGORY(EventCategoryInput | EventCategoryMouse)
+        EVENT_CLASS_CATEGORY(Mouse)
     };
 
     struct MouseButtonPressedEvent : public Event
@@ -668,8 +670,8 @@ namespace HE {
             return ss.str();
         }
 
-        EVENT_CLASS_CATEGORY(EventCategoryInput | EventCategoryMouse | EventCategoryMouseButton)
-            EVENT_CLASS_TYPE(MouseButtonPressed)
+        EVENT_CLASS_TYPE(MouseButtonPressed)
+        EVENT_CLASS_CATEGORY(Mouse)
     };
 
     struct MouseButtonReleasedEvent : public Event
@@ -685,8 +687,8 @@ namespace HE {
             return ss.str();
         }
 
-        EVENT_CLASS_CATEGORY(EventCategoryInput | EventCategoryMouse | EventCategoryMouseButton)
-            EVENT_CLASS_TYPE(MouseButtonReleased)
+        EVENT_CLASS_TYPE(MouseButtonReleased)
+        EVENT_CLASS_CATEGORY(Mouse)
     };
 
     //////////////////////////////////////////////////////////////////////////
@@ -709,7 +711,7 @@ namespace HE {
         }
 
         EVENT_CLASS_TYPE(GamepadAxisMoved)
-            EVENT_CLASS_CATEGORY(EventCategoryInput | EventCategoryJoystick | EventCategoryGamepadAxis)
+        EVENT_CLASS_CATEGORY(Gamepad)
     };
 
     struct GamepadButtonPressedEvent : public Event
@@ -726,8 +728,8 @@ namespace HE {
             return ss.str();
         }
 
-        EVENT_CLASS_CATEGORY(EventCategoryInput | EventCategoryJoystick | EventCategoryGamepadButton)
-            EVENT_CLASS_TYPE(GamepadButtonPressed)
+        EVENT_CLASS_TYPE(GamepadButtonPressed)
+        EVENT_CLASS_CATEGORY(Gamepad)
     };
 
     struct GamepadButtonReleasedEvent : public Event
@@ -744,8 +746,8 @@ namespace HE {
             return ss.str();
         }
 
-        EVENT_CLASS_CATEGORY(EventCategoryInput | EventCategoryJoystick | EventCategoryGamepadButton)
-            EVENT_CLASS_TYPE(GamepadButtonReleased)
+        EVENT_CLASS_TYPE(GamepadButtonReleased)
+        EVENT_CLASS_CATEGORY(Gamepad)
     };
 
     struct GamepadConnectedEvent : public Event
@@ -763,7 +765,7 @@ namespace HE {
         }
 
         EVENT_CLASS_TYPE(GamepadConnected)
-            EVENT_CLASS_CATEGORY(EventCategoryInput | EventCategoryJoystick)
+        EVENT_CLASS_CATEGORY(Gamepad)
     };
 
     //////////////////////////////////////////////////////////////////////////
@@ -779,6 +781,7 @@ namespace HE {
         uint16_t code;
         EventType eventType;
         EventCategory eventCategory;
+        std::string shortCut;
     };
 
     namespace Input {
@@ -808,8 +811,11 @@ namespace HE {
         HYDRA_API Cursor::Mode GetCursorMode();
 
         HYDRA_API bool Triggered(const std::string_view& name);
-        HYDRA_API bool RegisterKeyBinding(const KeyBindingDesc& action);
-        HYDRA_API const std::map<uint64_t, KeyBindingDesc>& GetKeyBindings();
+        HYDRA_API void BlockEventsUntilNextFrame();
+        HYDRA_API bool IsEventsBlocked();
+        HYDRA_API bool RegisterKeyBinding(const KeyBindingDesc& name);
+        HYDRA_API std::map<uint64_t, KeyBindingDesc>& GetKeyBindings();
+        HYDRA_API std::string_view GetShortCut(std::string_view name);
         HYDRA_API void SerializeKeyBindings(const std::filesystem::path& filePath);
         HYDRA_API bool DeserializeKeyBindings(const std::filesystem::path& filePath);
     }
@@ -1330,10 +1336,13 @@ namespace HE {
         ApplicationDesc applicatoinDesc;
         RHI::DeviceContext deviceContext;
         Window mainWindow;
-        std::map<uint64_t, KeyBindingDesc> keyBindings;
+       
         LayerStack layerStack;
         Modules::ModulesContext modulesContext;
         Plugins::PluginContext pluginContext;
+
+        std::map<uint64_t, KeyBindingDesc> keyBindings;
+        bool blockingEventsUntilNextFrame = false;
 
         Stats appStats;
         bool running = true;

@@ -218,6 +218,8 @@ namespace HE {
             Timestep timestep = time - lastFrameTime;
             lastFrameTime = time;
 
+            blockingEventsUntilNextFrame = false;
+
             {
                 HE_PROFILE_SCOPE_NC("ExecuteMainThreadQueue", 0xAA0000);
 
@@ -2129,7 +2131,8 @@ namespace HE {
 
         auto hash = Hash(name);
 
-        if (!c.keyBindings.contains(hash)) return false;
+        if (c.blockingEventsUntilNextFrame || !c.keyBindings.contains(hash))
+            return false;
 
         const auto& keysData = c.keyBindings.at(hash);
 
@@ -2137,19 +2140,46 @@ namespace HE {
             if (m != 0 && !Input::IsKeyDown(m))
                 return false;
 
-        if (keysData.eventType == EventType::KeyPressed && (keysData.eventCategory & EventCategory::EventCategoryKeyboard) && Input::IsKeyPressed(keysData.code))
-            return true;
+        if (keysData.eventCategory == EventCategory::Keyboard)
+        {
+            if (keysData.eventType == EventType::KeyPressed && Input::IsKeyPressed(keysData.code))
+            {
+                BlockEventsUntilNextFrame();
+                return true;
+            }
 
-        if (keysData.eventType == EventType::KeyReleased && (keysData.eventCategory & EventCategory::EventCategoryKeyboard) && Input::IsKeyReleased(keysData.code))
-            return true;
+            if (keysData.eventType == EventType::KeyReleased && Input::IsKeyReleased(keysData.code))
+            {
+                BlockEventsUntilNextFrame();
+                return true;
+            }
+        }
+        else if(keysData.eventCategory == EventCategory::Mouse)
+        {
+            if (keysData.eventType == EventType::MouseButtonPressed && Input::IsMouseButtonPressed(keysData.code))
+            {
+                BlockEventsUntilNextFrame();
+                return true;
+            }
 
-        if (keysData.eventType == EventType::MouseButtonPressed && (keysData.eventCategory == EventCategory::EventCategoryMouseButton) && Input::IsMouseButtonPressed(keysData.code))
-            return true;
-
-        if (keysData.eventType == EventType::MouseButtonReleased && (keysData.eventCategory == EventCategory::EventCategoryMouseButton) && Input::IsMouseButtonReleased(keysData.code))
-            return true;
+            if (keysData.eventType == EventType::MouseButtonReleased && Input::IsMouseButtonReleased(keysData.code))
+            {
+                BlockEventsUntilNextFrame();
+                return true;
+            }
+        }
 
         return false;
+    }
+
+    void Input::BlockEventsUntilNextFrame()
+    {
+        GetAppContext().blockingEventsUntilNextFrame = true;
+    }
+
+    bool Input::IsEventsBlocked()
+    {
+        return GetAppContext().blockingEventsUntilNextFrame;
     }
 
     bool Input::RegisterKeyBinding(const KeyBindingDesc& action)
@@ -2168,9 +2198,20 @@ namespace HE {
         return false;
     }
 
-    const std::map<uint64_t, KeyBindingDesc>& Input::GetKeyBindings()
+    std::map<uint64_t, KeyBindingDesc>& Input::GetKeyBindings()
     {
         return GetAppContext().keyBindings;
+    }
+
+    std::string_view Input::GetShortCut(std::string_view name)
+    {
+        auto& keyBindings = GetAppContext().keyBindings;
+        auto hash = Hash(name);
+
+        if (keyBindings.contains(hash))
+            return keyBindings.at(hash).shortCut;
+
+        return "None";
     }
 
     //////////////////////////////////////////////////////////////////////////
@@ -2319,6 +2360,11 @@ namespace HE {
             HE_CORE_VERIFY(false);
             return -1;
         }
+
+        constexpr std::span<const CodeStrPair> Map()
+        {
+            return std::span<const CodeStrPair>(c_CodeToStringMap, std::size(c_CodeToStringMap));
+        }
     }
 
     namespace Joystick
@@ -2343,6 +2389,11 @@ namespace HE {
             HE_CORE_VERIFY(false);
             return -1;
         }
+
+        constexpr std::span<const CodeStrPair> Map()
+        {
+            return std::span<const CodeStrPair>(c_CodeToStringMap, std::size(c_CodeToStringMap));
+        }
     }
 
     namespace GamepadButton
@@ -2365,6 +2416,11 @@ namespace HE {
             HE_CORE_VERIFY(false);
             return -1;
         }
+
+        constexpr std::span<const CodeStrPair> Map()
+        {
+            return std::span<const CodeStrPair>(c_CodeToStringMap, std::size(c_CodeToStringMap));
+        }
     }
 
     namespace GamepadAxis
@@ -2383,6 +2439,11 @@ namespace HE {
 
             HE_CORE_VERIFY(false);
             return -1;
+        }
+
+        constexpr std::span<const CodeStrPair> Map()
+        {
+            return std::span<const CodeStrPair>(c_CodeToStringMap, std::size(c_CodeToStringMap));
         }
     }
 
@@ -2522,19 +2583,14 @@ namespace HE {
             HE_CORE_VERIFY(false);
             return -1;
         }
+
+        constexpr std::span<const CodeStrPair> Map()
+        {
+            return std::span<const CodeStrPair>(c_CodeToStringMap, std::size(c_CodeToStringMap));
+        }
     }
 
     constexpr CodeStrPair c_EventTypeMap[] = {
-            { (int)EventType::None,                  "None"                   },
-            { (int)EventType::WindowClose,           "Window Close"           },
-            { (int)EventType::WindowResize,          "Window Resize"          },
-            { (int)EventType::WindowFocus,           "Window Focus"           },
-            { (int)EventType::WindowLostFocus,       "Window LostFocus"       },
-            { (int)EventType::WindowMoved,           "Window Moved"           },
-            { (int)EventType::WindowDrop,            "Window Drop"            },
-            { (int)EventType::WindowContentScale,    "Window ContentScale"    },
-            { (int)EventType::WindowMaximize,        "Window Maximize"        },
-            { (int)EventType::WindowMinimized,       "Window Minimized"       },
             { (int)EventType::KeyPressed,            "Key Pressed"            },
             { (int)EventType::KeyReleased,           "Key Released"           },
             { (int)EventType::KeyTyped,              "Key Typed"              },
@@ -2547,6 +2603,16 @@ namespace HE {
             { (int)EventType::GamepadButtonReleased, "Gamepad ButtonReleased" },
             { (int)EventType::GamepadAxisMoved,      "Gamepad Axis Moved"     },
             { (int)EventType::GamepadConnected,      "Gamepad Connected"      },
+            { (int)EventType::WindowClose,           "Window Close"           },
+            { (int)EventType::WindowResize,          "Window Resize"          },
+            { (int)EventType::WindowFocus,           "Window Focus"           },
+            { (int)EventType::WindowLostFocus,       "Window LostFocus"       },
+            { (int)EventType::WindowMoved,           "Window Moved"           },
+            { (int)EventType::WindowDrop,            "Window Drop"            },
+            { (int)EventType::WindowContentScale,    "Window ContentScale"    },
+            { (int)EventType::WindowMaximize,        "Window Maximize"        },
+            { (int)EventType::WindowMinimized,       "Window Minimized"       },
+            { (int)EventType::None,                  "None"                   },
     };
 
     constexpr std::string_view ToString(EventType code) { return c_EventTypeMap[int(code)].codeStr; }
@@ -2561,18 +2627,19 @@ namespace HE {
         return EventType::None;
     }
 
+    constexpr std::span<const CodeStrPair> EventTypeMap() { return std::span<const CodeStrPair>(c_EventTypeMap, std::size(c_EventTypeMap)); }
+
     constexpr CodeStrPair c_EventCategoryMap[] = {
-            { EventCategoryApplication,   "Application"    },
-            { EventCategoryInput,         "Input"          },
-            { EventCategoryKeyboard,      "Keyboard"       },
-            { EventCategoryMouse,         "Mouse"          },
-            { EventCategoryMouseButton,   "Mouse Button"   },
-            { EventCategoryJoystick,      "Joystick"       },
-            { EventCategoryGamepadButton, "Gamepad Button" },
-            { EventCategoryGamepadAxis,   "Gamepad Axis"   },
+        { (int)EventCategory::Keyboard,      "Keyboard"       },
+        { (int)EventCategory::Mouse,         "Mouse"          },
+        { (int)EventCategory::Gamepad,       "Gamepad"        },
+        { (int)EventCategory::Window,        "Window"         },
+        { (int)EventCategory::None,          "None"           },
     };
 
-    constexpr std::string_view ToString(EventCategory code) { return c_EventCategoryMap[code].codeStr; }
+    constexpr std::span<const CodeStrPair> EventCategoryMap() { return std::span<const CodeStrPair>(c_EventCategoryMap, std::size(c_EventCategoryMap)); }
+
+    constexpr std::string_view ToString(EventCategory code) { return c_EventCategoryMap[int(code)].codeStr; }
 
     constexpr EventCategory FromStringToEventCategory(std::string_view code)
     {
@@ -2581,7 +2648,7 @@ namespace HE {
                 return (EventCategory)pair.code;
 
         HE_CORE_VERIFY(false);
-        return EventCategory::EventCategoryNone;
+        return EventCategory::None;
     }
 
     void Input::SerializeKeyBindings(const std::filesystem::path& filePath)
@@ -2614,13 +2681,14 @@ namespace HE {
             }
             os << " ],\n";
 
-            if (desc.eventCategory & EventCategoryKeyboard)
+            if (desc.eventCategory == EventCategory::Keyboard)
                 os << "\t\t\t\"code\" : \"" << Key::ToString(desc.code) << "\",\n";
-            if (desc.eventCategory & EventCategoryMouseButton)
+            if (desc.eventCategory == EventCategory::Mouse)
                 os << "\t\t\t\"code\" : \"" << MouseKey::ToString(desc.code) << "\",\n";
 
             os << "\t\t\t\"eventType\" : \"" << ToString(desc.eventType) << "\",\n";
-            os << "\t\t\t\"eventCategory\" : \"" << ToString(desc.eventCategory) << "\"\n";
+            os << "\t\t\t\"eventCategory\" : \"" << ToString(desc.eventCategory) << "\",\n";
+            os << "\t\t\t\"shortCut\" : \"" << desc.shortCut << "\"\n";
             os << "\t\t}";
         }
 
@@ -2662,11 +2730,13 @@ namespace HE {
 
                 const char* name = !desc["name"].error() ? desc["name"].get_c_str().value() : "None";
                 EventType eventType = !desc["eventType"].error() ? FromStringToEventType(desc["eventType"].get_c_str().value()) : EventType::None;
-                EventCategory eventCategory = !desc["eventCategory"].error() ? FromStringToEventCategory(desc["eventCategory"].get_c_str().value()) : EventCategory::EventCategoryNone;
+                EventCategory eventCategory = !desc["eventCategory"].error() ? FromStringToEventCategory(desc["eventCategory"].get_c_str().value()) : EventCategory::None;
+                std::string shortCut = !desc["shortCut"].error() ? desc["shortCut"].get_c_str().value() : "None";
 
-                if (eventCategory & EventCategoryKeyboard)
+
+                if (eventCategory == EventCategory::Keyboard)
                     code = !desc["code"].error() ? Key::FromString(desc["code"].get_c_str().value()) : -1;
-                if (eventCategory & EventCategoryMouseButton)
+                if (eventCategory == EventCategory::Mouse)
                     code = !desc["code"].error() ? MouseKey::FromString(desc["code"].get_c_str().value()) : -1;
 
                 Input::RegisterKeyBinding({
@@ -2675,7 +2745,8 @@ namespace HE {
                     .code = code,
                     .eventType = eventType,
                     .eventCategory = eventCategory,
-                    });
+                    .shortCut = shortCut
+                });
             }
         }
 
