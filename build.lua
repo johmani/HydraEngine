@@ -76,8 +76,8 @@ function BuildShaders(apiList ,src, cache, flags, includeDirs)
     local conf = {}
     if apiList.VULKAN then table.insert(conf, { out = "spirv", args = "--platform SPIRV --vulkanVersion 1.2 --tRegShift 0 --sRegShift 128 --bRegShift 256 --uRegShift 384 -D SPIRV --compiler \"" .. dxc .. "\"" }) end
     if os.host() == "windows" then
-        if apiList.D3D11 then table.insert(conf, { out = "dxbc", args = "--platform DXBC --shaderModel 6_5 --compiler \"" .. fxc .. "\"" }) end
-        if apiList.D3D12 then table.insert(conf, { out = "dxil", args = "--platform DXIL --shaderModel 6_5 --compiler \"" .. dxc .. "\"" }) end
+        if apiList.D3D11 then table.insert(conf, { out = "dxbc", args = "--platform DXBC --shaderModel 6_6 --compiler \"" .. fxc .. "\"" }) end
+        if apiList.D3D12 then table.insert(conf, { out = "dxil", args = "--platform DXIL --shaderModel 6_6 --compiler \"" .. dxc .. "\"" }) end
     end
 
     local cmds = {}
