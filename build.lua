@@ -202,6 +202,7 @@ function LinkHydra(inc, extra)
         "%{IncludeDir.HydraEngine}",
         "%{IncludeDir.nvrhi}",
         "%{IncludeDir.glm}",
+        "%{IncludeDir.simdjson}",
         "%{IncludeDir.taskflow}",
         "%{IncludeDir.tracy}",
         "%{IncludeDir.magic_enum}",

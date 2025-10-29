@@ -8,8 +8,14 @@
 #include <nvrhi/utils.h>
 #include <magic_enum/magic_enum.hpp>
 
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#define GLM_ENABLE_EXPERIMENTAL
+#define GLM_EXT_INLINE_NAMESPACE
+#define GLM_GTX_INLINE_NAMESPACE
+#define GLM_GTC_INLINE_NAMESPACE
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
+#include <glm/extra.hpp>
 
 #include <bitset>
 #include <filesystem>
