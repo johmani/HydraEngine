@@ -1,3 +1,5 @@
+#pragma once
+
 #ifndef CPP_MODULE
 
 #define NOMINMAX
